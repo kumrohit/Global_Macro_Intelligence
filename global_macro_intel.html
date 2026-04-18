@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Macro Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#050811;
+  --bg2:#070B16;
+  --ocean-deep:#030712;
+  --ocean-mid:#0A1426;
+  --surface:#0A1220;
+  --card:#0E1828;
+  --border:#1A2540;
+  --border2:#253656;
+  --text:#CBD5E1;
+  --text2:#64748B;
+  --text3:#475569;
+  --accent:#60A5FA;
+  --accent-glow:#3B82F6;
+  --cyan:#22D3EE;
+  --cyan-dim:#22D3EE22;
+  --green:#10B981;
+  --green-dim:#10B98122;
+  --red:#EF4444;
+  --red-dim:#EF444422;
+  --amber:#F59E0B;
+  --bull:#10B981;
+  --bear:#EF4444;
+  --neut:#64748B;
+  --land:#1E2A44;
+  --land-hover:#2A3A5C;
+  --font-display:'Rajdhani',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-display);}
+
+/* ── Scanline overlay for CRT terminal feel ── */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+  pointer-events:none;z-index:9999;
+}
+
+#app{display:flex;flex-direction:column;height:100vh;}
+
+/* ── Top bar ── */
+#topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:44px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;z-index:100;
+  position:relative;
+}
+#topbar::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:0.4;
+}
+.logo{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:0.2em;color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,0.4);}
+.logo-sub{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.15em;margin-top:1px;}
+
+#clock{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.08em;}
+
+.tickers{display:flex;gap:20px;align-items:center;}
+.tick{display:flex;flex-direction:column;align-items:center;}
+.tick-name{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.12em;}
+.tick-val{font-family:var(--font-mono);font-size:11px;font-weight:500;}
+.tick-up{color:var(--bull);}
+.tick-dn{color:var(--bear);}
+.tick-na{color:var(--text2);}
+
+/* ── Main layout ── */
+#main{display:flex;flex:1;overflow:hidden;position:relative;}
+
+/* ── Map container ── */
+#map-wrap{
+  flex:1;position:relative;overflow:hidden;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 45%,#0B1A36 0%,#060E1F 55%,#030712 100%);
+}
+
+/* Deep space / atmosphere glow behind the globe */
+#map-wrap::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 30% 40%,rgba(59,130,246,0.08) 0%,transparent 50%),
+    radial-gradient(circle at 70% 60%,rgba(34,211,238,0.06) 0%,transparent 50%),
+    linear-gradient(rgba(96,165,250,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(96,165,250,0.025) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,40px 40px,40px 40px;
+  pointer-events:none;z-index:0;
+}
+
+/* Soft vignette for depth */
+#map-wrap::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 110% 90% at 50% 50%,transparent 50%,rgba(3,7,18,0.85) 100%);
+  pointer-events:none;z-index:2;
+}
+
+#map-svg{position:relative;z-index:1;width:100%;height:100%;cursor:grab;}
+#map-svg:active{cursor:grabbing;}
+
+/* Country styles — refined with better colors and smoother transitions */
+.country{
+  stroke:#0B1426;stroke-width:0.5px;
+  cursor:pointer;
+  transition:fill 0.4s cubic-bezier(0.4,0,0.2,1),
+             stroke 0.25s ease,
+             filter 0.25s ease;
+}
+.country.default{fill:url(#landGradient);}
+.country.bullish{fill:url(#bullGradient);}
+.country.bearish{fill:url(#bearGradient);}
+.country.neutral{fill:url(#neutGradient);}
+.country.loading{fill:#1A2540;animation:countryPulse 1.8s ease-in-out infinite;}
+
+.country:hover,.country.hovered{
+  stroke:var(--accent);stroke-width:1.2px;
+  filter:brightness(1.6) drop-shadow(0 0 6px rgba(96,165,250,0.5));
+}
+.country.active{
+  stroke:var(--cyan)!important;stroke-width:1.8px!important;
+  filter:brightness(1.8) drop-shadow(0 0 12px rgba(34,211,238,0.7))!important;
+}
+.country.bullish:hover,.country.bullish.hovered{filter:brightness(1.8) drop-shadow(0 0 10px rgba(16,185,129,0.6));}
+.country.bearish:hover,.country.bearish.hovered{filter:brightness(1.8) drop-shadow(0 0 10px rgba(239,68,68,0.6));}
+
+@keyframes countryPulse{0%,100%{opacity:0.7;}50%{opacity:1;}}
+
+/* Graticule — finer, more subtle */
+.graticule{fill:none;stroke:rgba(96,165,250,0.06);stroke-width:0.4px;stroke-dasharray:2 2;}
+.sphere{fill:url(#oceanGradient);}
+.outline{fill:none;stroke:rgba(96,165,250,0.2);stroke-width:0.8px;}
+
+/* Subtle country border mesh */
+.borders{fill:none;stroke:rgba(59,130,246,0.15);stroke-width:0.35px;}
+
+/* ── Tooltip ── */
+#tooltip{
+  position:fixed;
+  pointer-events:none;
+  z-index:500;
+  background:rgba(8,15,26,0.95);
+  border:1px solid var(--border2);
+  border-radius:3px;
+  padding:10px 14px;
+  min-width:160px;
+  display:none;
+  backdrop-filter:blur(8px);
+  box-shadow:0 4px 32px rgba(0,0,0,0.8),0 0 0 1px rgba(0,212,255,0.1);
+}
+.tt-country{font-family:var(--font-display);font-size:14px;font-weight:600;color:#fff;letter-spacing:0.05em;margin-bottom:3px;}
+.tt-region{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.1em;margin-bottom:6px;}
+.tt-sentiment{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 8px;border-radius:2px;display:inline-block;margin-bottom:4px;}
+.tt-bullish{background:rgba(0,200,83,0.15);color:var(--bull);border:1px solid rgba(0,200,83,0.3);}
+.tt-bearish{background:rgba(255,23,68,0.15);color:var(--bear);border:1px solid rgba(255,23,68,0.3);}
+.tt-neutral{background:rgba(55,71,79,0.3);color:#90A4AE;border:1px solid rgba(55,71,79,0.5);}
+.tt-click{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.08em;margin-top:4px;}
+.tt-score{font-family:var(--font-mono);font-size:9px;color:var(--text2);margin-top:2px;}
+
+/* ── Floating map header ── */
+#map-header{
+  position:absolute;top:20px;left:20px;z-index:10;
+  background:linear-gradient(135deg,rgba(14,24,40,0.92) 0%,rgba(10,18,32,0.88) 100%);
+  border:1px solid var(--border2);border-radius:6px;
+  padding:14px 18px;backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 0 1px rgba(96,165,250,0.08) inset;
+}
+.mh-line{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.mh-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green),0 0 16px rgba(16,185,129,0.5);
+  animation:liveBlink 2s ease-in-out infinite;
+}
+@keyframes liveBlink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.mh-label{font-family:var(--font-mono);font-size:8px;color:var(--green);letter-spacing:0.2em;font-weight:500;}
+.mh-title{font-family:var(--font-display);font-size:17px;font-weight:600;color:#fff;letter-spacing:0.03em;margin-bottom:3px;}
+.mh-sub{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.08em;}
+#analysed-inline{color:var(--accent);font-weight:500;}
+
+/* ── Zoom controls ── */
+#zoom-ctrls{
+  position:absolute;top:20px;right:20px;z-index:10;
+  display:flex;flex-direction:column;gap:4px;
+}
+.zbtn{
+  width:32px;height:32px;
+  background:rgba(14,24,40,0.9);
+  border:1px solid var(--border2);border-radius:4px;
+  color:var(--text);font-size:14px;font-weight:600;
+  cursor:pointer;backdrop-filter:blur(12px);
+  transition:all 0.2s;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);
+}
+.zbtn:hover{
+  border-color:var(--accent);
+  background:rgba(59,130,246,0.12);
+  color:var(--accent);
+  box-shadow:0 0 12px rgba(96,165,250,0.2);
+}
+
+/* ── Region quick-jump ── */
+#region-jump{
+  position:absolute;top:20px;left:50%;transform:translateX(-50%);
+  z-index:10;
+  background:rgba(14,24,40,0.9);
+  border:1px solid var(--border2);border-radius:4px;
+  padding:8px 12px;backdrop-filter:blur(12px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.4);
+}
+.rj-label{
+  font-family:var(--font-mono);font-size:7px;color:var(--text2);
+  letter-spacing:0.18em;margin-bottom:6px;text-align:center;
+}
+.rj-btns{display:flex;gap:4px;}
+.rj-btn{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:9px;
+  padding:4px 10px;letter-spacing:0.1em;cursor:pointer;
+  transition:all 0.2s;
+}
+.rj-btn:hover{
+  border-color:var(--accent);color:var(--accent);
+  background:rgba(59,130,246,0.08);
+}
+
+/* ── Legend — refined ── */
+#legend{
+  position:absolute;bottom:20px;left:20px;z-index:10;
+  background:linear-gradient(135deg,rgba(14,24,40,0.92) 0%,rgba(10,18,32,0.88) 100%);
+  border:1px solid var(--border2);border-radius:6px;
+  padding:14px 18px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.legend-title{
+  font-family:var(--font-mono);font-size:8px;color:var(--text2);
+  letter-spacing:0.18em;margin-bottom:10px;
+  padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.legend-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:6px;
+  font-family:var(--font-mono);font-size:10px;color:var(--text);
+}
+.legend-row:last-child{margin-bottom:0;}
+.ldot{width:14px;height:10px;border-radius:2px;}
+.ldot.bullish{background:linear-gradient(180deg,#10B981,#065F46);box-shadow:0 0 6px rgba(16,185,129,0.3);}
+.ldot.bearish{background:linear-gradient(180deg,#EF4444,#7F1D1D);box-shadow:0 0 6px rgba(239,68,68,0.3);}
+.ldot.neutral{background:linear-gradient(180deg,#64748B,#334155);}
+.ldot.default{background:linear-gradient(180deg,#2A3858,#1A243C);}
+
+/* ── API key widget — refined ── */
+#api-widget{
+  position:absolute;bottom:20px;right:20px;z-index:10;
+  background:linear-gradient(135deg,rgba(14,24,40,0.94) 0%,rgba(10,18,32,0.9) 100%);
+  border:1px solid var(--border2);border-radius:6px;
+  padding:14px 16px;width:250px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 0 1px rgba(96,165,250,0.08) inset;
+}
+.aw-label{
+  font-family:var(--font-mono);font-size:8px;color:var(--text2);
+  letter-spacing:0.18em;margin-bottom:8px;
+  padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+#api-input{
+  width:100%;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
+  padding:7px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;
+  outline:none;margin-bottom:6px;transition:border-color 0.2s;
+}
+#api-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,0.15);}
+#api-save{
+  width:100%;
+  background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(34,211,238,0.1));
+  border:1px solid rgba(96,165,250,0.35);
+  border-radius:3px;color:var(--accent);font-family:var(--font-mono);font-size:9px;
+  padding:7px;cursor:pointer;letter-spacing:0.15em;font-weight:500;
+  transition:all 0.2s;
+}
+#api-save:hover{
+  background:linear-gradient(135deg,rgba(59,130,246,0.25),rgba(34,211,238,0.2));
+  border-color:var(--accent);
+  box-shadow:0 0 16px rgba(96,165,250,0.25);
+}
+#api-ok{font-family:var(--font-mono);font-size:9px;color:var(--green);text-align:center;margin-top:6px;display:none;letter-spacing:0.1em;}
+
+/* ── Side panel ── */
+#panel{
+  width:0;flex-shrink:0;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  overflow:hidden;
+  transition:width 0.35s cubic-bezier(0.4,0,0.2,1);
+  display:flex;flex-direction:column;
+  position:relative;
+  z-index:50;
+}
+#panel.open{width:340px;}
+
+#panel-top{
+  padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  background:linear-gradient(180deg,rgba(0,212,255,0.03) 0%,transparent 100%);
+  position:relative;
+}
+#panel-top::after{
+  content:'';position:absolute;bottom:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:0.2;
+}
+#p-close{
+  position:absolute;top:16px;right:16px;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--card);border:1px solid var(--border2);
+  color:var(--text2);font-size:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+#p-close:hover{border-color:var(--cyan);color:var(--cyan);}
+#p-flag{font-size:28px;margin-bottom:6px;line-height:1;}
+#p-name{font-family:var(--font-display);font-size:20px;font-weight:700;color:#fff;letter-spacing:0.05em;}
+#p-meta{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.1em;margin-top:3px;}
+
+#panel-body{flex:1;overflow-y:auto;padding:16px 20px;}
+#panel-body::-webkit-scrollbar{width:3px;}
+#panel-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* Section label */
+.slabel{font-family:var(--font-mono);font-size:8px;letter-spacing:0.18em;color:var(--text2);text-transform:uppercase;margin-bottom:8px;margin-top:16px;}
+.slabel:first-child{margin-top:0;}
+
+/* Sentiment badge */
+#sent-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 18px;border-radius:3px;
+  font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:0.1em;
+  margin-bottom:8px;
+}
+#sent-badge.bullish{background:rgba(0,200,83,0.1);color:var(--bull);border:1px solid rgba(0,200,83,0.3);}
+#sent-badge.bearish{background:rgba(255,23,68,0.1);color:var(--bear);border:1px solid rgba(255,23,68,0.3);}
+#sent-badge.neutral{background:rgba(55,71,79,0.15);color:#78909C;border:1px solid rgba(55,71,79,0.35);}
+#sent-badge.loading{background:rgba(20,40,60,0.5);color:var(--text2);border:1px solid var(--border);}
+
+/* Score bar */
+.sbar-wrap{margin:8px 0 12px;}
+.sbar-track{height:3px;background:var(--border);border-radius:2px;position:relative;margin-bottom:4px;}
+.sbar-fill{height:100%;border-radius:2px;position:absolute;top:0;left:0;transition:width 0.7s ease,background 0.4s;}
+.sbar-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:8px;color:var(--text2);}
+#score-text{font-family:var(--font-mono);font-size:10px;color:var(--text);margin-top:5px;}
+
+/* Regime pill */
+.regime-pill{
+  display:inline-block;font-family:var(--font-mono);font-size:8px;
+  padding:2px 10px;border-radius:2px;letter-spacing:0.12em;margin-bottom:12px;
+}
+.rp-goldilocks{background:rgba(0,212,255,0.08);color:var(--cyan);border:1px solid rgba(0,212,255,0.25);}
+.rp-reflation{background:rgba(255,179,0,0.08);color:var(--amber);border:1px solid rgba(255,179,0,0.22);}
+.rp-stagflation{background:rgba(255,23,68,0.08);color:var(--red);border:1px solid rgba(255,23,68,0.22);}
+.rp-recession{background:rgba(255,109,0,0.08);color:#FF6D00;border:1px solid rgba(255,109,0,0.22);}
+
+/* Rationale box */
+#rationale{
+  font-family:var(--font-display);font-size:12px;font-weight:400;line-height:1.7;
+  color:var(--text);background:var(--card);
+  border:1px solid var(--border);border-left:2px solid var(--cyan);
+  padding:10px 12px;border-radius:2px;font-style:italic;
+}
+
+/* Metric chips */
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px;}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:3px;padding:8px 10px;}
+.chip-label{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.1em;margin-bottom:3px;}
+.chip-val{font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--text);}
+.cv-up{color:var(--bull);}
+.cv-dn{color:var(--bear);}
+
+/* News toggle */
+#news-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;background:var(--card);border:1px solid var(--border);
+  border-radius:3px;cursor:pointer;margin-top:2px;
+  font-family:var(--font-mono);font-size:10px;color:var(--text);
+  transition:border-color 0.2s;user-select:none;
+}
+#news-toggle:hover{border-color:var(--cyan);}
+#news-arrow{font-size:8px;color:var(--text2);transition:transform 0.2s;}
+#news-arrow.open{transform:rotate(180deg);}
+#news-list{display:none;margin-top:5px;border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+#news-list.open{display:block;}
+.ni{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--card);}
+.ni:last-child{border-bottom:none;}
+.ni-top{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.ni-src{font-family:var(--font-mono);font-size:8px;color:var(--cyan);letter-spacing:0.08em;}
+.ni-imp{font-family:var(--font-mono);font-size:8px;padding:1px 6px;border-radius:2px;}
+.ni-imp.HIGH{background:rgba(255,23,68,0.12);color:var(--red);border:1px solid rgba(255,23,68,0.25);}
+.ni-imp.MEDIUM{background:rgba(255,179,0,0.1);color:var(--amber);border:1px solid rgba(255,179,0,0.2);}
+.ni-imp.LOW{background:rgba(0,200,83,0.08);color:var(--bull);border:1px solid rgba(0,200,83,0.18);}
+.ni-title{font-family:var(--font-display);font-size:12px;line-height:1.5;color:var(--text);}
+.ni-title a{color:inherit;text-decoration:none;}
+.ni-title a:hover{color:var(--cyan);}
+.ni-sum{font-family:var(--font-display);font-size:11px;color:var(--text2);margin-top:3px;font-style:italic;line-height:1.4;}
+.ni-time{font-family:var(--font-mono);font-size:8px;color:var(--text2);margin-top:4px;}
+
+/* Spinner */
+.spin{display:inline-block;width:11px;height:11px;border:1.5px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:sp 0.7s linear infinite;vertical-align:middle;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.big-spin{width:32px;height:32px;border:2.5px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:sp 0.9s linear infinite;margin:0 auto 14px;}
+
+/* ── Exchange card (in side panel) ── */
+#exchange-card{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;
+  background:linear-gradient(135deg,rgba(59,130,246,0.08) 0%,rgba(34,211,238,0.05) 100%);
+  border:1px solid rgba(96,165,250,0.2);border-radius:4px;
+  cursor:pointer;transition:all 0.25s;
+  margin-top:2px;
+}
+#exchange-card:hover{
+  border-color:var(--accent);
+  background:linear-gradient(135deg,rgba(59,130,246,0.15) 0%,rgba(34,211,238,0.08) 100%);
+  box-shadow:0 0 20px rgba(96,165,250,0.2);
+  transform:translateX(2px);
+}
+.ex-left{flex:1;min-width:0;}
+.ex-name{
+  font-family:var(--font-display);font-size:16px;font-weight:600;color:#fff;
+  letter-spacing:0.03em;margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ex-meta{
+  font-family:var(--font-mono);font-size:9px;color:var(--text2);
+  letter-spacing:0.08em;
+}
+.ex-arrow{
+  font-family:var(--font-display);font-size:18px;color:var(--accent);
+  margin-left:12px;transition:transform 0.25s;
+}
+#exchange-card:hover .ex-arrow{transform:translateX(3px);}
+
+/* ── Stocks modal ── */
+#stocks-modal{
+  position:fixed;inset:0;z-index:1000;
+  display:none;
+  animation:fadeIn 0.25s ease;
+}
+#stocks-modal.open{display:block;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+#stocks-backdrop{
+  position:absolute;inset:0;
+  background:rgba(3,7,18,0.7);
+  backdrop-filter:blur(6px);
+}
+
+#stocks-panel{
+  position:absolute;
+  top:5vh;left:50%;transform:translateX(-50%);
+  width:92vw;max-width:1100px;height:90vh;
+  background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
+  border:1px solid var(--border2);border-radius:8px;
+  display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 0 1px rgba(96,165,250,0.1) inset;
+  overflow:hidden;
+  animation:slideUp 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp{from{transform:translate(-50%,20px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
+
+#stocks-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:22px 28px 18px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(59,130,246,0.06) 0%,transparent 100%);
+  flex-shrink:0;position:relative;
+}
+.sh-flag{font-size:32px;line-height:1;margin-bottom:8px;}
+.sh-title{
+  font-family:var(--font-display);font-size:24px;font-weight:700;color:#fff;
+  letter-spacing:0.03em;margin-bottom:4px;
+}
+.sh-sub{
+  font-family:var(--font-mono);font-size:10px;color:var(--text2);
+  letter-spacing:0.12em;
+}
+.sh-stats{
+  display:flex;gap:20px;align-items:center;
+}
+.shs-item{text-align:right;}
+.shs-label{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.15em;margin-bottom:2px;}
+.shs-val{font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--text);}
+.shs-val.up{color:var(--bull);}
+.shs-val.dn{color:var(--bear);}
+.sh-close{
+  position:absolute;top:18px;right:22px;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--card);border:1px solid var(--border2);
+  color:var(--text2);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+.sh-close:hover{border-color:var(--red);color:var(--red);}
+
+#stocks-toolbar{
+  display:flex;align-items:center;gap:16px;
+  padding:14px 28px;
+  border-bottom:1px solid var(--border);
+  background:rgba(5,8,17,0.4);
+  flex-shrink:0;
+}
+.st-search{flex:1;max-width:320px;}
+#st-filter{
+  width:100%;background:rgba(5,8,17,0.8);
+  border:1px solid var(--border2);border-radius:4px;
+  padding:8px 12px;
+  color:var(--text);font-family:var(--font-mono);font-size:11px;
+  outline:none;transition:border-color 0.2s;
+}
+#st-filter::placeholder{color:var(--text3);}
+#st-filter:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(59,130,246,0.15);}
+.st-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.st-tab{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:9px;
+  padding:5px 11px;letter-spacing:0.12em;cursor:pointer;
+  transition:all 0.2s;
+}
+.st-tab:hover{color:var(--text);border-color:var(--border2);}
+.st-tab.active{
+  background:rgba(59,130,246,0.15);
+  border-color:var(--accent);color:var(--accent);
+}
+
+#stocks-body{
+  flex:1;overflow-y:auto;padding:20px 28px 28px;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+#stocks-body::-webkit-scrollbar{width:6px;}
+#stocks-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+#stocks-loading{text-align:center;padding:80px 20px;}
+.sl-text{font-family:var(--font-display);font-size:14px;color:var(--text);margin-bottom:4px;}
+.sl-sub{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.1em;}
+
+#stocks-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  gap:10px;
+}
+
+.stock-card{
+  background:var(--card);border:1px solid var(--border);border-radius:5px;
+  padding:14px 16px;cursor:pointer;
+  transition:all 0.2s;position:relative;overflow:hidden;
+}
+.stock-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--accent);opacity:0;transition:opacity 0.2s;
+}
+.stock-card:hover{
+  border-color:var(--border2);
+  background:#121E33;
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+.stock-card:hover::before{opacity:1;}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.sc-ticker{
+  font-family:var(--font-mono);font-size:13px;font-weight:600;color:#fff;
+  letter-spacing:0.05em;
+}
+.sc-sector{
+  font-family:var(--font-mono);font-size:7px;color:var(--text2);
+  letter-spacing:0.15em;padding:2px 7px;
+  background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.15);
+  border-radius:2px;white-space:nowrap;
+}
+.sc-name{
+  font-family:var(--font-display);font-size:11px;color:var(--text);
+  line-height:1.4;margin-bottom:10px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.sc-bottom{display:flex;justify-content:space-between;align-items:center;}
+.sc-price{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:500;}
+.sc-change{font-family:var(--font-mono);font-size:10px;font-weight:500;}
+.sc-change.up{color:var(--bull);}
+.sc-change.dn{color:var(--bear);}
+.sc-mcap{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.1em;}
+
+#stocks-empty{
+  text-align:center;padding:60px 20px;
+  font-family:var(--font-display);color:var(--text2);font-size:13px;
+}
+
+/* Country count (legacy - now handled inline in header) */
+#analysed-count{display:none;}
+
+/* Pulse rings on active country centroid */
+.pulse-ring{pointer-events:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="topbar">
+  <div>
+    <div class="logo">◈ GLOBAL MACRO INTELLIGENCE</div>
+    <div class="logo-sub">COUNTRY SENTIMENT TERMINAL</div>
+  </div>
+  <div class="tickers" id="tickers">
+    <div class="tick"><div class="tick-name">DXY</div><div class="tick-val tick-na" id="t-dxy">—</div></div>
+    <div class="tick"><div class="tick-name">GOLD</div><div class="tick-val tick-na" id="t-gold">—</div></div>
+    <div class="tick"><div class="tick-name">WTI</div><div class="tick-val tick-na" id="t-wti">—</div></div>
+    <div class="tick"><div class="tick-name">VIX</div><div class="tick-val tick-na" id="t-vix">—</div></div>
+    <div class="tick"><div class="tick-name">US10Y</div><div class="tick-val tick-na" id="t-10y">—</div></div>
+  </div>
+  <div id="clock">—</div>
+</div>
+
+<div id="main">
+  <div id="map-wrap">
+    <svg id="map-svg"></svg>
+
+    <!-- Floating title card -->
+    <div id="map-header">
+      <div class="mh-line">
+        <span class="mh-dot"></span>
+        <span class="mh-label">LIVE ANALYSIS</span>
+      </div>
+      <div class="mh-title">World Sentiment Map</div>
+      <div class="mh-sub">Click any country · Pan · Zoom · <span id="analysed-inline">0 analysed</span></div>
+    </div>
+
+    <!-- Zoom controls -->
+    <div id="zoom-ctrls">
+      <button class="zbtn" data-zoom="in" title="Zoom in">+</button>
+      <button class="zbtn" data-zoom="out" title="Zoom out">−</button>
+      <button class="zbtn" data-zoom="reset" title="Reset view">⟲</button>
+    </div>
+
+    <!-- Region quick-jump -->
+    <div id="region-jump">
+      <div class="rj-label">JUMP TO REGION</div>
+      <div class="rj-btns">
+        <button class="rj-btn" data-region="americas">Americas</button>
+        <button class="rj-btn" data-region="europe">Europe</button>
+        <button class="rj-btn" data-region="asia">Asia</button>
+        <button class="rj-btn" data-region="africa">Africa</button>
+        <button class="rj-btn" data-region="oceania">Oceania</button>
+      </div>
+    </div>
+
+    <div id="legend">
+      <div class="legend-title">SENTIMENT OVERLAY</div>
+      <div class="legend-row"><div class="ldot bullish"></div>Bullish</div>
+      <div class="legend-row"><div class="ldot bearish"></div>Bearish</div>
+      <div class="legend-row"><div class="ldot neutral"></div>Neutral</div>
+      <div class="legend-row"><div class="ldot default"></div>Not analysed</div>
+    </div>
+    <div id="api-widget">
+      <div class="aw-label">GEMINI / CLAUDE API KEY</div>
+      <input type="password" id="api-input" placeholder="sk-ant-... or AIza...">
+      <button id="api-save">SAVE & ACTIVATE</button>
+      <div id="api-ok">✓ KEY ACTIVE — CLICK ANY COUNTRY</div>
+    </div>
+  </div>
+
+  <!-- Stocks modal -->
+  <div id="stocks-modal">
+    <div id="stocks-backdrop"></div>
+    <div id="stocks-panel">
+      <div id="stocks-header">
+        <div>
+          <div class="sh-flag" id="sh-flag">🌍</div>
+          <div class="sh-title" id="sh-title">—</div>
+          <div class="sh-sub" id="sh-sub">—</div>
+        </div>
+        <div class="sh-stats" id="sh-stats"></div>
+        <button class="sh-close" id="sh-close-btn">✕</button>
+      </div>
+
+      <div id="stocks-toolbar">
+        <div class="st-search">
+          <input type="text" id="st-filter" placeholder="Search ticker or company...">
+        </div>
+        <div class="st-tabs" id="st-tabs">
+          <button class="st-tab active" data-sector="all">ALL</button>
+          <button class="st-tab" data-sector="Financials">FIN</button>
+          <button class="st-tab" data-sector="Technology">TECH</button>
+          <button class="st-tab" data-sector="Energy">ENERGY</button>
+          <button class="st-tab" data-sector="Healthcare">HEALTH</button>
+          <button class="st-tab" data-sector="Consumer">CONS</button>
+          <button class="st-tab" data-sector="Industrials">IND</button>
+          <button class="st-tab" data-sector="Materials">MAT</button>
+        </div>
+      </div>
+
+      <div id="stocks-body">
+        <div id="stocks-loading" style="display:none;">
+          <div class="big-spin"></div>
+          <div class="sl-text">Fetching constituents from exchange...</div>
+          <div class="sl-sub">Pulling live data via web search</div>
+        </div>
+        <div id="stocks-grid"></div>
+        <div id="stocks-empty" style="display:none;">
+          <div style="font-size:32px;margin-bottom:8px;">∅</div>
+          <div>No stocks match your filter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="tooltip">
+    <div id="tt-flag" style="font-size:20px;margin-bottom:4px;"></div>
+    <div class="tt-country" id="tt-name">—</div>
+    <div class="tt-region" id="tt-region">—</div>
+    <div id="tt-sent" style="display:none;"></div>
+    <div id="tt-score" class="tt-score" style="display:none;"></div>
+    <div class="tt-click" id="tt-action">CLICK TO ANALYSE</div>
+  </div>
+
+  <!-- Side panel -->
+  <div id="panel">
+    <div id="panel-top">
+      <button id="p-close">✕</button>
+      <div id="p-flag">🌍</div>
+      <div id="p-name">—</div>
+      <div id="p-meta">—</div>
+    </div>
+    <div id="panel-body">
+      <div class="slabel">MACRO SENTIMENT</div>
+      <div id="sent-badge" class="loading"><span class="spin"></span> &nbsp;ANALYSING</div><br>
+      <div id="regime-pill"></div>
+      <div class="sbar-wrap">
+        <div class="sbar-track"><div class="sbar-fill" id="sbar" style="width:50%;background:var(--neut);"></div></div>
+        <div class="sbar-labels"><span>BEARISH −1</span><span>0</span><span>+1 BULLISH</span></div>
+        <div id="score-text">Score: —</div>
+      </div>
+      <div class="slabel">ANALYST RATIONALE</div>
+      <div id="rationale">—</div>
+      <div class="slabel">KEY INDICATORS</div>
+      <div class="chips">
+        <div class="chip"><div class="chip-label">EQUITY BIAS</div><div class="chip-val" id="c-eq">—</div></div>
+        <div class="chip"><div class="chip-label">RATE OUTLOOK</div><div class="chip-val" id="c-rt">—</div></div>
+        <div class="chip"><div class="chip-label">FX BIAS</div><div class="chip-val" id="c-fx">—</div></div>
+        <div class="chip"><div class="chip-label">RISK LEVEL</div><div class="chip-val" id="c-rk">—</div></div>
+        <div class="chip"><div class="chip-label">CURRENCY</div><div class="chip-val" id="c-cy">—</div></div>
+        <div class="chip"><div class="chip-label">KEY RISK</div><div class="chip-val" id="c-kr" style="font-size:9px;line-height:1.4;">—</div></div>
+      </div>
+      <div class="slabel">PRIMARY EXCHANGE</div>
+      <div id="exchange-card">
+        <div class="ex-left">
+          <div class="ex-name" id="ex-name">—</div>
+          <div class="ex-meta" id="ex-meta">—</div>
+        </div>
+        <div class="ex-arrow">→</div>
+      </div>
+
+      <div class="slabel">LATEST HEADLINES</div>
+      <div id="news-toggle">
+        <span id="news-label">📰 &nbsp;Load latest news</span>
+        <span id="news-arrow">▼</span>
+      </div>
+      <div id="news-list"></div>
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════
+let apiKey = '';
+let activeId = null;
+let newsOpen = false;
+let cache = {};
+let stocksCache = {};          // { "IndexName": [ {ticker, name, sector, price, pct, mcap}, ... ] }
+let currentCountryMeta = null; // last selected country's meta
+let currentStocks = [];        // currently displayed stocks
+let currentSector = 'all';
+let countryMeta = {};
+let worldData = null;
+let projection, path;
+
+// Country metadata (iso numeric → info)
+const META = {
+  "840":  {name:"United States",   region:"North America", currency:"USD", index:"S&P 500",    flag:"🇺🇸"},
+  "124":  {name:"Canada",          region:"North America", currency:"CAD", index:"TSX",         flag:"🇨🇦"},
+  "484":  {name:"Mexico",          region:"North America", currency:"MXN", index:"IPC",         flag:"🇲🇽"},
+  "076":  {name:"Brazil",          region:"South America", currency:"BRL", index:"Bovespa",     flag:"🇧🇷"},
+  "032":  {name:"Argentina",       region:"South America", currency:"ARS", index:"Merval",      flag:"🇦🇷"},
+  "152":  {name:"Chile",           region:"South America", currency:"CLP", index:"IPSA",        flag:"🇨🇱"},
+  "170":  {name:"Colombia",        region:"South America", currency:"COP", index:"COLCAP",      flag:"🇨🇴"},
+  "604":  {name:"Peru",            region:"South America", currency:"PEN", index:"S&P BVL",     flag:"🇵🇪"},
+  "826":  {name:"United Kingdom",  region:"Europe",        currency:"GBP", index:"FTSE 100",    flag:"🇬🇧"},
+  "250":  {name:"France",          region:"Europe",        currency:"EUR", index:"CAC 40",      flag:"🇫🇷"},
+  "276":  {name:"Germany",         region:"Europe",        currency:"EUR", index:"DAX",         flag:"🇩🇪"},
+  "380":  {name:"Italy",           region:"Europe",        currency:"EUR", index:"FTSE MIB",    flag:"🇮🇹"},
+  "724":  {name:"Spain",           region:"Europe",        currency:"EUR", index:"IBEX 35",     flag:"🇪🇸"},
+  "620":  {name:"Portugal",        region:"Europe",        currency:"EUR", index:"PSI 20",      flag:"🇵🇹"},
+  "528":  {name:"Netherlands",     region:"Europe",        currency:"EUR", index:"AEX",         flag:"🇳🇱"},
+  "756":  {name:"Switzerland",     region:"Europe",        currency:"CHF", index:"SMI",         flag:"🇨🇭"},
+  "040":  {name:"Austria",         region:"Europe",        currency:"EUR", index:"ATX",         flag:"🇦🇹"},
+  "616":  {name:"Poland",          region:"Europe",        currency:"PLN", index:"WIG 20",      flag:"🇵🇱"},
+  "752":  {name:"Sweden",          region:"Europe",        currency:"SEK", index:"OMX 30",      flag:"🇸🇪"},
+  "578":  {name:"Norway",          region:"Europe",        currency:"NOK", index:"OBX",         flag:"🇳🇴"},
+  "246":  {name:"Finland",         region:"Europe",        currency:"EUR", index:"OMX Helsinki",flag:"🇫🇮"},
+  "208":  {name:"Denmark",         region:"Europe",        currency:"DKK", index:"OMX Copenhagen",flag:"🇩🇰"},
+  "300":  {name:"Greece",          region:"Europe",        currency:"EUR", index:"Athens GI",   flag:"🇬🇷"},
+  "804":  {name:"Ukraine",         region:"Europe",        currency:"UAH", index:"PFTS",        flag:"🇺🇦"},
+  "616":  {name:"Poland",          region:"Europe",        currency:"PLN", index:"WIG20",       flag:"🇵🇱"},
+  "056":  {name:"Belgium",         region:"Europe",        currency:"EUR", index:"BEL 20",      flag:"🇧🇪"},
+  "203":  {name:"Czech Republic",  region:"Europe",        currency:"CZK", index:"PX",          flag:"🇨🇿"},
+  "642":  {name:"Romania",         region:"Europe",        currency:"RON", index:"BET",         flag:"🇷🇴"},
+  "643":  {name:"Russia",          region:"Eurasia",       currency:"RUB", index:"MOEX",        flag:"🇷🇺"},
+  "792":  {name:"Turkey",          region:"Middle East",   currency:"TRY", index:"BIST 100",    flag:"🇹🇷"},
+  "364":  {name:"Iran",            region:"Middle East",   currency:"IRR", index:"Tehran SE",   flag:"🇮🇷"},
+  "682":  {name:"Saudi Arabia",    region:"Middle East",   currency:"SAR", index:"Tadawul",     flag:"🇸🇦"},
+  "784":  {name:"UAE",             region:"Middle East",   currency:"AED", index:"DFM",         flag:"🇦🇪"},
+  "376":  {name:"Israel",          region:"Middle East",   currency:"ILS", index:"TA-35",       flag:"🇮🇱"},
+  "818":  {name:"Egypt",           region:"Africa",        currency:"EGP", index:"EGX 30",      flag:"🇪🇬"},
+  "566":  {name:"Nigeria",         region:"Africa",        currency:"NGN", index:"NGX",         flag:"🇳🇬"},
+  "710":  {name:"South Africa",    region:"Africa",        currency:"ZAR", index:"JSE Top 40",  flag:"🇿🇦"},
+  "404":  {name:"Kenya",           region:"Africa",        currency:"KES", index:"NSE 20",      flag:"🇰🇪"},
+  "504":  {name:"Morocco",         region:"Africa",        currency:"MAD", index:"MASI",        flag:"🇲🇦"},
+  "398":  {name:"Kazakhstan",      region:"Central Asia",  currency:"KZT", index:"KASE",        flag:"🇰🇿"},
+  "356":  {name:"India",           region:"South Asia",    currency:"INR", index:"Nifty 50",    flag:"🇮🇳"},
+  "050":  {name:"Bangladesh",      region:"South Asia",    currency:"BDT", index:"DSEX",        flag:"🇧🇩"},
+  "586":  {name:"Pakistan",        region:"South Asia",    currency:"PKR", index:"KSE 100",     flag:"🇵🇰"},
+  "156":  {name:"China",           region:"East Asia",     currency:"CNY", index:"CSI 300",     flag:"🇨🇳"},
+  "392":  {name:"Japan",           region:"East Asia",     currency:"JPY", index:"Nikkei 225",  flag:"🇯🇵"},
+  "410":  {name:"South Korea",     region:"East Asia",     currency:"KRW", index:"KOSPI",       flag:"🇰🇷"},
+  "158":  {name:"Taiwan",          region:"East Asia",     currency:"TWD", index:"TAIEX",       flag:"🇹🇼"},
+  "496":  {name:"Mongolia",        region:"East Asia",     currency:"MNT", index:"MSE",         flag:"🇲🇳"},
+  "764":  {name:"Thailand",        region:"SE Asia",       currency:"THB", index:"SET",         flag:"🇹🇭"},
+  "704":  {name:"Vietnam",         region:"SE Asia",       currency:"VND", index:"VN-Index",    flag:"🇻🇳"},
+  "458":  {name:"Malaysia",        region:"SE Asia",       currency:"MYR", index:"KLCI",        flag:"🇲🇾"},
+  "360":  {name:"Indonesia",       region:"SE Asia",       currency:"IDR", index:"IDX Composite",flag:"🇮🇩"},
+  "608":  {name:"Philippines",     region:"SE Asia",       currency:"PHP", index:"PSEi",        flag:"🇵🇭"},
+  "036":  {name:"Australia",       region:"Oceania",       currency:"AUD", index:"ASX 200",     flag:"🇦🇺"},
+  "554":  {name:"New Zealand",     region:"Oceania",       currency:"NZD", index:"NZX 50",      flag:"🇳🇿"},
+  "012":  {name:"Algeria",         region:"Africa",        currency:"DZD", index:"—",           flag:"🇩🇿"},
+  "024":  {name:"Angola",          region:"Africa",        currency:"AOA", index:"—",           flag:"🇦🇴"},
+  "288":  {name:"Ghana",           region:"Africa",        currency:"GHS", index:"GSE CI",      flag:"🇬🇭"},
+  "231":  {name:"Ethiopia",        region:"Africa",        currency:"ETB", index:"—",           flag:"🇪🇹"},
+  "144":  {name:"Sri Lanka",       region:"South Asia",    currency:"LKR", index:"CSE",         flag:"🇱🇰"},
+  "104":  {name:"Myanmar",         region:"SE Asia",       currency:"MMK", index:"YSX",         flag:"🇲🇲"},
+  "116":  {name:"Cambodia",        region:"SE Asia",       currency:"KHR", index:"CSX",         flag:"🇰🇭"},
+  "268":  {name:"Georgia",         region:"Central Asia",  currency:"GEL", index:"GSE",         flag:"🇬🇪"},
+  "218":  {name:"Ecuador",         region:"South America", currency:"USD", index:"BVQ",         flag:"🇪🇨"},
+  "858":  {name:"Uruguay",         region:"South America", currency:"UYU", index:"—",           flag:"🇺🇾"},
+  "068":  {name:"Bolivia",         region:"South America", currency:"BOB", index:"BBV",         flag:"🇧🇴"},
+  "600":  {name:"Paraguay",        region:"South America", currency:"PYG", index:"—",           flag:"🇵🇾"},
+  "032":  {name:"Argentina",       region:"South America", currency:"ARS", index:"Merval",      flag:"🇦🇷"},
+  "384":  {name:"Ivory Coast",     region:"Africa",        currency:"XOF", index:"—",           flag:"🇨🇮"},
+  "800":  {name:"Uganda",          region:"Africa",        currency:"UGX", index:"USE",         flag:"🇺🇬"},
+  "834":  {name:"Tanzania",        region:"Africa",        currency:"TZS", index:"DSE",         flag:"🇹🇿"},
+  "516":  {name:"Namibia",         region:"Africa",        currency:"NAD", index:"NSX",         flag:"🇳🇦"},
+  "508":  {name:"Mozambique",      region:"Africa",        currency:"MZN", index:"—",           flag:"🇲🇿"},
+  "716":  {name:"Zimbabwe",        region:"Africa",        currency:"ZWL", index:"ZSE",         flag:"🇿🇼"},
+  "180":  {name:"DR Congo",        region:"Africa",        currency:"CDF", index:"—",           flag:"🇨🇩"},
+  "818":  {name:"Egypt",           region:"Africa",        currency:"EGP", index:"EGX 30",      flag:"🇪🇬"},
+  "760":  {name:"Syria",           region:"Middle East",   currency:"SYP", index:"—",           flag:"🇸🇾"},
+  "368":  {name:"Iraq",            region:"Middle East",   currency:"IQD", index:"ISX",         flag:"🇮🇶"},
+  "400":  {name:"Jordan",          region:"Middle East",   currency:"JOD", index:"ASE",         flag:"🇯🇴"},
+  "414":  {name:"Kuwait",          region:"Middle East",   currency:"KWD", index:"BK",          flag:"🇰🇼"},
+  "634":  {name:"Qatar",           region:"Middle East",   currency:"QAR", index:"QE",          flag:"🇶🇦"},
+  "496":  {name:"Mongolia",        region:"East Asia",     currency:"MNT", index:"MSE",         flag:"🇲🇳"},
+  "064":  {name:"Bhutan",          region:"South Asia",    currency:"BTN", index:"—",           flag:"🇧🇹"},
+  "524":  {name:"Nepal",           region:"South Asia",    currency:"NPR", index:"NEPSE",       flag:"🇳🇵"},
+};
+
+// ════════════════════════════════════════════════════════════════════
+// CLOCK
+// ════════════════════════════════════════════════════════════════════
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    n.toUTCString().slice(5,25).replace('GMT','') + ' UTC';
+}
+setInterval(tick,1000); tick();
+
+// ════════════════════════════════════════════════════════════════════
+// D3 MAP — load real world topojson
+// ════════════════════════════════════════════════════════════════════
+async function initMap() {
+  const svg = d3.select('#map-svg');
+  const wrap = document.getElementById('map-wrap');
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  svg.attr('width', W).attr('height', H);
+
+  // ── SVG definitions: gradients & filters for premium look ──
+  const defs = svg.append('defs');
+
+  // Ocean gradient — deep to slightly lighter
+  const oceanGrad = defs.append('radialGradient')
+    .attr('id','oceanGradient').attr('cx','50%').attr('cy','50%').attr('r','70%');
+  oceanGrad.append('stop').attr('offset','0%').attr('stop-color','#0F1E3D');
+  oceanGrad.append('stop').attr('offset','60%').attr('stop-color','#081428');
+  oceanGrad.append('stop').attr('offset','100%').attr('stop-color','#030712');
+
+  // Default land gradient — subtle slate with depth
+  const landGrad = defs.append('linearGradient')
+    .attr('id','landGradient').attr('x1','0%').attr('y1','0%').attr('x2','0%').attr('y2','100%');
+  landGrad.append('stop').attr('offset','0%').attr('stop-color','#2A3858');
+  landGrad.append('stop').attr('offset','100%').attr('stop-color','#1A243C');
+
+  // Bullish gradient — emerald with depth
+  const bullGrad = defs.append('linearGradient')
+    .attr('id','bullGradient').attr('x1','0%').attr('y1','0%').attr('x2','0%').attr('y2','100%');
+  bullGrad.append('stop').attr('offset','0%').attr('stop-color','#10B981');
+  bullGrad.append('stop').attr('offset','100%').attr('stop-color','#065F46');
+
+  // Bearish gradient — ruby with depth
+  const bearGrad = defs.append('linearGradient')
+    .attr('id','bearGradient').attr('x1','0%').attr('y1','0%').attr('x2','0%').attr('y2','100%');
+  bearGrad.append('stop').attr('offset','0%').attr('stop-color','#EF4444');
+  bearGrad.append('stop').attr('offset','100%').attr('stop-color','#7F1D1D');
+
+  // Neutral gradient — slate
+  const neutGrad = defs.append('linearGradient')
+    .attr('id','neutGradient').attr('x1','0%').attr('y1','0%').attr('x2','0%').attr('y2','100%');
+  neutGrad.append('stop').attr('offset','0%').attr('stop-color','#64748B');
+  neutGrad.append('stop').attr('offset','100%').attr('stop-color','#334155');
+
+  // Atmospheric glow around the sphere
+  const glowFilter = defs.append('filter')
+    .attr('id','atmosphereGlow').attr('x','-20%').attr('y','-20%').attr('width','140%').attr('height','140%');
+  glowFilter.append('feGaussianBlur').attr('stdDeviation','8').attr('result','coloredBlur');
+  const feMerge = glowFilter.append('feMerge');
+  feMerge.append('feMergeNode').attr('in','coloredBlur');
+  feMerge.append('feMergeNode').attr('in','SourceGraphic');
+
+  // Natural Earth projection — closest to a realistic wall map
+  projection = d3.geoNaturalEarth1()
+    .scale(W / 6.2)
+    .translate([W / 2, H / 2]);
+
+  path = d3.geoPath().projection(projection);
+
+  const graticule = d3.geoGraticule()();
+  const sphere = {type:'Sphere'};
+
+  // Load world topojson from CDN
+  let world;
+  try {
+    world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  } catch(e) {
+    world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
+  }
+  worldData = world;
+
+  const countries = topojson.feature(world, world.objects.countries);
+  const borders   = topojson.mesh(world, world.objects.countries, (a,b) => a !== b);
+
+  // Main map group for zoom/pan
+  const g = svg.append('g').attr('class','map-group');
+
+  // Atmosphere halo — glowing ring around sphere
+  g.append('path').datum(sphere)
+    .attr('d', path)
+    .attr('fill','none')
+    .attr('stroke','rgba(96,165,250,0.15)')
+    .attr('stroke-width','12')
+    .attr('filter','url(#atmosphereGlow)');
+
+  // Ocean sphere
+  g.append('path').datum(sphere).attr('class','sphere').attr('d', path);
+
+  // Graticule
+  g.append('path').datum(graticule).attr('class','graticule').attr('d', path);
+
+  // Countries
+  g.selectAll('.country')
+    .data(countries.features)
+    .join('path')
+    .attr('class','country default')
+    .attr('id', d => 'c' + d.id)
+    .attr('d', path)
+    .on('mousemove', onCountryHover)
+    .on('mouseleave', onCountryLeave)
+    .on('click', (event, d) => selectCountry(d));
+
+  // Borders
+  g.append('path').datum(borders)
+    .attr('class','borders')
+    .attr('d', path);
+
+  // Outline
+  g.append('path').datum(sphere).attr('class','outline').attr('d', path);
+
+  // Zoom & pan
+  const zoom = d3.zoom()
+    .scaleExtent([0.8, 8])
+    .on('zoom', (event) => {
+      g.attr('transform', event.transform);
+    });
+  svg.call(zoom);
+
+  // Store zoom controls for buttons
+  window._zoom = zoom;
+  window._svg = svg;
+
+  // Resize
+  window.addEventListener('resize', () => {
+    const W2 = wrap.clientWidth, H2 = wrap.clientHeight;
+    svg.attr('width',W2).attr('height',H2);
+    projection.scale(W2/6.2).translate([W2/2, H2/2]);
+    g.selectAll('path').attr('d', path);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// HOVER TOOLTIP
+// ════════════════════════════════════════════════════════════════════
+function getMeta(d) {
+  const id = String(d.id).padStart(3,'0');
+  return META[id] || META[String(d.id)] || null;
+}
+
+function onCountryHover(event, d) {
+  const meta = getMeta(d);
+  if (!meta) return;
+
+  const tt = document.getElementById('tooltip');
+  document.getElementById('tt-flag').textContent = meta.flag || '';
+  document.getElementById('tt-name').textContent = meta.name;
+  document.getElementById('tt-region').textContent = meta.region + ' · ' + meta.currency;
+
+  const key = 'c' + d.id;
+  const cached = cache[key];
+  const sentEl  = document.getElementById('tt-sent');
+  const scoreEl = document.getElementById('tt-score');
+  const actEl   = document.getElementById('tt-action');
+
+  if (cached) {
+    sentEl.style.display = 'block';
+    sentEl.className = 'tt-sentiment tt-' + cached.sentiment;
+    const icons = {bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL'};
+    sentEl.textContent = icons[cached.sentiment] || cached.sentiment.toUpperCase();
+    scoreEl.style.display = 'block';
+    scoreEl.textContent = `Score: ${cached.score > 0 ? '+' : ''}${parseFloat(cached.score).toFixed(2)}  ·  ${cached.regime}`;
+    actEl.textContent = 'CLICK TO VIEW DETAIL';
+  } else {
+    sentEl.style.display = 'none';
+    scoreEl.style.display = 'none';
+    actEl.textContent = 'CLICK TO ANALYSE';
+  }
+
+  tt.style.display = 'block';
+  moveTip(event);
+}
+
+function moveTip(event) {
+  const tt = document.getElementById('tooltip');
+  const mw = window.innerWidth, mh = window.innerHeight;
+  let x = event.clientX + 16, y = event.clientY + 16;
+  if (x + 200 > mw) x = event.clientX - 200;
+  if (y + 140 > mh) y = event.clientY - 140;
+  tt.style.left = x + 'px';
+  tt.style.top  = y + 'px';
+}
+
+document.getElementById('map-svg').addEventListener('mousemove', e => {
+  if (document.getElementById('tooltip').style.display !== 'none') moveTip(e);
+});
+
+function onCountryLeave() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SELECT COUNTRY
+// ════════════════════════════════════════════════════════════════════
+function selectCountry(d) {
+  const meta = getMeta(d);
+  if (!meta) return;
+
+  const key = 'c' + d.id;
+
+  // Deactivate previous
+  if (activeId && activeId !== key) {
+    d3.select('#' + activeId).classed('active', false);
+  }
+  activeId = key;
+  d3.select('#' + key).classed('active', true);
+
+  // Open panel
+  document.getElementById('panel').classList.add('open');
+
+  // Populate header
+  document.getElementById('p-flag').textContent = meta.flag || '🌍';
+  document.getElementById('p-name').textContent = meta.name;
+  document.getElementById('p-meta').textContent = meta.region + ' · ' + meta.currency + ' · ' + meta.index;
+
+  // Populate exchange card
+  const exName = document.getElementById('ex-name');
+  const exMeta = document.getElementById('ex-meta');
+  if (meta.index && meta.index !== '—') {
+    exName.textContent = meta.index;
+    exMeta.textContent = `${meta.currency} · Click to browse constituents`;
+    document.getElementById('exchange-card').style.opacity = '1';
+    document.getElementById('exchange-card').style.pointerEvents = 'auto';
+  } else {
+    exName.textContent = 'No major exchange';
+    exMeta.textContent = 'Data unavailable';
+    document.getElementById('exchange-card').style.opacity = '0.5';
+    document.getElementById('exchange-card').style.pointerEvents = 'none';
+  }
+
+  // Store current meta for stocks modal
+  currentCountryMeta = meta;
+
+  // Reset news
+  newsOpen = false;
+  document.getElementById('news-arrow').className = '';
+  document.getElementById('news-list').className = '';
+  document.getElementById('news-list').innerHTML = '';
+  document.getElementById('news-label').textContent = '📰  Load latest headlines';
+
+  if (cache[key]) {
+    renderPanel(cache[key]);
+  } else {
+    setLoading();
+    if (apiKey) fetchSentiment(key, meta);
+    else renderNoKey();
+  }
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  if (activeId) {
+    d3.select('#' + activeId).classed('active', false);
+    activeId = null;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// PANEL STATES
+// ════════════════════════════════════════════════════════════════════
+function setLoading() {
+  document.getElementById('sent-badge').className = 'loading';
+  document.getElementById('sent-badge').innerHTML = '<span class="spin"></span> &nbsp;ANALYSING';
+  document.getElementById('regime-pill').innerHTML = '';
+  document.getElementById('rationale').textContent = 'Querying AI model...';
+  document.getElementById('sbar').style.width = '50%';
+  document.getElementById('sbar').style.background = 'var(--neut)';
+  document.getElementById('score-text').textContent = 'Score: —';
+  ['c-eq','c-rt','c-fx','c-rk','c-cy','c-kr'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = '—'; el.className = 'chip-val';
+  });
+}
+
+function renderNoKey() {
+  document.getElementById('sent-badge').className = 'neutral';
+  document.getElementById('sent-badge').innerHTML = '🔑 &nbsp;API KEY REQUIRED';
+  document.getElementById('rationale').textContent = 'Enter your API key in the bottom-right panel to enable AI macro sentiment analysis.';
+}
+
+// ════════════════════════════════════════════════════════════════════
+// API CALL
+// ════════════════════════════════════════════════════════════════════
+async function fetchSentiment(key, meta) {
+  d3.select('#' + key).classed('loading', true);
+
+  const prompt = `You are a senior macro strategist at a top-tier investment bank. Provide a precise macro sentiment assessment for ${meta.name}.
+
+Consider: central bank policy, inflation trajectory, GDP momentum, ${meta.currency} exchange rate dynamics, geopolitical risk, ${meta.index} equity outlook, trade balance, and political stability.
+
+Return ONLY valid JSON (no markdown, no explanation):
+{
+  "sentiment": "bullish"|"bearish"|"neutral",
+  "score": <float -1.0 to 1.0, two decimal places>,
+  "regime": "Goldilocks"|"Reflation"|"Stagflation"|"Recession",
+  "rationale": "<2 precise sentences naming specific macro drivers, central bank actions, and asset class implications>",
+  "equity_bias": "Overweight"|"Neutral"|"Underweight",
+  "rate_outlook": "Cutting"|"Holding"|"Hiking",
+  "fx_bias": "Strengthen"|"Stable"|"Weaken",
+  "risk_level": "Low"|"Medium"|"High"|"Very High",
+  "key_risk": "<biggest tail risk in 6-8 words>",
+  "news_topics": ["<specific macro topic 1>", "<specific macro topic 2>", "<specific macro topic 3>"]
+}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        system: 'You are a macro analyst. Respond only with valid JSON. No markdown fences.',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    let raw = data.content[0].text.trim();
+    raw = raw.replace(/```json|```/g,'').trim();
+    const result = JSON.parse(raw);
+    result._meta = meta;
+
+    cache[key] = result;
+    updateCount();
+
+    // Update map colour
+    d3.select('#' + key)
+      .classed('loading', false)
+      .classed('default', false)
+      .classed('bullish', result.sentiment === 'bullish')
+      .classed('bearish', result.sentiment === 'bearish')
+      .classed('neutral', result.sentiment === 'neutral');
+
+    renderPanel(result);
+
+  } catch (err) {
+    d3.select('#' + key).classed('loading', false).classed('default', true);
+    document.getElementById('sent-badge').className = 'neutral';
+    document.getElementById('sent-badge').innerHTML = '⚠ &nbsp;Error';
+    document.getElementById('rationale').textContent = 'API error: ' + err.message;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDER PANEL
+// ════════════════════════════════════════════════════════════════════
+function renderPanel(data) {
+  // Badge
+  const badge = document.getElementById('sent-badge');
+  badge.className = data.sentiment;
+  const icons = { bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL' };
+  badge.textContent = icons[data.sentiment] || data.sentiment.toUpperCase();
+
+  // Regime pill
+  const rc = { Goldilocks:'rp-goldilocks', Reflation:'rp-reflation', Stagflation:'rp-stagflation', Recession:'rp-recession' };
+  document.getElementById('regime-pill').innerHTML =
+    `<span class="regime-pill ${rc[data.regime]||'rp-goldilocks'}">${data.regime || '—'}</span>`;
+
+  // Score bar
+  const score = parseFloat(data.score) || 0;
+  const pct = Math.round(((score + 1) / 2) * 100);
+  const bar = document.getElementById('sbar');
+  bar.style.width = pct + '%';
+  bar.style.background = score > 0.1 ? 'var(--bull)' : score < -0.1 ? 'var(--bear)' : 'var(--neut)';
+  document.getElementById('score-text').textContent =
+    `Score: ${score >= 0 ? '+' : ''}${score.toFixed(2)}  ·  ${data.key_risk || ''}`;
+
+  // Rationale
+  document.getElementById('rationale').textContent = data.rationale || '—';
+
+  // Chips
+  const eq = document.getElementById('c-eq');
+  eq.textContent = data.equity_bias || '—';
+  eq.className = 'chip-val' + (data.equity_bias === 'Overweight' ? ' cv-up' : data.equity_bias === 'Underweight' ? ' cv-dn' : '');
+
+  const rt = document.getElementById('c-rt');
+  rt.textContent = data.rate_outlook || '—';
+  rt.className = 'chip-val' + (data.rate_outlook === 'Cutting' ? ' cv-up' : data.rate_outlook === 'Hiking' ? ' cv-dn' : '');
+
+  const fx = document.getElementById('c-fx');
+  fx.textContent = data.fx_bias || '—';
+  fx.className = 'chip-val' + (data.fx_bias === 'Strengthen' ? ' cv-up' : data.fx_bias === 'Weaken' ? ' cv-dn' : '');
+
+  const rk = document.getElementById('c-rk');
+  rk.textContent = data.risk_level || '—';
+  rk.className = 'chip-val' + (['High','Very High'].includes(data.risk_level) ? ' cv-dn' : data.risk_level === 'Low' ? ' cv-up' : '');
+
+  document.getElementById('c-cy').textContent = data._meta ? data._meta.currency : '—';
+  document.getElementById('c-kr').textContent = data.key_risk || '—';
+}
+
+// ════════════════════════════════════════════════════════════════════
+// NEWS
+// ════════════════════════════════════════════════════════════════════
+function toggleNews() {
+  newsOpen = !newsOpen;
+  document.getElementById('news-arrow').className = newsOpen ? 'open' : '';
+  const list = document.getElementById('news-list');
+  list.className = newsOpen ? 'open' : '';
+  if (newsOpen && list.innerHTML === '' && activeId) loadNews(activeId);
+}
+
+async function loadNews(key) {
+  const list = document.getElementById('news-list');
+  const label = document.getElementById('news-label');
+  list.innerHTML = '<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);"><span class="spin"></span> &nbsp;Loading headlines...</div>';
+  label.textContent = '📰  Loading...';
+
+  if (!apiKey) {
+    list.innerHTML = '<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);">API key required.</div>';
+    return;
+  }
+
+  const cached = cache[key];
+  const meta = cached?._meta;
+  const topics = cached?.news_topics?.join(', ') || (meta?.name + ' economy');
+
+  const prompt = `You are a financial news editor. Generate 4 realistic, highly specific macro news headlines for ${meta?.name || 'this country'} covering: ${topics}.
+
+Respond ONLY with a JSON array:
+[
+  {"title":"...","source":"Reuters|Bloomberg|FT|WSJ","time":"1h ago|3h ago|6h ago|12h ago","impact":"HIGH|MEDIUM|LOW","summary":"one specific sentence about market implications","url":"#"},
+  ...
+]
+
+Headlines must be specific, realistic, current-sounding. Mention specific figures, percentages, or institutions where plausible. No markdown.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        system: 'Financial news analyst. JSON only.',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    let raw = data.content[0].text.trim().replace(/```json|```/g,'').trim();
+    const articles = JSON.parse(raw);
+    label.textContent = `📰  ${articles.length} headlines`;
+
+    list.innerHTML = articles.map(a => `
+      <div class="ni">
+        <div class="ni-top">
+          <span class="ni-imp ${a.impact}">${a.impact}</span>
+          <span class="ni-src">${a.source}</span>
+          <span class="ni-time">${a.time}</span>
+        </div>
+        <div class="ni-title"><a href="${a.url}" target="_blank">${a.title}</a></div>
+        <div class="ni-sum">${a.summary}</div>
+      </div>
+    `).join('');
+  } catch(err) {
+    list.innerHTML = `<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
+    label.textContent = '📰  Failed to load';
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// STOCKS MODAL
+// ════════════════════════════════════════════════════════════════════
+function openStocks() {
+  if (!currentCountryMeta) return;
+  if (!currentCountryMeta.index || currentCountryMeta.index === '—') return;
+
+  const modal = document.getElementById('stocks-modal');
+  modal.classList.add('open');
+
+  // Header
+  document.getElementById('sh-flag').textContent = currentCountryMeta.flag || '🌍';
+  document.getElementById('sh-title').textContent = currentCountryMeta.index;
+  document.getElementById('sh-sub').textContent =
+    `${currentCountryMeta.name.toUpperCase()} · ${currentCountryMeta.currency} · ${currentCountryMeta.region.toUpperCase()}`;
+  document.getElementById('sh-stats').innerHTML = '';
+
+  // Reset filters
+  document.getElementById('st-filter').value = '';
+  currentSector = 'all';
+  document.querySelectorAll('.st-tab').forEach(t => t.classList.toggle('active', t.dataset.sector === 'all'));
+
+  const cacheKey = currentCountryMeta.index + '|' + currentCountryMeta.name;
+  if (stocksCache[cacheKey]) {
+    currentStocks = stocksCache[cacheKey].stocks;
+    renderIndexStats(stocksCache[cacheKey].indexStats);
+    renderStocks();
+  } else if (!apiKey) {
+    showStocksMessage('API key required. Enter it in the bottom-right panel and try again.');
+  } else {
+    fetchStocks(cacheKey);
+  }
+}
+
+function closeStocks() {
+  document.getElementById('stocks-modal').classList.remove('open');
+}
+
+async function fetchStocks(cacheKey) {
+  const meta = currentCountryMeta;
+  document.getElementById('stocks-loading').style.display = 'block';
+  document.getElementById('stocks-grid').innerHTML = '';
+  document.getElementById('stocks-empty').style.display = 'none';
+
+  const prompt = `You are a financial data provider. For the stock index "${meta.index}" in ${meta.name}, return the top 30 largest constituent stocks by market cap.
+
+Use web search to find accurate current data. Return ONLY valid JSON (no markdown, no prose):
+{
+  "indexStats": {
+    "level": <current index level, number>,
+    "pct": <today's % change, signed number>,
+    "constituents": <total number of stocks in index>
+  },
+  "stocks": [
+    {
+      "ticker": "<exchange ticker>",
+      "name": "<full company name>",
+      "sector": "Financials"|"Technology"|"Energy"|"Healthcare"|"Consumer"|"Industrials"|"Materials"|"Utilities"|"Telecom"|"Real Estate",
+      "price": <current share price in ${meta.currency}, number>,
+      "pct": <today's % change, signed number>,
+      "mcap": "<market cap as short string e.g. '2.4T', '850B', '42B'>"
+    },
+    ... (30 stocks sorted by market cap descending)
+  ]
+}
+
+Use the exact ticker symbols as listed on the local exchange. Return realistic current prices and changes.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const fullText = data.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n');
+
+    let jsonStr = fullText.trim().replace(/```json|```/g, '').trim();
+    const firstBrace = jsonStr.indexOf('{');
+    const lastBrace = jsonStr.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+    }
+    const result = JSON.parse(jsonStr);
+
+    stocksCache[cacheKey] = result;
+    currentStocks = result.stocks || [];
+    renderIndexStats(result.indexStats);
+    renderStocks();
+
+  } catch (err) {
+    console.error('Stocks fetch failed:', err);
+    showStocksMessage('Failed to load: ' + err.message);
+  }
+}
+
+function showStocksMessage(msg) {
+  document.getElementById('stocks-loading').style.display = 'none';
+  document.getElementById('stocks-grid').innerHTML = '';
+  const empty = document.getElementById('stocks-empty');
+  empty.style.display = 'block';
+  empty.innerHTML = `<div style="font-size:32px;margin-bottom:8px;">⚠</div><div>${msg}</div>`;
+}
+
+function renderIndexStats(stats) {
+  if (!stats) { document.getElementById('sh-stats').innerHTML = ''; return; }
+  const up = (stats.pct ?? 0) >= 0;
+  const fmt = (n, d = 2) => isFinite(n) ? n.toLocaleString(undefined, {minimumFractionDigits: d, maximumFractionDigits: d}) : '—';
+  document.getElementById('sh-stats').innerHTML = `
+    <div class="shs-item">
+      <div class="shs-label">LEVEL</div>
+      <div class="shs-val">${fmt(stats.level)}</div>
+    </div>
+    <div class="shs-item">
+      <div class="shs-label">CHANGE</div>
+      <div class="shs-val ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'}${Math.abs(stats.pct ?? 0).toFixed(2)}%</div>
+    </div>
+    <div class="shs-item">
+      <div class="shs-label">CONSTITUENTS</div>
+      <div class="shs-val">${stats.constituents ?? '—'}</div>
+    </div>
+  `;
+}
+
+function renderStocks() {
+  document.getElementById('stocks-loading').style.display = 'none';
+  const grid = document.getElementById('stocks-grid');
+  const empty = document.getElementById('stocks-empty');
+
+  const q = (document.getElementById('st-filter').value || '').toLowerCase().trim();
+
+  const filtered = currentStocks.filter(s => {
+    if (currentSector !== 'all' && s.sector !== currentSector) return false;
+    if (q && !(`${s.ticker} ${s.name}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    empty.innerHTML = `<div style="font-size:32px;margin-bottom:8px;">∅</div><div>No stocks match your filter</div>`;
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = filtered.map(s => {
+    const up = (s.pct ?? 0) >= 0;
+    const pctText = `${up ? '▲' : '▼'}${Math.abs(s.pct ?? 0).toFixed(2)}%`;
+    const price = isFinite(s.price)
+      ? s.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})
+      : '—';
+    return `
+      <div class="stock-card">
+        <div class="sc-top">
+          <div class="sc-ticker">${s.ticker || '—'}</div>
+          <div class="sc-sector">${(s.sector || '').toUpperCase()}</div>
+        </div>
+        <div class="sc-name">${s.name || '—'}</div>
+        <div class="sc-bottom">
+          <div>
+            <div class="sc-price">${price} ${currentCountryMeta.currency}</div>
+            <div class="sc-mcap">MCAP ${s.mcap || '—'}</div>
+          </div>
+          <div class="sc-change ${up ? 'up' : 'dn'}">${pctText}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterSector(sector) {
+  currentSector = sector;
+  document.querySelectorAll('.st-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.sector === sector);
+  });
+  renderStocks();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// API KEY
+// ════════════════════════════════════════════════════════════════════
+document.getElementById('api-save').addEventListener('click', () => {
+  const v = document.getElementById('api-input').value.trim();
+  if (!v) return;
+  apiKey = v;
+  const ok = document.getElementById('api-ok');
+  ok.style.display = 'block';
+  setTimeout(() => ok.style.display = 'none', 3000);
+  // Now that we have a key, load the tickers (they use the Claude API too)
+  loadTickers();
+  if (tickerTimer) clearInterval(tickerTimer);
+  tickerTimer = setInterval(loadTickers, 300000); // refresh every 5 min
+});
+
+// ════════════════════════════════════════════════════════════════════
+// COUNTER
+// ════════════════════════════════════════════════════════════════════
+function updateCount() {
+  const n = Object.keys(cache).length;
+  const inline = document.getElementById('analysed-inline');
+  if (inline) inline.textContent = `${n} analysed`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ZOOM CONTROLS & REGION JUMP
+// ════════════════════════════════════════════════════════════════════
+function zoomBy(factor) {
+  if (!window._zoom || !window._svg) return;
+  window._svg.transition().duration(350).call(window._zoom.scaleBy, factor);
+}
+function resetZoom() {
+  if (!window._zoom || !window._svg) return;
+  window._svg.transition().duration(600).call(window._zoom.transform, d3.zoomIdentity);
+}
+
+// Region centroids [lon, lat] + target zoom scale
+const REGION_VIEWS = {
+  americas: { center: [-80, 10],  scale: 2.2 },
+  europe:   { center: [15, 52],   scale: 3.5 },
+  asia:     { center: [95, 35],   scale: 2.4 },
+  africa:   { center: [20, 5],    scale: 2.8 },
+  oceania:  { center: [140, -25], scale: 2.6 },
+};
+
+function jumpTo(region) {
+  if (!window._zoom || !window._svg || !projection) return;
+  const view = REGION_VIEWS[region];
+  if (!view) return;
+
+  const wrap = document.getElementById('map-wrap');
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  const [px, py] = projection(view.center);
+
+  const transform = d3.zoomIdentity
+    .translate(W / 2, H / 2)
+    .scale(view.scale)
+    .translate(-px, -py);
+
+  window._svg.transition().duration(800).call(window._zoom.transform, transform);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// LIVE MACRO TICKERS
+// The Claude artifact sandbox CSP blocks most external fetch() calls.
+// The ONLY reliably reachable endpoint from here is api.anthropic.com,
+// so we use Claude with the web_search tool to pull live quotes.
+// Requires the user's API key (already entered in the bottom-right widget).
+// ════════════════════════════════════════════════════════════════════
+
+let tickerTimer = null;
+
+async function loadTickers() {
+  // If no API key yet, show a friendly placeholder instead of errors
+  if (!apiKey) {
+    TICKERS.forEach(t => {
+      const el = document.getElementById(t.id);
+      el.textContent = '—';
+      el.className = 'tick-val tick-na';
+      el.title = 'Enter API key to enable live tickers';
+    });
+    return;
+  }
+
+  // Show spinners
+  TICKERS.forEach(t => {
+    const el = document.getElementById(t.id);
+    el.innerHTML = '<span class="spin" style="width:8px;height:8px;"></span>';
+    el.className = 'tick-val tick-na';
+  });
+
+  const prompt = `Use web search to get the latest prices for these 5 market instruments RIGHT NOW. For each, find the current price and the percentage change from the previous close.
+
+Return ONLY a valid JSON object, no markdown, no prose:
+{
+  "dxy":  {"price": <number>, "pct": <number>},
+  "gold": {"price": <number>, "pct": <number>},
+  "wti":  {"price": <number>, "pct": <number>},
+  "vix":  {"price": <number>, "pct": <number>},
+  "us10y":{"price": <number>, "pct": <number>}
+}
+
+Where:
+- dxy   = US Dollar Index (DXY)
+- gold  = Spot gold in USD per oz (XAU/USD)
+- wti   = WTI Crude Oil futures price in USD
+- vix   = CBOE Volatility Index
+- us10y = US 10-Year Treasury yield (percentage value, e.g. 4.25)
+
+pct = today's percentage change vs previous close (signed, e.g. 0.45 or -1.2).
+Use the most recent intraday value available. Output JSON only.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Concatenate all text blocks (there may be multiple after tool use)
+    const fullText = data.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n');
+
+    // Extract JSON (strip any accidental fences or prose)
+    let jsonStr = fullText.trim().replace(/```json|```/g, '').trim();
+    const firstBrace = jsonStr.indexOf('{');
+    const lastBrace  = jsonStr.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+    }
+    const quotes = JSON.parse(jsonStr);
+
+    // Render each ticker
+    TICKERS.forEach(t => {
+      const el = document.getElementById(t.id);
+      const q = quotes[t.key];
+      if (!q || !isFinite(q.price)) {
+        el.textContent = 'N/A';
+        el.className = 'tick-val tick-na';
+        return;
+      }
+      const pct = isFinite(q.pct) ? q.pct : 0;
+      const up = pct >= 0;
+      el.textContent = q.price.toFixed(t.decimals) + ' ' + (up ? '▲' : '▼') + Math.abs(pct).toFixed(2) + '%';
+      el.className = 'tick-val ' + (up ? 'tick-up' : 'tick-dn');
+      el.title = `Live: ${q.price.toFixed(t.decimals)}  ·  Δ ${up ? '+' : ''}${pct.toFixed(2)}%  (via Claude web search)`;
+    });
+
+  } catch (e) {
+    console.warn('Ticker fetch failed:', e);
+    TICKERS.forEach(t => {
+      const el = document.getElementById(t.id);
+      el.textContent = 'N/A';
+      el.className = 'tick-val tick-na';
+      el.title = 'Error: ' + (e.message || e);
+    });
+  }
+}
+
+const TICKERS = [
+  { id: 't-dxy',  key: 'dxy',   decimals: 2 },
+  { id: 't-gold', key: 'gold',  decimals: 1 },
+  { id: 't-wti',  key: 'wti',   decimals: 2 },
+  { id: 't-vix',  key: 'vix',   decimals: 2 },
+  { id: 't-10y',  key: 'us10y', decimals: 3 },
+];
+
+// ════════════════════════════════════════════════════════════════════
+// EVENT LISTENERS (attached programmatically to avoid scope issues)
+// ════════════════════════════════════════════════════════════════════
+function wireEventListeners() {
+  // Panel close
+  const pClose = document.getElementById('p-close');
+  if (pClose) pClose.addEventListener('click', closePanel);
+
+  // Exchange card -> open stocks
+  const exCard = document.getElementById('exchange-card');
+  if (exCard) exCard.addEventListener('click', openStocks);
+
+  // Stocks modal close
+  const shClose = document.getElementById('sh-close-btn');
+  if (shClose) shClose.addEventListener('click', closeStocks);
+  const backdrop = document.getElementById('stocks-backdrop');
+  if (backdrop) backdrop.addEventListener('click', closeStocks);
+
+  // Search filter
+  const filter = document.getElementById('st-filter');
+  if (filter) filter.addEventListener('input', renderStocks);
+
+  // Sector tabs
+  document.querySelectorAll('.st-tab').forEach(tab => {
+    tab.addEventListener('click', () => filterSector(tab.dataset.sector));
+  });
+
+  // News toggle
+  const nt = document.getElementById('news-toggle');
+  if (nt) nt.addEventListener('click', toggleNews);
+
+  // Zoom buttons
+  document.querySelectorAll('.zbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.zoom;
+      if (action === 'in')   zoomBy(1.5);
+      if (action === 'out')  zoomBy(0.667);
+      if (action === 'reset') resetZoom();
+    });
+  });
+
+  // Region jump buttons
+  document.querySelectorAll('.rj-btn').forEach(btn => {
+    btn.addEventListener('click', () => jumpTo(btn.dataset.region));
+  });
+
+  // ESC to close modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeStocks();
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════════
+wireEventListeners();
+initMap();
+loadTickers();  // shows "—" placeholders until user enters API key
+</script>
+</body>
+</html>
