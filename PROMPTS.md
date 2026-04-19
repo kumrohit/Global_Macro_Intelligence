@@ -143,7 +143,7 @@ global_macro_intel.html (~4470 lines, single file)
 
 - [x] ~~Task 1 — Add user login page~~
 - [x] ~~Task 2 — Improve my readme file. Provide description of the project. helpful technical notes and detailed architecture for github repo~~
-- [ ] Task 3 — *(your next prompt here)*
+- [x] ~~Task 3 — make it ready for web release. Help me with detailed release instructions~~
 
 ---
 
