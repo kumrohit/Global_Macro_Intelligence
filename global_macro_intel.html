@@ -1100,9 +1100,118 @@ body::after{
   color:var(--text2);margin-bottom:3px;}
 .ca-theme-bar-track{height:6px;background:var(--border);border-radius:2px;overflow:hidden;}
 .ca-theme-bar-fill{height:100%;border-radius:2px;transition:width 0.7s;}
+
+/* ── Login overlay ── */
+#login-overlay{
+  position:fixed;inset:0;z-index:5000;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  transition:opacity 0.5s ease, visibility 0.5s ease;
+}
+#login-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+
+#login-box{
+  width:380px;
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:6px;
+  padding:36px 32px 28px;
+  box-shadow:0 0 60px rgba(34,211,238,0.06), 0 0 120px rgba(59,130,246,0.04);
+  position:relative;
+  overflow:hidden;
+}
+#login-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:0.6;
+}
+
+#login-logo{text-align:center;margin-bottom:28px;}
+#login-logo .logo{font-size:17px;letter-spacing:0.22em;}
+#login-logo .logo-sub{margin-top:3px;}
+
+#login-mode-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+.lm-tab{flex:1;background:transparent;border:none;padding:7px 0;font-family:var(--font-display);font-size:11px;
+  font-weight:600;letter-spacing:0.12em;color:var(--text2);cursor:pointer;transition:all 0.2s;}
+.lm-tab.active{background:rgba(34,211,238,0.08);color:var(--cyan);}
+
+.login-field{margin-bottom:14px;}
+.login-field label{display:block;font-family:var(--font-mono);font-size:9px;color:var(--text2);
+  letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px;}
+.login-field input{
+  width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;
+  padding:9px 12px;color:var(--text);font-family:var(--font-mono);font-size:11px;
+  outline:none;transition:border-color 0.2s, box-shadow 0.2s;
+}
+.login-field input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,211,238,0.1);}
+.login-field input::placeholder{color:var(--text3);}
+
+#login-error{
+  font-family:var(--font-mono);font-size:9px;color:var(--bear);letter-spacing:0.08em;
+  text-align:center;margin-bottom:10px;min-height:14px;
+}
+
+#login-submit-btn{
+  width:100%;padding:10px;margin-top:4px;
+  background:rgba(34,211,238,0.08);border:1px solid var(--cyan);border-radius:3px;
+  color:var(--cyan);font-family:var(--font-display);font-size:12px;font-weight:700;
+  letter-spacing:0.18em;cursor:pointer;transition:all 0.2s;
+}
+#login-submit-btn:hover{background:rgba(34,211,238,0.16);box-shadow:0 0 16px rgba(34,211,238,0.15);}
+#login-submit-btn:active{transform:scale(0.98);}
+
+#login-footer{margin-top:20px;text-align:center;font-family:var(--font-mono);font-size:9px;color:var(--text3);}
+#login-footer a{color:var(--text2);text-decoration:none;cursor:pointer;}
+#login-footer a:hover{color:var(--cyan);}
+
+/* Topbar user info */
+#topbar-user{display:flex;align-items:center;gap:8px;}
+#topbar-username{font-family:var(--font-mono);font-size:9px;color:var(--cyan);letter-spacing:0.1em;}
+#logout-btn{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  padding:3px 8px;font-family:var(--font-mono);font-size:8px;color:var(--text2);
+  cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;
+}
+#logout-btn:hover{border-color:var(--bear);color:var(--bear);}
 </style>
 </head>
 <body>
+
+<!-- ── Login overlay ── -->
+<div id="login-overlay">
+  <div id="login-box">
+    <div id="login-logo">
+      <div class="logo">◈ GLOBAL MACRO INTELLIGENCE</div>
+      <div class="logo-sub">SECURE TERMINAL ACCESS</div>
+    </div>
+    <div id="login-mode-tabs">
+      <button class="lm-tab active" data-mode="login">SIGN IN</button>
+      <button class="lm-tab" data-mode="register">REGISTER</button>
+    </div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="login-field" id="login-name-wrap" style="display:none;">
+      <label>Display Name</label>
+      <input type="text" id="login-displayname" placeholder="Your name (optional)">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <div class="login-field" id="login-confirm-wrap" style="display:none;">
+      <label>Confirm Password</label>
+      <input type="password" id="login-confirm" placeholder="Repeat password" autocomplete="new-password">
+    </div>
+    <div id="login-error"></div>
+    <button id="login-submit-btn">SIGN IN</button>
+    <div id="login-footer">
+      <span id="login-footer-text">New here? <a id="login-switch-link">Create an account</a></span>
+    </div>
+  </div>
+</div>
+
 <div id="app">
 
 <div id="topbar">
@@ -1119,6 +1228,10 @@ body::after{
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
     <button id="ca-topbar-btn" title="Custom Analysis Builder">⊕ CUSTOM ANALYSIS</button>
+    <div id="topbar-user" style="display:none;">
+      <span id="topbar-username">—</span>
+      <button id="logout-btn">⏻ LOGOUT</button>
+    </div>
     <div id="clock">—</div>
   </div>
 </div>
@@ -4459,8 +4572,184 @@ function wireEventListeners() {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// AUTH — Login / Register / Session
+// ════════════════════════════════════════════════════════════════════
+
+const AUTH_USERS_KEY = 'gmi_users';
+const AUTH_SESSION_KEY = 'gmi_session';
+let authMode = 'login'; // 'login' | 'register'
+
+function hashPassword(pw) {
+  // Simple deterministic hash (no backend — single-file app).
+  let h = 5381;
+  for (let i = 0; i < pw.length; i++) h = ((h << 5) + h) ^ pw.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
+function loadUsers() {
+  try { return JSON.parse(localStorage.getItem(AUTH_USERS_KEY) || '{}'); }
+  catch(_) { return {}; }
+}
+
+function saveUsers(users) {
+  try { localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users)); } catch(_) {}
+}
+
+function loadSession() {
+  try { return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY) || 'null'); }
+  catch(_) { return null; }
+}
+
+function saveSession(session) {
+  try { localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session)); } catch(_) {}
+}
+
+function clearSession() {
+  try { localStorage.removeItem(AUTH_SESSION_KEY); } catch(_) {}
+}
+
+function setLoginError(msg) {
+  const el = document.getElementById('login-error');
+  if (el) el.textContent = msg;
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.querySelectorAll('.lm-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  const nameWrap = document.getElementById('login-name-wrap');
+  const confirmWrap = document.getElementById('login-confirm-wrap');
+  const submitBtn = document.getElementById('login-submit-btn');
+  const footerText = document.getElementById('login-footer-text');
+  const switchLink = document.getElementById('login-switch-link');
+  if (mode === 'register') {
+    if (nameWrap) nameWrap.style.display = '';
+    if (confirmWrap) confirmWrap.style.display = '';
+    if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
+    if (footerText) footerText.innerHTML = 'Already have an account? <a id="login-switch-link">Sign in</a>';
+  } else {
+    if (nameWrap) nameWrap.style.display = 'none';
+    if (confirmWrap) confirmWrap.style.display = 'none';
+    if (submitBtn) submitBtn.textContent = 'SIGN IN';
+    if (footerText) footerText.innerHTML = 'New here? <a id="login-switch-link">Create an account</a>';
+  }
+  setLoginError('');
+  // Re-wire switch link after innerHTML replace
+  const newLink = document.getElementById('login-switch-link');
+  if (newLink) newLink.addEventListener('click', () => setAuthMode(authMode === 'login' ? 'register' : 'login'));
+}
+
+function attemptLogin() {
+  const username = (document.getElementById('login-username')?.value || '').trim().toLowerCase();
+  const password = document.getElementById('login-password')?.value || '';
+
+  if (!username) { setLoginError('Username is required.'); return; }
+  if (!password) { setLoginError('Password is required.'); return; }
+
+  const users = loadUsers();
+  const user = users[username];
+  if (!user) { setLoginError('No account found. Please register.'); return; }
+  if (user.hash !== hashPassword(password)) { setLoginError('Incorrect password.'); return; }
+
+  setLoginError('');
+  startSession({ username, displayName: user.displayName || username });
+}
+
+function attemptRegister() {
+  const username = (document.getElementById('login-username')?.value || '').trim().toLowerCase();
+  const displayName = (document.getElementById('login-displayname')?.value || '').trim();
+  const password = document.getElementById('login-password')?.value || '';
+  const confirm = document.getElementById('login-confirm')?.value || '';
+
+  if (!username) { setLoginError('Username is required.'); return; }
+  if (username.length < 3) { setLoginError('Username must be at least 3 characters.'); return; }
+  if (!/^[a-z0-9_]+$/.test(username)) { setLoginError('Username: letters, numbers, underscore only.'); return; }
+  if (!password) { setLoginError('Password is required.'); return; }
+  if (password.length < 6) { setLoginError('Password must be at least 6 characters.'); return; }
+  if (password !== confirm) { setLoginError('Passwords do not match.'); return; }
+
+  const users = loadUsers();
+  if (users[username]) { setLoginError('Username already taken.'); return; }
+
+  users[username] = { hash: hashPassword(password), displayName: displayName || username, created: Date.now() };
+  saveUsers(users);
+  setLoginError('');
+  startSession({ username, displayName: displayName || username });
+}
+
+function startSession(session) {
+  saveSession(session);
+  applySession(session);
+  const overlay = document.getElementById('login-overlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function applySession(session) {
+  const userEl = document.getElementById('topbar-user');
+  const nameEl = document.getElementById('topbar-username');
+  if (userEl) userEl.style.display = 'flex';
+  if (nameEl) nameEl.textContent = '▸ ' + (session.displayName || session.username).toUpperCase();
+}
+
+function logout() {
+  clearSession();
+  // Reset login form
+  ['login-username','login-password','login-displayname','login-confirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  setLoginError('');
+  setAuthMode('login');
+  const userEl = document.getElementById('topbar-user');
+  if (userEl) userEl.style.display = 'none';
+  const overlay = document.getElementById('login-overlay');
+  if (overlay) overlay.classList.remove('hidden');
+}
+
+function wireLoginEvents() {
+  // Mode tabs
+  document.querySelectorAll('.lm-tab').forEach(tab => {
+    tab.addEventListener('click', () => setAuthMode(tab.dataset.mode));
+  });
+
+  // Switch link
+  const switchLink = document.getElementById('login-switch-link');
+  if (switchLink) switchLink.addEventListener('click', () => setAuthMode(authMode === 'login' ? 'register' : 'login'));
+
+  // Submit button
+  const submitBtn = document.getElementById('login-submit-btn');
+  if (submitBtn) submitBtn.addEventListener('click', () => {
+    if (authMode === 'login') attemptLogin();
+    else attemptRegister();
+  });
+
+  // Enter key in any login field
+  ['login-username','login-password','login-displayname','login-confirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (authMode === 'login') attemptLogin();
+        else attemptRegister();
+      }
+    });
+  });
+
+  // Logout button
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+}
+
+// ════════════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════════════
+wireLoginEvents();
+
+// Restore session if one exists
+const existingSession = loadSession();
+if (existingSession) {
+  applySession(existingSession);
+  document.getElementById('login-overlay')?.classList.add('hidden');
+}
+
 loadWatchlistFromStorage();
 wireEventListeners();
 initMap();
