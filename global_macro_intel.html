@@ -692,6 +692,150 @@ body::after{
   padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:4px;
 }
 .sdp-error{text-align:center;padding:40px 20px;font-family:var(--font-display);font-size:13px;color:var(--bear);}
+
+/* ── Language toggle ── */
+#lang-btn{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:9px;
+  padding:4px 9px;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;
+  margin-left:auto;flex-shrink:0;
+}
+#lang-btn:hover{color:var(--cyan);border-color:var(--cyan);}
+#lang-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.08);}
+#native-note{font-family:var(--font-display);font-size:10px;color:var(--text3);font-style:italic;
+  padding:4px 0 6px;display:none;border-bottom:1px solid var(--border);margin-bottom:6px;}
+#native-note.show{display:block;}
+
+/* ── Authority Publications ── */
+#auth-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;cursor:pointer;border:1px solid var(--border);
+  border-radius:4px;background:var(--card);transition:border-color 0.2s;
+}
+#auth-toggle:hover{border-color:var(--border2);}
+#auth-label{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.08em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
+#auth-arrow{font-size:9px;color:var(--text2);transition:transform 0.3s;}
+#auth-arrow.open{transform:rotate(180deg);}
+#auth-list{display:none;flex-direction:column;gap:5px;margin-top:5px;}
+#auth-list.open{display:flex;}
+.auth-item{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:10px 12px;}
+.auth-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.auth-type{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;padding:2px 6px;border-radius:2px;}
+.auth-type.policy{background:rgba(96,165,250,0.12);color:var(--accent);}
+.auth-type.report{background:rgba(34,211,238,0.12);color:var(--cyan);}
+.auth-type.speech{background:rgba(245,158,11,0.12);color:var(--amber);}
+.auth-type.release{background:rgba(16,185,129,0.12);color:var(--green);}
+.auth-date{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-left:auto;}
+.auth-title{font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.4;}
+.auth-summary{font-family:var(--font-display);font-size:11px;color:var(--text2);line-height:1.5;}
+.auth-authority{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:5px;letter-spacing:0.06em;}
+
+/* ── Social Media Sentiment Panel ── */
+#social-tab{
+  position:fixed;left:0;top:50%;transform:translateY(-50%);
+  background:var(--surface);border:1px solid var(--border2);
+  border-left:none;border-radius:0 6px 6px 0;
+  padding:14px 7px;cursor:pointer;z-index:500;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:all 0.2s;box-shadow:2px 0 12px rgba(0,0,0,0.4);
+}
+#social-tab:hover{border-color:var(--accent);background:rgba(30,42,68,0.9);}
+#social-tab.active{border-color:var(--cyan);background:rgba(34,211,238,0.07);}
+.soc-tab-icon{font-size:15px;color:var(--cyan);}
+.soc-tab-label{font-family:var(--font-mono);font-size:7px;color:var(--text2);letter-spacing:0.12em;
+  writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);}
+.soc-tab-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.3}}
+
+#social-panel{
+  position:fixed;left:0;top:0;bottom:0;width:340px;
+  background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
+  border-right:1px solid var(--border);z-index:480;
+  display:flex;flex-direction:column;
+  transform:translateX(-100%);transition:transform 0.35s cubic-bezier(0.22,0.61,0.36,1);
+  box-shadow:4px 0 24px rgba(0,0,0,0.5);
+}
+#social-panel.open{transform:translateX(0);}
+
+#social-header{
+  padding:16px 18px 12px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(34,211,238,0.05) 0%,transparent 100%);flex-shrink:0;
+}
+.social-htop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;}
+#social-title-txt{font-family:var(--font-display);font-size:13px;font-weight:700;letter-spacing:0.15em;color:var(--text);}
+#social-close-btn{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-size:10px;padding:4px 8px;cursor:pointer;transition:all 0.2s;
+}
+#social-close-btn:hover{color:var(--bear);border-color:var(--bear);}
+#social-sub-txt{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.08em;}
+.soc-scope-row{display:flex;gap:5px;margin-top:10px;}
+.soc-scope-btn{
+  font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;
+  padding:4px 10px;border-radius:3px;cursor:pointer;border:1px solid var(--border);
+  color:var(--text2);background:transparent;transition:all 0.2s;
+}
+.soc-scope-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.08);}
+#soc-refresh-btn{
+  font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.1em;
+  padding:4px 9px;border:1px solid var(--border);border-radius:3px;
+  background:transparent;cursor:pointer;transition:all 0.2s;margin-left:auto;
+}
+#soc-refresh-btn:hover{color:var(--accent);border-color:var(--accent);}
+
+#social-body{
+  flex:1;overflow-y:auto;padding:14px 18px 20px;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+#social-body::-webkit-scrollbar{width:5px;}
+#social-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+.soc-slabel{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.2em;
+  margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.soc-section{margin-bottom:18px;}
+
+.soc-overview{display:flex;gap:10px;margin-bottom:8px;}
+.soc-ov-stat{flex:1;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:8px 10px;text-align:center;}
+.soc-ov-val{font-family:var(--font-mono);font-size:15px;font-weight:700;}
+.soc-ov-lbl{font-family:var(--font-mono);font-size:7px;color:var(--text2);letter-spacing:0.1em;margin-top:2px;}
+.soc-ov-bull{color:var(--bull);}.soc-ov-bear{color:var(--bear);}.soc-ov-neut{color:var(--neut);}
+
+.soc-bar-wrap{display:flex;height:8px;border-radius:3px;overflow:hidden;margin-bottom:5px;gap:1px;}
+.soc-seg-bull{background:var(--bull);}
+.soc-seg-neut{background:var(--neut);}
+.soc-seg-bear{background:var(--bear);}
+.soc-bar-lbl{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:8px;color:var(--text2);}
+
+.soc-platform{display:flex;align-items:center;gap:8px;padding:6px 10px;
+  background:var(--card);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;}
+.soc-plat-name{font-family:var(--font-mono);font-size:9px;color:var(--text);width:76px;flex-shrink:0;}
+.soc-plat-bar{flex:1;height:4px;background:var(--bg);border-radius:2px;overflow:hidden;}
+.soc-plat-fill{height:100%;border-radius:2px;transition:width 0.6s;}
+.soc-plat-pct{font-family:var(--font-mono);font-size:8px;width:30px;text-align:right;}
+
+.soc-trending{display:flex;flex-direction:column;gap:3px;}
+.soc-trend-item{display:flex;align-items:center;gap:8px;padding:6px 10px;
+  background:var(--card);border:1px solid var(--border);border-radius:4px;}
+.soc-trend-rank{font-family:var(--font-mono);font-size:9px;color:var(--text3);width:14px;}
+.soc-trend-ticker{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--accent);width:52px;}
+.soc-trend-name{font-family:var(--font-display);font-size:10px;color:var(--text2);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.soc-trend-sent{font-family:var(--font-mono);font-size:9px;font-weight:700;}
+.soc-sent-bull{color:var(--bull);}.soc-sent-bear{color:var(--bear);}.soc-sent-neut{color:var(--neut);}
+.soc-trend-vol{font-family:var(--font-mono);font-size:8px;color:var(--text3);width:36px;text-align:right;}
+
+.soc-topic{display:flex;align-items:center;gap:8px;padding:6px 10px;
+  background:var(--card);border:1px solid var(--border);border-radius:4px;margin-bottom:3px;}
+.soc-topic-tag{font-family:var(--font-mono);font-size:9px;color:var(--cyan);flex:1;}
+.soc-topic-type{font-family:var(--font-mono);font-size:8px;font-weight:700;padding:1px 5px;border-radius:2px;}
+.soc-type-bull{color:var(--bull);background:var(--green-dim);}
+.soc-type-bear{color:var(--bear);background:var(--red-dim);}
+.soc-type-neut{color:var(--neut);background:rgba(100,116,139,0.15);}
+.soc-type-break{color:var(--amber);background:rgba(245,158,11,0.12);}
+.soc-topic-vol{font-family:var(--font-mono);font-size:8px;color:var(--text3);}
+
+#social-loading{text-align:center;padding:40px 20px;}
+#social-error{text-align:center;padding:30px 20px;font-family:var(--font-display);font-size:12px;color:var(--bear);}
 </style>
 </head>
 <body>
@@ -879,8 +1023,10 @@ body::after{
       <div id="p-flag">🌍</div>
       <div id="p-name">—</div>
       <div id="p-meta">—</div>
+      <button id="lang-btn" title="Translate to native language">🌐 EN</button>
     </div>
     <div id="panel-body">
+      <div id="native-note" class=""></div>
       <div class="slabel">MACRO SENTIMENT</div>
       <div id="sent-badge" class="loading"><span class="spin"></span> &nbsp;ANALYSING</div><br>
       <div id="regime-pill"></div>
@@ -900,6 +1046,14 @@ body::after{
         <div class="chip"><div class="chip-label">CURRENCY</div><div class="chip-val" id="c-cy">—</div></div>
         <div class="chip"><div class="chip-label">KEY RISK</div><div class="chip-val" id="c-kr" style="font-size:9px;line-height:1.4;">—</div></div>
       </div>
+
+      <div class="slabel">AUTHORITY PUBLICATIONS</div>
+      <div id="auth-toggle">
+        <span id="auth-label">📋 &nbsp;Load latest publications</span>
+        <span id="auth-arrow">▼</span>
+      </div>
+      <div id="auth-list"></div>
+
       <div class="slabel">PRIMARY EXCHANGE</div>
       <div id="exchange-card">
         <div class="ex-left">
@@ -921,6 +1075,36 @@ body::after{
 </div>
 </div>
 
+<!-- Social Media Sentiment floating tab + panel -->
+<div id="social-tab" title="Market Social Sentiment">
+  <div class="soc-tab-icon">◈</div>
+  <div class="soc-tab-label">SOCIAL FEED</div>
+  <div class="soc-tab-dot"></div>
+</div>
+<div id="social-panel">
+  <div id="social-header">
+    <div class="social-htop">
+      <div id="social-title-txt">◈ SOCIAL SENTIMENT</div>
+      <button id="social-close-btn">✕</button>
+    </div>
+    <div id="social-sub-txt">AI-synthesised from market discourse · Twitter/X · Reddit · StockTwits</div>
+    <div class="soc-scope-row">
+      <button class="soc-scope-btn active" data-scope="global">GLOBAL</button>
+      <button class="soc-scope-btn" id="soc-country-btn" data-scope="country" style="display:none;">—</button>
+      <button id="soc-refresh-btn">↻ REFRESH</button>
+    </div>
+  </div>
+  <div id="social-body">
+    <div id="social-loading" style="display:none;">
+      <div class="big-spin"></div>
+      <div class="sl-text">Fetching sentiment data...</div>
+      <div class="sl-sub">Synthesising social market discourse</div>
+    </div>
+    <div id="social-content"></div>
+    <div id="social-error" style="display:none;"></div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 // STATE
@@ -928,14 +1112,79 @@ body::after{
 let apiKey = '';
 let activeId = null;
 let newsOpen = false;
+let authorityOpen = false;
+let langNative = false;
+let socialOpen = false;
+let socialScope = 'global';
 let cache = {};
-let stocksCache = {};          // { "IndexName": [ {ticker, name, sector, price, pct, mcap}, ... ] }
-let currentCountryMeta = null; // last selected country's meta
-let currentStocks = [];        // currently displayed stocks
+let stocksCache = {};
+let authorityCache = {};
+let translationCache = {};
+let socialCache = {};
+let currentCountryMeta = null;
+let currentStocks = [];
 let currentSector = 'all';
 let countryMeta = {};
 let worldData = null;
 let projection, path;
+
+// Authority & language metadata per ISO numeric
+const AUTHORITY_INFO = {
+  "840": { authority:"Federal Reserve & U.S. Treasury",                lang:"English"           },
+  "124": { authority:"Bank of Canada & OSFI",                          lang:"English"           },
+  "484": { authority:"Banco de México (Banxico) & CNBV",               lang:"Español"           },
+  "076": { authority:"Banco Central do Brasil & CVM",                  lang:"Português"         },
+  "032": { authority:"Banco Central de la República Argentina & CNV",  lang:"Español"           },
+  "152": { authority:"Banco Central de Chile & CMF",                   lang:"Español"           },
+  "170": { authority:"Banco de la República Colombia & SFC",           lang:"Español"           },
+  "604": { authority:"Banco Central de Reserva del Perú & SMV",       lang:"Español"           },
+  "826": { authority:"Bank of England & FCA",                          lang:"English"           },
+  "250": { authority:"Banque de France & AMF",                         lang:"Français"          },
+  "276": { authority:"Deutsche Bundesbank & BaFin",                    lang:"Deutsch"           },
+  "380": { authority:"Banca d'Italia & Consob",                        lang:"Italiano"          },
+  "724": { authority:"Banco de España & CNMV",                         lang:"Español"           },
+  "620": { authority:"Banco de Portugal & CMVM",                       lang:"Português"         },
+  "528": { authority:"De Nederlandsche Bank & AFM",                    lang:"Nederlands"        },
+  "756": { authority:"Swiss National Bank (SNB) & FINMA",              lang:"Deutsch"           },
+  "040": { authority:"Oesterreichische Nationalbank & FMA",            lang:"Deutsch"           },
+  "616": { authority:"Narodowy Bank Polski & KNF",                     lang:"Polski"            },
+  "752": { authority:"Riksbank & Finansinspektionen",                  lang:"Svenska"           },
+  "578": { authority:"Norges Bank & Finanstilsynet",                   lang:"Norsk"             },
+  "246": { authority:"Bank of Finland (Suomen Pankki) & FIN-FSA",     lang:"Suomi"             },
+  "208": { authority:"Danmarks Nationalbank & Finanstilsynet",         lang:"Dansk"             },
+  "300": { authority:"Bank of Greece & HCMC",                         lang:"Ελληνικά"          },
+  "056": { authority:"National Bank of Belgium & FSMA",               lang:"Français"          },
+  "203": { authority:"Czech National Bank (ČNB)",                      lang:"Čeština"           },
+  "642": { authority:"National Bank of Romania & ASF",                 lang:"Română"            },
+  "643": { authority:"Bank of Russia (CBR) & Bank of Russia",         lang:"Русский"           },
+  "792": { authority:"Central Bank of Turkey (CBRT) & CMB",           lang:"Türkçe"            },
+  "364": { authority:"Central Bank of Iran & SEO",                    lang:"فارسی"             },
+  "682": { authority:"Saudi Central Bank (SAMA) & CMA",               lang:"العربية"           },
+  "784": { authority:"Central Bank of UAE & SCA",                     lang:"العربية"           },
+  "376": { authority:"Bank of Israel & ISA",                          lang:"עברית"             },
+  "818": { authority:"Central Bank of Egypt & FRA",                   lang:"العربية"           },
+  "566": { authority:"Central Bank of Nigeria & SEC Nigeria",         lang:"English"           },
+  "710": { authority:"South African Reserve Bank & FSCA",             lang:"English"           },
+  "404": { authority:"Central Bank of Kenya & CMA Kenya",             lang:"English"           },
+  "504": { authority:"Bank Al-Maghrib & AMMC",                        lang:"العربية"           },
+  "356": { authority:"Reserve Bank of India (RBI) & SEBI",           lang:"हिंदी"             },
+  "156": { authority:"People's Bank of China (PBOC) & CSRC",         lang:"中文"              },
+  "392": { authority:"Bank of Japan (BOJ) & FSA Japan",              lang:"日本語"             },
+  "410": { authority:"Bank of Korea (BOK) & FSC Korea",              lang:"한국어"             },
+  "158": { authority:"Central Bank of the Republic of China & FSC",  lang:"中文"              },
+  "764": { authority:"Bank of Thailand (BOT) & SEC Thailand",        lang:"ภาษาไทย"           },
+  "704": { authority:"State Bank of Vietnam & SSC",                   lang:"Tiếng Việt"        },
+  "458": { authority:"Bank Negara Malaysia & SC Malaysia",            lang:"Bahasa Melayu"     },
+  "360": { authority:"Bank Indonesia & OJK",                          lang:"Bahasa Indonesia"  },
+  "608": { authority:"Bangko Sentral ng Pilipinas & SEC Philippines", lang:"Filipino"          },
+  "036": { authority:"Reserve Bank of Australia (RBA) & ASIC",       lang:"English"           },
+  "554": { authority:"Reserve Bank of New Zealand & FMA",             lang:"English"           },
+  "398": { authority:"National Bank of Kazakhstan & AFSA",            lang:"Қазақша"           },
+  "288": { authority:"Bank of Ghana & SEC Ghana",                     lang:"English"           },
+  "144": { authority:"Central Bank of Sri Lanka & SEC Sri Lanka",     lang:"සිංහල"            },
+  "414": { authority:"Central Bank of Kuwait & CMA Kuwait",           lang:"العربية"           },
+  "634": { authority:"Qatar Central Bank & QFMA",                     lang:"العربية"           },
+};
 
 // Country metadata (iso numeric → info)
 const META = {
@@ -1230,6 +1479,10 @@ function selectCountry(d) {
   const meta = getMeta(d);
   if (!meta) return;
 
+  // Attach ISO id to meta so authority lookup can find it
+  const isoId = String(d.id).padStart(3, '0');
+  meta._id = isoId;
+
   const key = 'c' + d.id;
 
   // Deactivate previous
@@ -1246,6 +1499,22 @@ function selectCountry(d) {
   document.getElementById('p-flag').textContent = meta.flag || '🌍';
   document.getElementById('p-name').textContent = meta.name;
   document.getElementById('p-meta').textContent = meta.region + ' · ' + meta.currency + ' · ' + meta.index;
+
+  // Language toggle button — show only for non-English countries
+  const authInfo = AUTHORITY_INFO[isoId];
+  const lang = authInfo?.lang || 'English';
+  const langBtn = document.getElementById('lang-btn');
+  langBtn.textContent = `🌐 EN`;
+  langBtn.className = '';
+  langBtn.style.display = lang === 'English' ? 'none' : 'block';
+  langNative = false;
+  document.getElementById('native-note').className = '';
+  document.getElementById('native-note').textContent = '';
+
+  // Authority section label — show primary institution only
+  const authInfo2 = AUTHORITY_INFO[isoId];
+  const authDisplay = authInfo2 ? authInfo2.authority.split('&')[0].trim() : meta.name + ' Central Bank';
+  document.getElementById('auth-label').textContent = `📋  ${authDisplay} publications`;
 
   // Populate exchange card
   const exName = document.getElementById('ex-name');
@@ -1265,12 +1534,32 @@ function selectCountry(d) {
   // Store current meta for stocks modal
   currentCountryMeta = meta;
 
+  // Reset authority section
+  authorityOpen = false;
+  document.getElementById('auth-arrow').className = '';
+  document.getElementById('auth-list').className = '';
+  document.getElementById('auth-list').innerHTML = '';
+
   // Reset news
   newsOpen = false;
   document.getElementById('news-arrow').className = '';
   document.getElementById('news-list').className = '';
   document.getElementById('news-list').innerHTML = '';
   document.getElementById('news-label').textContent = '📰  Load latest headlines';
+
+  // Update social panel country button; reset country scope to global on country change
+  const socBtn = document.getElementById('soc-country-btn');
+  if (socBtn) {
+    socBtn.textContent = meta.name.toUpperCase();
+    socBtn.style.display = 'block';
+    socBtn.dataset.scope = 'country';
+  }
+  // Switch social scope back to global whenever user picks a new country
+  if (socialScope === 'country') {
+    socialScope = 'global';
+    document.querySelectorAll('.soc-scope-btn').forEach(b => b.classList.toggle('active', b.dataset.scope === 'global'));
+    if (socialOpen) loadSocialSentiment();
+  }
 
   if (cache[key]) {
     renderPanel(cache[key]);
@@ -2180,14 +2469,7 @@ Output only the JSON with your estimates substituted in.`;
     }
     // Concatenate all text blocks (there may be multiple after tool use)
 
-    // Extract JSON (strip any accidental fences or prose)
-    let jsonStr = fullText.trim().replace(/```json|```/g, '').trim();
-    const firstBrace = jsonStr.indexOf('{');
-    const lastBrace  = jsonStr.lastIndexOf('}');
-    if (firstBrace >= 0 && lastBrace > firstBrace) {
-      jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
-    }
-    const quotes = JSON.parse(jsonStr);
+    const quotes = repairAndParseJSON(fullText);
 
     // Render each ticker
     TICKERS.forEach(t => {
@@ -2225,6 +2507,342 @@ const TICKERS = [
 ];
 
 // ════════════════════════════════════════════════════════════════════
+// AUTHORITY PUBLICATIONS
+// ════════════════════════════════════════════════════════════════════
+function getAuthorityInfo(meta) {
+  const id = meta._id || '';
+  return AUTHORITY_INFO[id] || {
+    authority: meta.name + ' Central Bank & Finance Ministry',
+    lang: 'English'
+  };
+}
+
+function toggleAuthority() {
+  authorityOpen = !authorityOpen;
+  document.getElementById('auth-arrow').className = authorityOpen ? 'open' : '';
+  const list = document.getElementById('auth-list');
+  list.className = authorityOpen ? 'open' : '';
+  // Use cache check (not innerHTML) so error states reload on retry
+  if (authorityOpen && activeId && !authorityCache[activeId]) loadAuthorityPubs(activeId);
+  else if (authorityOpen && activeId && authorityCache[activeId]) {
+    const label = document.getElementById('auth-label');
+    renderAuthorityPubs(authorityCache[activeId], label);
+  }
+}
+
+async function loadAuthorityPubs(key) {
+  const list = document.getElementById('auth-list');
+  const label = document.getElementById('auth-label');
+  list.innerHTML = '<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);"><span class="spin"></span> &nbsp;Loading publications...</div>';
+  label.textContent = '📋  Loading...';
+
+  if (!apiKey) {
+    list.innerHTML = '<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);">API key required.</div>';
+    label.textContent = '📋  Load latest publications';
+    return;
+  }
+
+  if (authorityCache[key]) {
+    renderAuthorityPubs(authorityCache[key], label);
+    return;
+  }
+
+  // Always prefer currentCountryMeta which has _id set by selectCountry
+  const meta = currentCountryMeta || cache[key]?._meta;
+  if (!meta) { list.innerHTML = '<div style="padding:10px 14px;color:var(--text2);">Select a country first.</div>'; return; }
+
+  const authInfo = getAuthorityInfo(meta);
+  const prompt = `You are a financial analyst. Generate 3 realistic recent publications from ${authInfo.authority} (${meta.name}'s financial authorities).
+
+Respond with ONLY a JSON array of 3 objects. No markdown, no code fences, no trailing commas. Each object must have exactly these fields:
+type: string, one of "Policy Statement", "Economic Report", "Speech", "Press Release", "Regulatory Notice"
+title: string, specific publication title mentioning ${meta.name} context, max 15 words
+date: string, a recent month-year like "April 2025" or "March 2025"
+summary: string, 2-sentence summary of key policy/economic findings, max 40 words
+impact: string, one of HIGH, MEDIUM, LOW`;
+
+  try {
+    let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', prompt, 1000);
+    const arrStart = raw.indexOf('['), arrEnd = raw.lastIndexOf(']');
+    raw = arrEnd > arrStart && arrStart >= 0 ? raw.slice(arrStart, arrEnd + 1) : arrStart >= 0 ? raw.slice(arrStart) : raw;
+    raw = raw.replace(/,(\s*[\]}])/g, '$1');
+    let pubs;
+    try { pubs = JSON.parse(raw); } catch (_) { pubs = JSON.parse(closeTruncated(raw)); }
+    authorityCache[key] = { pubs, authority: authInfo.authority };
+    renderAuthorityPubs({ pubs, authority: authInfo.authority }, label);
+  } catch (err) {
+    list.innerHTML = `<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
+    label.textContent = '📋  Failed to load';
+  }
+}
+
+function renderAuthorityPubs({ pubs, authority }, label) {
+  const list = document.getElementById('auth-list');
+  label.textContent = `📋  ${pubs.length} publications · ${authority}`;
+  const typeClass = { 'Policy Statement':'policy', 'Economic Report':'report', 'Speech':'speech', 'Press Release':'release', 'Regulatory Notice':'release' };
+  list.innerHTML = pubs.map(p => {
+    const cls = typeClass[p.type] || 'release';
+    return `
+      <div class="auth-item">
+        <div class="auth-top">
+          <span class="auth-type ${cls}">${p.type || '—'}</span>
+          <span class="auth-date">${p.date || '—'}</span>
+        </div>
+        <div class="auth-title">${p.title || '—'}</div>
+        <div class="auth-summary">${p.summary || '—'}</div>
+        <div class="auth-authority">${authority}</div>
+      </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// LANGUAGE TOGGLE
+// ════════════════════════════════════════════════════════════════════
+function getLangInfo() {
+  if (!currentCountryMeta) return { lang: 'English', code: 'EN' };
+  const info = AUTHORITY_INFO[currentCountryMeta._id || ''];
+  if (!info || info.lang === 'English') return { lang: 'English', code: 'EN' };
+  const code = info.lang.substring(0, 2).toUpperCase();
+  return { lang: info.lang, code };
+}
+
+async function toggleLanguage() {
+  const { lang, code } = getLangInfo();
+  if (code === 'EN') return; // English-only country, nothing to do
+
+  langNative = !langNative;
+  const btn = document.getElementById('lang-btn');
+  const note = document.getElementById('native-note');
+
+  if (!langNative) {
+    btn.className = '';
+    btn.textContent = `🌐 EN`;
+    note.className = '';
+    // Restore English from cached data
+    const data = cache[activeId];
+    if (data) {
+      document.getElementById('rationale').textContent = data.rationale || '—';
+      document.getElementById('c-kr').textContent = data.key_risk || '—';
+    }
+    return;
+  }
+
+  btn.className = 'active';
+  btn.textContent = `🌐 ${code}`;
+  note.className = 'show';
+  note.textContent = `Translating to ${lang}…`;
+
+  if (!apiKey) {
+    note.textContent = `API key required for translation`;
+    langNative = false;
+    btn.className = '';
+    btn.textContent = '🌐 EN';
+    return;
+  }
+
+  const data = cache[activeId];
+  if (!data) {
+    note.textContent = `No analysis loaded to translate`;
+    langNative = false;
+    btn.className = '';
+    btn.textContent = '🌐 EN';
+    return;
+  }
+
+  const transCacheKey = activeId + '|' + lang;
+  if (translationCache[transCacheKey]) {
+    applyTranslation(translationCache[transCacheKey], lang);
+    return;
+  }
+
+  try {
+    const toTranslate = {
+      rationale: data.rationale || '',
+      key_risk: data.key_risk || ''
+    };
+    const prompt = `Translate the following English financial text to ${lang}. Keep numbers, financial terms, and proper nouns as-is. Return ONLY a JSON object with the same keys.
+
+${JSON.stringify(toTranslate)}`;
+    const raw = await callLLM('You are a professional financial translator. Output only a raw JSON object. No markdown.', prompt, 600);
+    const result = repairAndParseJSON(raw);
+    translationCache[transCacheKey] = result;
+    applyTranslation(result, lang);
+  } catch (err) {
+    note.textContent = `Translation failed: ${err.message}`;
+  }
+}
+
+function applyTranslation(result, lang) {
+  if (result.rationale) document.getElementById('rationale').textContent = result.rationale;
+  if (result.key_risk) document.getElementById('c-kr').textContent = result.key_risk;
+  const note = document.getElementById('native-note');
+  note.className = 'show';
+  note.textContent = `Displaying in ${lang} · click 🌐 to switch back`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SOCIAL MEDIA SENTIMENT PANEL
+// ════════════════════════════════════════════════════════════════════
+function toggleSocialPanel() {
+  socialOpen = !socialOpen;
+  const panel = document.getElementById('social-panel');
+  const tab   = document.getElementById('social-tab');
+  panel.classList.toggle('open', socialOpen);
+  tab.classList.toggle('active', socialOpen);
+  // Load if opening and no cached data for current scope
+  if (socialOpen) {
+    const cKey = socialScope === 'country' && currentCountryMeta
+      ? currentCountryMeta.name + ' financial markets'
+      : 'global financial markets';
+    if (!socialCache[cKey]) loadSocialSentiment();
+    else renderSocialSentiment(socialCache[cKey]);
+  }
+}
+
+function closeSocialPanel() {
+  socialOpen = false;
+  document.getElementById('social-panel').classList.remove('open');
+  document.getElementById('social-tab').classList.remove('active');
+}
+
+function setSocialScope(scope) {
+  if (scope === 'country' && !currentCountryMeta) return; // no country selected yet
+  socialScope = scope;
+  document.querySelectorAll('.soc-scope-btn').forEach(b => b.classList.toggle('active', b.dataset.scope === scope));
+  loadSocialSentiment();
+}
+
+async function loadSocialSentiment() {
+  const content = document.getElementById('social-content');
+  const loading = document.getElementById('social-loading');
+  const errEl   = document.getElementById('social-error');
+  content.innerHTML = '';
+  errEl.style.display = 'none';
+  loading.style.display = 'block';
+
+  if (!apiKey) {
+    loading.style.display = 'none';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Enter an API key to enable social sentiment.';
+    return;
+  }
+
+  const target = socialScope === 'country' && currentCountryMeta
+    ? currentCountryMeta.name + ' financial markets'
+    : 'global financial markets';
+
+  const cacheKey = target;
+  if (socialCache[cacheKey]) {
+    loading.style.display = 'none';
+    renderSocialSentiment(socialCache[cacheKey]);
+    return;
+  }
+
+  const prompt = `You are a social media market analyst. Synthesise current investor sentiment about ${target} from Twitter/X, Reddit (r/investing, r/stocks, r/wallstreetbets), StockTwits, and Seeking Alpha forums.
+
+Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas. Use these exact field names:
+
+overall: object with bull_pct (number 0-100), neut_pct (number 0-100), bear_pct (number 0-100, all three must sum to 100), volume (string e.g. "2.4M posts/day"), trend (string one of Rising, Stable, Falling)
+platforms: array of 4 objects each with name (string: Twitter/X, Reddit, StockTwits, Seeking Alpha), bull_pct (number 0-100), top_sentiment (string one of Bullish, Neutral, Bearish), active_users (string e.g. "142K")
+trending: array of 5 objects each with ticker (string), name (string, company name), sentiment (string one of Bullish, Neutral, Bearish), mentions (string e.g. "38K")
+topics: array of 5 objects each with tag (string, hashtag or topic), type (string one of Bullish, Bearish, Neutral, Breaking), volume (string e.g. "12K posts")
+fear_greed: number 0-100 (0=extreme fear, 100=extreme greed)
+mood_summary: string, 1-sentence overall market mood, max 20 words
+
+Make it specific to ${target} with real-sounding tickers and topics.`;
+
+  try {
+    const raw = await callLLM('You are a market sentiment analyst. Output only a raw JSON object. No markdown.', prompt, 1200);
+    const result = repairAndParseJSON(raw);
+    socialCache[cacheKey] = result;
+    loading.style.display = 'none';
+    renderSocialSentiment(result);
+  } catch (err) {
+    loading.style.display = 'none';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Failed to load: ' + err.message;
+  }
+}
+
+function renderSocialSentiment(d) {
+  const content = document.getElementById('social-content');
+  const ov = d.overall || {};
+  const bull = ov.bull_pct ?? 40, neut = ov.neut_pct ?? 30, bear = ov.bear_pct ?? 30;
+  const fg = d.fear_greed ?? 50;
+  const fgColor = fg >= 60 ? 'var(--bull)' : fg <= 40 ? 'var(--bear)' : 'var(--neut)';
+  const fgLabel = fg >= 75 ? 'Extreme Greed' : fg >= 55 ? 'Greed' : fg >= 45 ? 'Neutral' : fg >= 25 ? 'Fear' : 'Extreme Fear';
+
+  const platformsHtml = (d.platforms || []).map(p => {
+    const fillColor = p.top_sentiment === 'Bullish' ? 'var(--bull)' : p.top_sentiment === 'Bearish' ? 'var(--bear)' : 'var(--neut)';
+    return `<div class="soc-platform">
+      <div class="soc-plat-name">${p.name || '—'}</div>
+      <div class="soc-plat-bar"><div class="soc-plat-fill" style="width:${p.bull_pct ?? 50}%;background:${fillColor};"></div></div>
+      <div class="soc-plat-pct" style="color:${fillColor};">${p.top_sentiment || '—'}</div>
+    </div>`;
+  }).join('');
+
+  const trendingHtml = (d.trending || []).map((t, i) => {
+    const sentCls = t.sentiment === 'Bullish' ? 'soc-sent-bull' : t.sentiment === 'Bearish' ? 'soc-sent-bear' : 'soc-sent-neut';
+    const sentIcon = t.sentiment === 'Bullish' ? '▲' : t.sentiment === 'Bearish' ? '▼' : '◆';
+    return `<div class="soc-trend-item">
+      <div class="soc-trend-rank">${i + 1}</div>
+      <div class="soc-trend-ticker">${t.ticker || '—'}</div>
+      <div class="soc-trend-name">${t.name || '—'}</div>
+      <div class="soc-trend-sent ${sentCls}">${sentIcon}</div>
+      <div class="soc-trend-vol">${t.mentions || '—'}</div>
+    </div>`;
+  }).join('');
+
+  const topicsHtml = (d.topics || []).map(t => {
+    const typeCls = { Bullish:'soc-type-bull', Bearish:'soc-type-bear', Neutral:'soc-type-neut', Breaking:'soc-type-break' }[t.type] || 'soc-type-neut';
+    return `<div class="soc-topic">
+      <div class="soc-topic-tag">${t.tag || '—'}</div>
+      <div class="soc-topic-type ${typeCls}">${t.type || '—'}</div>
+      <div class="soc-topic-vol">${t.volume || '—'}</div>
+    </div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="soc-section">
+      <div class="soc-slabel">OVERALL SENTIMENT · ${ov.volume || '—'} · ${ov.trend || '—'}</div>
+      <div class="soc-overview">
+        <div class="soc-ov-stat"><div class="soc-ov-val soc-ov-bull">${bull}%</div><div class="soc-ov-lbl">BULLISH</div></div>
+        <div class="soc-ov-stat"><div class="soc-ov-val soc-ov-neut">${neut}%</div><div class="soc-ov-lbl">NEUTRAL</div></div>
+        <div class="soc-ov-stat"><div class="soc-ov-val soc-ov-bear">${bear}%</div><div class="soc-ov-lbl">BEARISH</div></div>
+      </div>
+      <div class="soc-bar-wrap">
+        <div class="soc-seg-bull" style="flex:${bull};"></div>
+        <div class="soc-seg-neut" style="flex:${neut};"></div>
+        <div class="soc-seg-bear" style="flex:${bear};"></div>
+      </div>
+      <div class="soc-bar-lbl"><span>▲ ${bull}% Bull</span><span>◆ ${neut}% Neutral</span><span>▼ ${bear}% Bear</span></div>
+    </div>
+    <div class="soc-section">
+      <div class="soc-slabel">FEAR &amp; GREED INDEX</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:4px;">
+        <div style="font-family:var(--font-mono);font-size:28px;font-weight:700;color:${fgColor};">${fg}</div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:12px;color:${fgColor};font-weight:700;">${fgLabel.toUpperCase()}</div>
+          <div style="font-family:var(--font-display);font-size:11px;color:var(--text2);margin-top:2px;">${d.mood_summary || '—'}</div>
+        </div>
+      </div>
+    </div>
+    <div class="soc-section">
+      <div class="soc-slabel">PLATFORM BREAKDOWN</div>
+      ${platformsHtml}
+    </div>
+    <div class="soc-section">
+      <div class="soc-slabel">TRENDING TICKERS</div>
+      <div class="soc-trending">${trendingHtml}</div>
+    </div>
+    <div class="soc-section">
+      <div class="soc-slabel">HOT TOPICS &amp; HASHTAGS</div>
+      ${topicsHtml}
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════════════════
 // EVENT LISTENERS (attached programmatically to avoid scope issues)
 // ════════════════════════════════════════════════════════════════════
 function wireEventListeners() {
@@ -2259,6 +2877,37 @@ function wireEventListeners() {
   const nt = document.getElementById('news-toggle');
   if (nt) nt.addEventListener('click', toggleNews);
 
+  // Authority publications toggle
+  const at = document.getElementById('auth-toggle');
+  if (at) at.addEventListener('click', toggleAuthority);
+
+  // Language toggle
+  const lb = document.getElementById('lang-btn');
+  if (lb) lb.addEventListener('click', toggleLanguage);
+
+  // Social media panel — floating tab
+  const socTab = document.getElementById('social-tab');
+  if (socTab) socTab.addEventListener('click', toggleSocialPanel);
+
+  // Social panel close
+  const socClose = document.getElementById('social-close-btn');
+  if (socClose) socClose.addEventListener('click', closeSocialPanel);
+
+  // Social panel scope buttons
+  document.querySelectorAll('.soc-scope-btn').forEach(btn => {
+    btn.addEventListener('click', () => setSocialScope(btn.dataset.scope));
+  });
+
+  // Social refresh
+  const socRefresh = document.getElementById('soc-refresh-btn');
+  if (socRefresh) socRefresh.addEventListener('click', () => {
+    const cacheKey = socialScope === 'country' && currentCountryMeta
+      ? currentCountryMeta.name + ' financial markets'
+      : 'global financial markets';
+    delete socialCache[cacheKey];
+    loadSocialSentiment();
+  });
+
   // Zoom buttons
   document.querySelectorAll('.zbtn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2274,11 +2923,12 @@ function wireEventListeners() {
     btn.addEventListener('click', () => jumpTo(btn.dataset.region));
   });
 
-  // ESC to close stock detail first, then stocks modal
+  // ESC to close stock detail first, then stocks modal, then social panel
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (document.getElementById('stock-detail').classList.contains('open')) closeStockDetail();
-      else closeStocks();
+      else if (document.getElementById('stocks-modal').classList.contains('open')) closeStocks();
+      else if (socialOpen) closeSocialPanel();
     }
   });
 }
