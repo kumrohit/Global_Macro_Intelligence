@@ -935,6 +935,171 @@ body::after{
 .hchart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
 .hchart-leg-item{display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:8px;color:var(--text2);}
 .hchart-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* ── Watchlist Panel ── */
+#watchlist-tab{
+  position:fixed;right:0;top:50%;transform:translateY(-50%);
+  background:var(--surface);border:1px solid var(--border2);
+  border-right:none;border-radius:6px 0 0 6px;
+  padding:14px 7px;cursor:pointer;z-index:500;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:all 0.2s;box-shadow:-2px 0 12px rgba(0,0,0,0.4);
+}
+#watchlist-tab:hover{border-color:var(--amber);}
+#watchlist-tab.active{border-color:var(--amber);background:rgba(245,158,11,0.07);}
+.wl-tab-icon{font-size:15px;color:var(--amber);}
+.wl-tab-label{font-family:var(--font-mono);font-size:7px;color:var(--text2);letter-spacing:0.12em;
+  writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);}
+.wl-tab-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse-dot 2s infinite;}
+
+#watchlist-panel{
+  position:fixed;right:0;top:0;bottom:0;width:360px;
+  background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
+  border-left:1px solid var(--border);z-index:480;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.22,0.61,0.36,1);
+  box-shadow:-4px 0 24px rgba(0,0,0,0.5);
+}
+#watchlist-panel.open{transform:translateX(0);}
+#wl-header{padding:16px 18px 12px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(245,158,11,0.05) 0%,transparent 100%);flex-shrink:0;}
+.wl-htop{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+#wl-title{font-family:var(--font-display);font-size:13px;font-weight:700;letter-spacing:0.15em;color:var(--amber);}
+#wl-close-btn{background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-size:10px;padding:4px 8px;cursor:pointer;transition:all 0.2s;}
+#wl-close-btn:hover{color:var(--bear);border-color:var(--bear);}
+#wl-sub{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.08em;}
+
+#wl-add-row{display:flex;gap:6px;padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+#wl-search-input{flex:1;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
+  padding:7px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;
+  outline:none;transition:border-color 0.2s;}
+#wl-search-input::placeholder{color:var(--text3);}
+#wl-search-input:focus{border-color:var(--amber);box-shadow:0 0 0 2px rgba(245,158,11,0.1);}
+#wl-add-btn{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.35);border-radius:3px;
+  color:var(--amber);font-family:var(--font-mono);font-size:9px;padding:7px 12px;
+  cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;white-space:nowrap;}
+#wl-add-btn:hover{background:rgba(245,158,11,0.22);border-color:var(--amber);}
+
+#wl-body{flex:1;overflow-y:auto;padding:10px 18px 20px;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+#wl-body::-webkit-scrollbar{width:5px;}
+#wl-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+#wl-empty{text-align:center;padding:40px 20px;font-family:var(--font-display);font-size:12px;color:var(--text2);}
+
+.wl-item{background:var(--card);border:1px solid var(--border);border-radius:5px;
+  padding:12px 14px;margin-bottom:8px;position:relative;transition:border-color 0.2s;}
+.wl-item:hover{border-color:var(--border2);}
+.wl-item-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.wl-item-icon{font-size:14px;flex-shrink:0;}
+.wl-item-name{font-family:var(--font-display);font-size:13px;font-weight:600;color:#fff;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wl-item-type{font-family:var(--font-mono);font-size:7px;letter-spacing:0.1em;
+  padding:2px 6px;border-radius:2px;background:rgba(96,165,250,0.1);color:var(--accent);}
+.wl-item-del{background:transparent;border:none;color:var(--text3);font-size:12px;
+  cursor:pointer;padding:2px 5px;transition:color 0.2s;flex-shrink:0;}
+.wl-item-del:hover{color:var(--bear);}
+.wl-item-badge{display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--font-mono);font-size:10px;font-weight:600;
+  padding:3px 10px;border-radius:2px;margin-bottom:5px;}
+.wl-badge-bull{background:rgba(16,185,129,0.12);color:var(--bull);border:1px solid rgba(16,185,129,0.25);}
+.wl-badge-bear{background:rgba(239,68,68,0.12);color:var(--bear);border:1px solid rgba(239,68,68,0.25);}
+.wl-badge-neut{background:rgba(100,116,139,0.15);color:var(--neut);border:1px solid rgba(100,116,139,0.25);}
+.wl-badge-load{background:rgba(20,40,60,0.5);color:var(--text2);border:1px solid var(--border);}
+.wl-item-meta{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.06em;}
+.wl-item-key{font-family:var(--font-display);font-size:11px;color:var(--text);margin-top:3px;font-style:italic;}
+.wl-score-bar{height:2px;background:var(--border);border-radius:1px;margin-top:6px;}
+.wl-score-fill{height:100%;border-radius:1px;transition:width 0.6s;}
+#wl-add-country-btn{display:none;width:100%;margin-bottom:8px;
+  background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:4px;
+  color:var(--amber);font-family:var(--font-mono);font-size:9px;padding:8px;
+  cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;text-align:center;}
+#wl-add-country-btn:hover{background:rgba(245,158,11,0.16);border-color:var(--amber);}
+
+/* ── Custom Analysis ── */
+#ca-topbar-btn{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:8px;
+  padding:5px 10px;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;
+}
+#ca-topbar-btn:hover{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.06);}
+
+#ca-overlay{position:fixed;inset:0;z-index:2100;display:none;background:rgba(3,7,18,0.88);
+  backdrop-filter:blur(10px);padding:16px;align-items:flex-start;justify-content:center;}
+#ca-overlay.open{display:flex;}
+#ca-panel{width:100%;max-width:960px;max-height:94vh;background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
+  border:1px solid var(--border2);border-radius:8px;display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,0.7);overflow:hidden;animation:slideUp 0.3s cubic-bezier(0.4,0,0.2,1);}
+#ca-header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(34,211,238,0.06) 0%,transparent 100%);flex-shrink:0;}
+#ca-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:#fff;letter-spacing:0.05em;}
+#ca-close-btn{margin-left:auto;background:transparent;border:1px solid var(--border2);border-radius:3px;
+  color:var(--text2);font-size:11px;padding:5px 10px;cursor:pointer;transition:all 0.2s;flex-shrink:0;}
+#ca-close-btn:hover{color:var(--bear);border-color:var(--bear);}
+#ca-input-zone{padding:12px 22px;border-bottom:1px solid var(--border);flex-shrink:0;
+  background:rgba(5,8,17,0.4);}
+.ca-input-row{display:flex;gap:8px;margin-bottom:8px;}
+#ca-tag-input{flex:1;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
+  padding:8px 12px;color:var(--text);font-family:var(--font-mono);font-size:11px;
+  outline:none;transition:border-color 0.2s;}
+#ca-tag-input::placeholder{color:var(--text3);}
+#ca-tag-input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,211,238,0.1);}
+#ca-add-tag-btn{background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.3);border-radius:3px;
+  color:var(--cyan);font-family:var(--font-mono);font-size:9px;padding:8px 14px;
+  cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;white-space:nowrap;}
+#ca-add-tag-btn:hover{background:rgba(34,211,238,0.18);border-color:var(--cyan);}
+#ca-run-btn{background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(34,211,238,0.12));
+  border:1px solid rgba(96,165,250,0.4);border-radius:3px;
+  color:var(--accent);font-family:var(--font-mono);font-size:9px;padding:8px 18px;
+  cursor:pointer;letter-spacing:0.12em;transition:all 0.2s;white-space:nowrap;}
+#ca-run-btn:hover{background:linear-gradient(135deg,rgba(59,130,246,0.3),rgba(34,211,238,0.2));border-color:var(--accent);}
+#ca-run-btn:disabled{opacity:0.4;cursor:not-allowed;}
+#ca-tags-box{display:flex;flex-wrap:wrap;gap:5px;min-height:22px;}
+.ca-tag{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.25);border-radius:3px;
+  color:var(--cyan);font-family:var(--font-mono);font-size:9px;padding:3px 9px;
+  letter-spacing:0.08em;}
+.ca-tag-remove{background:none;border:none;color:rgba(34,211,238,0.5);cursor:pointer;
+  font-size:10px;padding:0 0 0 3px;transition:color 0.2s;}
+.ca-tag-remove:hover{color:var(--bear);}
+.ca-tag-suggestion{display:inline-block;font-family:var(--font-mono);font-size:8px;
+  color:var(--text3);padding:2px 7px;border:1px solid var(--border);border-radius:2px;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.06em;}
+.ca-tag-suggestion:hover{color:var(--cyan);border-color:var(--cyan);}
+#ca-suggestions{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+
+#ca-body{flex:1;overflow-y:auto;padding:20px 22px 28px;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+#ca-body::-webkit-scrollbar{width:6px;}
+#ca-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+#ca-placeholder{text-align:center;padding:60px 20px;color:var(--text2);font-family:var(--font-display);font-size:13px;}
+.ca-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.ca-col{display:flex;flex-direction:column;gap:14px;}
+.ca-card{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:14px 16px;}
+.ca-card-title{font-family:var(--font-mono);font-size:8px;letter-spacing:0.18em;color:var(--text2);
+  margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.ca-summary-text{font-family:var(--font-display);font-size:13px;color:var(--text);line-height:1.8;}
+.ca-finding{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;margin-bottom:5px;
+  background:rgba(10,18,32,0.6);border:1px solid var(--border);border-radius:3px;}
+.ca-finding-icon{font-size:11px;flex-shrink:0;margin-top:2px;}
+.ca-finding-text{font-family:var(--font-display);font-size:12px;color:var(--text);line-height:1.5;}
+.ca-risk-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;
+  font-family:var(--font-display);font-size:12px;color:var(--text);line-height:1.5;
+  border-bottom:1px solid rgba(26,37,64,0.6);}
+.ca-risk-item:last-child{border-bottom:none;}
+.ca-risk-icon{color:var(--bear);font-size:9px;margin-top:4px;flex-shrink:0;}
+.ca-opp-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;
+  font-family:var(--font-display);font-size:12px;color:var(--text);line-height:1.5;
+  border-bottom:1px solid rgba(26,37,64,0.6);}
+.ca-opp-item:last-child{border-bottom:none;}
+.ca-opp-icon{color:var(--bull);font-size:9px;margin-top:4px;flex-shrink:0;}
+#ca-gauge-wrap{display:flex;align-items:center;justify-content:center;padding:10px 0;}
+#ca-gauge-svg{display:block;}
+.ca-theme-bar-wrap{margin-bottom:7px;}
+.ca-theme-bar-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9px;
+  color:var(--text2);margin-bottom:3px;}
+.ca-theme-bar-track{height:6px;background:var(--border);border-radius:2px;overflow:hidden;}
+.ca-theme-bar-fill{height:100%;border-radius:2px;transition:width 0.7s;}
 </style>
 </head>
 <body>
@@ -952,7 +1117,10 @@ body::after{
     <div class="tick"><div class="tick-name">VIX</div><div class="tick-val tick-na" id="t-vix">—</div></div>
     <div class="tick"><div class="tick-name">US10Y</div><div class="tick-val tick-na" id="t-10y">—</div></div>
   </div>
-  <div id="clock">—</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="ca-topbar-btn" title="Custom Analysis Builder">⊕ CUSTOM ANALYSIS</button>
+    <div id="clock">—</div>
+  </div>
 </div>
 
 <div id="main">
@@ -1155,8 +1323,9 @@ body::after{
         <div class="chip"><div class="chip-label">KEY RISK</div><div class="chip-val" id="c-kr" style="font-size:9px;line-height:1.4;">—</div></div>
       </div>
 
-      <div class="slabel">DEEP ANALYSIS</div>
+      <div class="slabel">ACTIONS</div>
       <button id="deep-analysis-btn">⬡ &nbsp;OPEN FULL COUNTRY ANALYSIS</button>
+      <button id="add-to-watchlist-btn" style="display:none;">★ &nbsp;ADD TO WATCHLIST</button>
 
       <div class="slabel">AUTHORITY PUBLICATIONS</div>
       <div id="auth-toggle">
@@ -1254,6 +1423,77 @@ body::after{
   </div>
 </div>
 
+<!-- Watchlist floating tab + panel (right side) -->
+<div id="watchlist-tab" title="My Watchlist">
+  <div class="wl-tab-icon">★</div>
+  <div class="wl-tab-label">WATCHLIST</div>
+  <div class="wl-tab-dot"></div>
+</div>
+<div id="watchlist-panel">
+  <div id="wl-header">
+    <div class="wl-htop">
+      <div id="wl-title">★ WATCHLIST</div>
+      <button id="wl-close-btn">✕</button>
+    </div>
+    <div id="wl-sub">Track sentiment for countries, stocks, sectors &amp; themes</div>
+  </div>
+  <div id="wl-add-row">
+    <input type="text" id="wl-search-input" placeholder="Add country, ticker, sector, theme…">
+    <button id="wl-add-btn">+ ADD</button>
+  </div>
+  <div id="wl-body">
+    <button id="wl-add-country-btn" style="display:none;">★ Add current country to watchlist</button>
+    <div id="wl-list"></div>
+    <div id="wl-empty">
+      <div style="font-size:28px;margin-bottom:8px;color:var(--amber);">★</div>
+      <div>Your watchlist is empty.</div>
+      <div style="margin-top:6px;font-size:11px;">Add any country, stock, sector, or custom theme to track its macro sentiment.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Analysis Overlay -->
+<div id="ca-overlay">
+  <div id="ca-panel">
+    <div id="ca-header">
+      <div>
+        <div id="ca-title">⊕ CUSTOM MACRO ANALYSIS BUILDER</div>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.1em;margin-top:2px;">Add tags to build a custom thematic analysis with data and charts</div>
+      </div>
+      <button id="ca-close-btn">✕ CLOSE</button>
+    </div>
+    <div id="ca-input-zone">
+      <div class="ca-input-row">
+        <input type="text" id="ca-tag-input" placeholder="Add a tag or theme… e.g. Fed rate cuts, AI semiconductors, Oil & gas, Emerging markets">
+        <button id="ca-add-tag-btn">+ TAG</button>
+        <button id="ca-run-btn" disabled>▶ ANALYSE</button>
+      </div>
+      <div id="ca-tags-box"></div>
+      <div id="ca-suggestions">
+        <span style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-right:4px;">Suggestions:</span>
+        <span class="ca-tag-suggestion" data-tag="Fed rate policy">Fed rate policy</span>
+        <span class="ca-tag-suggestion" data-tag="China slowdown">China slowdown</span>
+        <span class="ca-tag-suggestion" data-tag="AI & semiconductors">AI & semiconductors</span>
+        <span class="ca-tag-suggestion" data-tag="Oil & energy">Oil & energy</span>
+        <span class="ca-tag-suggestion" data-tag="Emerging markets">Emerging markets</span>
+        <span class="ca-tag-suggestion" data-tag="Dollar strength">Dollar strength</span>
+        <span class="ca-tag-suggestion" data-tag="Inflation dynamics">Inflation dynamics</span>
+        <span class="ca-tag-suggestion" data-tag="EM debt crisis">EM debt crisis</span>
+        <span class="ca-tag-suggestion" data-tag="Tech sector">Tech sector</span>
+        <span class="ca-tag-suggestion" data-tag="Gold & commodities">Gold & commodities</span>
+      </div>
+    </div>
+    <div id="ca-body">
+      <div id="ca-placeholder">
+        <div style="font-size:32px;margin-bottom:10px;color:var(--cyan);">⊕</div>
+        <div style="font-size:14px;color:var(--text);margin-bottom:6px;">Build your custom analysis</div>
+        <div style="font-size:12px;">Add tags above — then click ▶ ANALYSE to generate a comprehensive thematic deep-dive with sentiment data and charts.</div>
+      </div>
+      <div id="ca-result" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 // STATE
@@ -1281,6 +1521,16 @@ let projection, path;
 // Country selector state
 let countryMode = 'all';      // 'all' | 'select'
 let selectedCountries = new Set();
+
+// Watchlist state
+let watchlistOpen = false;
+let watchlist = [];       // [{type, name, icon, key, sentiment, score, keyNote, updatedAt}]
+let watchlistSentCache = {};
+
+// Custom analysis state
+let caOpen = false;
+let customTags = [];
+let caRunning = false;
 
 // Deep analysis state
 let deepOpen = false;
@@ -1729,6 +1979,7 @@ function selectCountry(d) {
 
   // Store current meta for stocks modal
   currentCountryMeta = meta;
+  updateWatchlistCountryBtn();
 
   // Reset authority section
   authorityOpen = false;
@@ -2829,12 +3080,7 @@ async function toggleLanguage() {
     btn.className = '';
     btn.textContent = `🌐 EN`;
     note.className = '';
-    // Restore English from cached data
-    const data = cache[activeId];
-    if (data) {
-      document.getElementById('rationale').textContent = data.rationale || '—';
-      document.getElementById('c-kr').textContent = data.key_risk || '—';
-    }
+    restoreEnglish(); // restore all panel fields + chips
     return;
   }
 
@@ -2867,28 +3113,137 @@ async function toggleLanguage() {
   }
 
   try {
+    // Collect all visible text to translate in one call
     const toTranslate = {
-      rationale: data.rationale || '',
-      key_risk: data.key_risk || ''
+      rationale:    data.rationale    || '',
+      key_risk:     data.key_risk     || '',
+      regime:       data.regime       || '',
+      equity_bias:  data.equity_bias  || '',
+      rate_outlook: data.rate_outlook || '',
+      fx_bias:      data.fx_bias      || '',
+      risk_level:   data.risk_level   || '',
+      sentiment_label: data.sentiment === 'bullish' ? 'BULLISH' : data.sentiment === 'bearish' ? 'BEARISH' : 'NEUTRAL'
     };
-    const prompt = `Translate the following English financial text to ${lang}. Keep numbers, financial terms, and proper nouns as-is. Return ONLY a JSON object with the same keys.
 
-${JSON.stringify(toTranslate)}`;
-    const raw = await callLLM('You are a professional financial translator. Output only a raw JSON object. No markdown.', prompt, 600);
+    // Include visible news items if the news section is open
+    const newsList = document.getElementById('news-list');
+    const newsItems = newsList && newsOpen ? [...newsList.querySelectorAll('.ni')] : [];
+    if (newsItems.length) {
+      toTranslate.news = newsItems.map((el, i) => ({
+        title:   el.querySelector('.ni-title')?.textContent?.trim() || '',
+        summary: el.querySelector('.ni-sum')?.textContent?.trim()   || ''
+      }));
+    }
+
+    // Include visible authority publications if open
+    const authList = document.getElementById('auth-list');
+    const authItems = authList && authorityOpen ? [...authList.querySelectorAll('.auth-item')] : [];
+    if (authItems.length) {
+      toTranslate.authority_pubs = authItems.map(el => ({
+        title:   el.querySelector('.auth-title')?.childNodes?.[0]?.textContent?.trim() || '',
+        summary: el.querySelector('.auth-summary')?.textContent?.trim() || ''
+      }));
+    }
+
+    const prompt = `Translate the following English financial content to ${lang}. Rules:
+- Keep numbers, ticker symbols, institution names, proper nouns, and financial metric names exactly as-is
+- Translate descriptive words (e.g. "Overweight"→ native equivalent, "Cutting"→ native, "Bullish"→ native)
+- For "news" and "authority_pubs" arrays: translate each title and summary
+- Return ONLY a JSON object with the same keys and structure
+
+${JSON.stringify(toTranslate, null, 1)}`;
+
+    const raw = await callLLM(
+      'You are a professional financial translator. Preserve all JSON structure exactly. Output only raw JSON.',
+      prompt, 2000
+    );
     const result = repairAndParseJSON(raw);
     translationCache[transCacheKey] = result;
-    applyTranslation(result, lang);
+    applyTranslation(result, lang, data);
   } catch (err) {
     note.textContent = `Translation failed: ${err.message}`;
   }
 }
 
-function applyTranslation(result, lang) {
+function applyTranslation(result, lang, originalData) {
+  // Core sentiment fields
   if (result.rationale) document.getElementById('rationale').textContent = result.rationale;
-  if (result.key_risk) document.getElementById('c-kr').textContent = result.key_risk;
+  if (result.key_risk)  document.getElementById('c-kr').textContent = result.key_risk;
+
+  // Sentiment badge
+  if (result.sentiment_label) {
+    const badge = document.getElementById('sent-badge');
+    const orig = originalData || cache[activeId] || {};
+    const icons = { bullish:'▲', bearish:'▼', neutral:'◆' };
+    const icon = icons[orig.sentiment] || '◆';
+    badge.textContent = `${icon} ${result.sentiment_label}`;
+  }
+
+  // Regime pill (keep original CSS class for colour, translate text only)
+  if (result.regime) {
+    const rc = { Goldilocks:'rp-goldilocks', Reflation:'rp-reflation', Stagflation:'rp-stagflation', Recession:'rp-recession' };
+    const orig = originalData || cache[activeId] || {};
+    const cls = rc[orig.regime] || 'rp-goldilocks';
+    document.getElementById('regime-pill').innerHTML =
+      `<span class="regime-pill ${cls}">${result.regime}</span>`;
+  }
+
+  // Chip values (display-only translation — CSS classes preserved from original render)
+  const chipMap = {
+    equity_bias: 'c-eq', rate_outlook: 'c-rt',
+    fx_bias: 'c-fx', risk_level: 'c-rk'
+  };
+  Object.entries(chipMap).forEach(([key, id]) => {
+    if (result[key]) document.getElementById(id).textContent = result[key];
+  });
+
+  // News items (if present in translation)
+  if (result.news && Array.isArray(result.news)) {
+    const niEls = document.getElementById('news-list').querySelectorAll('.ni');
+    result.news.forEach((n, i) => {
+      if (!niEls[i]) return;
+      const titleEl = niEls[i].querySelector('.ni-title a') || niEls[i].querySelector('.ni-title');
+      if (titleEl && n.title) titleEl.textContent = n.title;
+      const sumEl = niEls[i].querySelector('.ni-sum');
+      if (sumEl && n.summary) sumEl.textContent = n.summary;
+    });
+  }
+
+  // Authority publication items
+  if (result.authority_pubs && Array.isArray(result.authority_pubs)) {
+    const authEls = document.getElementById('auth-list').querySelectorAll('.auth-item');
+    result.authority_pubs.forEach((p, i) => {
+      if (!authEls[i]) return;
+      const titleEl = authEls[i].querySelector('.auth-title a') || authEls[i].querySelector('.auth-title');
+      if (titleEl && p.title) {
+        // Preserve the link if present
+        if (titleEl.tagName === 'A') titleEl.textContent = p.title + ' ↗';
+        else titleEl.textContent = p.title;
+      }
+      const sumEl = authEls[i].querySelector('.auth-summary');
+      if (sumEl && p.summary) sumEl.textContent = p.summary;
+    });
+  }
+
   const note = document.getElementById('native-note');
   note.className = 'show';
-  note.textContent = `Displaying in ${lang} · click 🌐 to switch back`;
+  note.textContent = `Displaying in ${lang} · click 🌐 EN to restore English`;
+}
+
+// Restore all English text fields from original cached data
+function restoreEnglish() {
+  const data = cache[activeId];
+  if (!data) return;
+  if (data.rationale) document.getElementById('rationale').textContent = data.rationale;
+  if (data.key_risk)  document.getElementById('c-kr').textContent = data.key_risk;
+  // Re-render the full panel to restore all fields cleanly
+  renderPanel(data);
+  // Restore news if open
+  if (newsOpen) {
+    const list = document.getElementById('news-list');
+    // Re-render news from original DOM is complex — reload it
+    // Simply mark label to re-trigger if needed
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -3402,6 +3757,499 @@ function drawHistoryLine(data) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// WATCHLIST
+// ════════════════════════════════════════════════════════════════════
+function loadWatchlistFromStorage() {
+  try {
+    const saved = localStorage.getItem('gmi_watchlist');
+    if (saved) watchlist = JSON.parse(saved);
+  } catch(_) { watchlist = []; }
+}
+
+function saveWatchlistToStorage() {
+  try { localStorage.setItem('gmi_watchlist', JSON.stringify(watchlist)); } catch(_) {}
+}
+
+function toggleWatchlist() {
+  watchlistOpen = !watchlistOpen;
+  const panel = document.getElementById('watchlist-panel');
+  const tab   = document.getElementById('watchlist-tab');
+  panel.classList.toggle('open', watchlistOpen);
+  tab.classList.toggle('active', watchlistOpen);
+  if (watchlistOpen) renderWatchlist();
+}
+
+function closeWatchlist() {
+  watchlistOpen = false;
+  document.getElementById('watchlist-panel').classList.remove('open');
+  document.getElementById('watchlist-tab').classList.remove('active');
+}
+
+function updateWatchlistCountryBtn() {
+  const btn = document.getElementById('wl-add-country-btn');
+  const panelBtn = document.getElementById('add-to-watchlist-btn');
+  if (!btn || !panelBtn) return;
+  if (currentCountryMeta) {
+    btn.style.display = 'block';
+    btn.textContent = `★ Add ${currentCountryMeta.name} to watchlist`;
+    panelBtn.style.display = 'block';
+    panelBtn.textContent = `★ ADD ${currentCountryMeta.name.toUpperCase()} TO WATCHLIST`;
+    // Show as "added" if already in watchlist
+    const exists = watchlist.some(w => w.type === 'country' && w.key === currentCountryMeta._id);
+    if (exists) {
+      panelBtn.textContent = `✓ IN WATCHLIST — REMOVE`;
+      panelBtn.style.background = 'rgba(239,68,68,0.08)';
+      panelBtn.style.borderColor = 'var(--bear)';
+      panelBtn.style.color = 'var(--bear)';
+    } else {
+      panelBtn.style.background = '';
+      panelBtn.style.borderColor = '';
+      panelBtn.style.color = '';
+    }
+  } else {
+    btn.style.display = 'none';
+    panelBtn.style.display = 'none';
+  }
+}
+
+function addCurrentCountryToWatchlist() {
+  if (!currentCountryMeta) return;
+  const exists = watchlist.findIndex(w => w.type === 'country' && w.key === currentCountryMeta._id);
+  if (exists >= 0) {
+    // Toggle: remove if already there
+    watchlist.splice(exists, 1);
+    saveWatchlistToStorage();
+    updateWatchlistCountryBtn();
+    if (watchlistOpen) renderWatchlist();
+    return;
+  }
+  const item = {
+    type: 'country',
+    name: currentCountryMeta.name,
+    icon: currentCountryMeta.flag || '🌍',
+    key:  currentCountryMeta._id || '',
+    sentiment: null, score: null, keyNote: '', updatedAt: null
+  };
+  // Pre-fill from cache if available
+  const cached = activeId ? cache[activeId] : null;
+  if (cached) {
+    item.sentiment = cached.sentiment;
+    item.score = cached.score;
+    item.keyNote = cached.rationale || cached.key_risk || '';
+    item.updatedAt = Date.now();
+  }
+  watchlist.unshift(item);
+  saveWatchlistToStorage();
+  updateWatchlistCountryBtn();
+  if (watchlistOpen) renderWatchlist();
+  else { toggleWatchlist(); }
+}
+
+async function addWatchlistItem(rawInput) {
+  const name = rawInput.trim();
+  if (!name) return;
+  const input = document.getElementById('wl-search-input');
+  if (input) input.value = '';
+
+  // Check if it matches a known country name
+  const countryEntry = Object.entries(META).find(([k, v]) =>
+    v.name.toLowerCase() === name.toLowerCase()
+  );
+
+  let item;
+  if (countryEntry) {
+    const [metaId, meta] = countryEntry;
+    item = {
+      type: 'country', name: meta.name, icon: meta.flag || '🌍', key: metaId,
+      sentiment: null, score: null, keyNote: '', updatedAt: null
+    };
+    // Use cached sentiment if available
+    const cached = cache['c' + parseInt(metaId)];
+    if (cached) {
+      item.sentiment = cached.sentiment; item.score = cached.score;
+      item.keyNote = cached.rationale || ''; item.updatedAt = Date.now();
+    }
+  } else {
+    // Generic: stock/ticker/sector/theme
+    const isLikelyTicker = /^[A-Z]{1,6}$/.test(name);
+    item = {
+      type: isLikelyTicker ? 'ticker' : 'theme',
+      name, icon: isLikelyTicker ? '📈' : '◈', key: name.toLowerCase().replace(/\s+/g,'_'),
+      sentiment: null, score: null, keyNote: '', updatedAt: null
+    };
+  }
+
+  // Avoid duplicates
+  if (watchlist.some(w => w.key === item.key)) return;
+  watchlist.unshift(item);
+  saveWatchlistToStorage();
+  renderWatchlist();
+
+  // Fetch sentiment if no API key yet, skip — will show pending
+  if (apiKey && item.sentiment === null) fetchWatchlistSentiment(item);
+}
+
+async function fetchWatchlistSentiment(item) {
+  const prompt = item.type === 'country'
+    ? `Assess the current macroeconomic sentiment for ${item.name}. Return ONLY JSON: {"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<one sentence, max 15 words>","regime":"Goldilocks|Reflation|Stagflation|Recession"}`
+    : `Assess current financial market sentiment for "${item.name}" (could be a stock ticker, sector, theme, or commodity). Return ONLY JSON: {"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<one sentence key insight, max 15 words>","assetType":"<Stock|Sector|Theme|Commodity|Index>"}`;
+
+  try {
+    const raw = await callLLM(
+      'You are a market analyst. Return only valid JSON, no markdown.',
+      prompt, 400, 0.8
+    );
+    const result = repairAndParseJSON(raw);
+    const idx = watchlist.findIndex(w => w.key === item.key);
+    if (idx < 0) return;
+    watchlist[idx].sentiment = (result.sentiment || 'neutral').toLowerCase();
+    watchlist[idx].score     = parseFloat(result.score) || 0;
+    watchlist[idx].keyNote   = result.keyNote || '';
+    watchlist[idx].updatedAt = Date.now();
+    if (result.regime)    watchlist[idx].regime = result.regime;
+    if (result.assetType) watchlist[idx].assetType = result.assetType;
+    saveWatchlistToStorage();
+    if (watchlistOpen) renderWatchlist();
+  } catch(e) {
+    console.warn('Watchlist sentiment fetch failed for', item.name, e.message);
+  }
+}
+
+function refreshAllWatchlistItems() {
+  watchlistSentCache = {};
+  if (!apiKey) return;
+  watchlist.forEach(item => fetchWatchlistSentiment(item));
+}
+
+function removeWatchlistItem(key) {
+  watchlist = watchlist.filter(w => w.key !== key);
+  saveWatchlistToStorage();
+  updateWatchlistCountryBtn();
+  renderWatchlist();
+}
+
+function renderWatchlist() {
+  const list   = document.getElementById('wl-list');
+  const empty  = document.getElementById('wl-empty');
+  const countryBtn = document.getElementById('wl-add-country-btn');
+  if (!list) return;
+
+  // Show/hide add-country shortcut
+  updateWatchlistCountryBtn();
+
+  if (watchlist.length === 0) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  const sentLabel = { bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL' };
+  const sentClass = { bullish:'wl-badge-bull', bearish:'wl-badge-bear', neutral:'wl-badge-neut' };
+  const scoreColor = s => s > 0.1 ? 'var(--bull)' : s < -0.1 ? 'var(--bear)' : 'var(--neut)';
+
+  list.innerHTML = watchlist.map((item, i) => {
+    const s = item.sentiment;
+    const score = item.score ?? 0;
+    const barPct = Math.round(((score + 1) / 2) * 100);
+    const badgeCls = s ? sentClass[s] || 'wl-badge-neut' : 'wl-badge-load';
+    const badgeText = s ? (sentLabel[s] || s.toUpperCase()) : '⟳ Fetching…';
+    const typeLabel = item.type === 'country' ? 'COUNTRY' : item.type === 'ticker' ? 'TICKER' : 'THEME';
+    const ts = item.updatedAt ? new Date(item.updatedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—';
+
+    return `
+    <div class="wl-item">
+      <div class="wl-item-top">
+        <span class="wl-item-icon">${item.icon || '◈'}</span>
+        <span class="wl-item-name" title="${item.name}">${item.name}</span>
+        <span class="wl-item-type">${typeLabel}</span>
+        <button class="wl-item-del" data-key="${item.key}" title="Remove">✕</button>
+      </div>
+      <div class="wl-item-badge ${badgeCls}">${badgeText}</div>
+      ${s ? `<div class="wl-score-bar"><div class="wl-score-fill" style="width:${barPct}%;background:${scoreColor(score)};"></div></div>` : ''}
+      <div class="wl-item-key">${item.keyNote || (s ? '' : 'Loading sentiment…')}</div>
+      <div class="wl-item-meta">${item.regime || item.assetType || ''} ${ts !== '—' ? '· Updated ' + ts : ''}</div>
+    </div>`;
+  }).join('');
+
+  // Wire delete buttons
+  list.querySelectorAll('.wl-item-del').forEach(btn => {
+    btn.addEventListener('click', () => removeWatchlistItem(btn.dataset.key));
+  });
+
+  // Fetch pending items
+  if (apiKey) {
+    watchlist.filter(w => w.sentiment === null).forEach(w => fetchWatchlistSentiment(w));
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// CUSTOM ANALYSIS BUILDER
+// ════════════════════════════════════════════════════════════════════
+const CA_SUGGESTIONS = [
+  'Fed rate policy','China slowdown','AI & semiconductors','Oil & energy',
+  'Emerging markets','Dollar strength','Inflation dynamics','EM debt crisis',
+  'Tech sector','Gold & commodities','Real estate','Banking stress',
+  'Climate transition','Supply chain','Japan carry trade','Crypto sentiment',
+];
+
+function openCustomAnalysis() {
+  caOpen = true;
+  document.getElementById('ca-overlay').classList.add('open');
+}
+
+function closeCustomAnalysis() {
+  caOpen = false;
+  document.getElementById('ca-overlay').classList.remove('open');
+}
+
+function renderCaTags() {
+  const box = document.getElementById('ca-tags-box');
+  const runBtn = document.getElementById('ca-run-btn');
+  if (!box) return;
+
+  box.innerHTML = customTags.map(tag => `
+    <span class="ca-tag">
+      ${tag}
+      <button class="ca-tag-remove" data-tag="${tag.replace(/"/g,'&quot;')}">✕</button>
+    </span>`).join('');
+
+  box.querySelectorAll('.ca-tag-remove').forEach(btn => {
+    btn.addEventListener('click', () => removeCustomTag(btn.dataset.tag));
+  });
+
+  if (runBtn) runBtn.disabled = customTags.length === 0 || caRunning;
+}
+
+function addCustomTag(tag) {
+  tag = tag.trim();
+  if (!tag || customTags.includes(tag) || customTags.length >= 10) return;
+  customTags.push(tag);
+  renderCaTags();
+  const input = document.getElementById('ca-tag-input');
+  if (input) input.value = '';
+}
+
+function removeCustomTag(tag) {
+  customTags = customTags.filter(t => t !== tag);
+  renderCaTags();
+}
+
+async function runCustomAnalysis() {
+  if (!customTags.length || caRunning) return;
+  if (!apiKey) {
+    alert('Enter an API key first to run custom analysis.');
+    return;
+  }
+
+  caRunning = true;
+  const runBtn = document.getElementById('ca-run-btn');
+  if (runBtn) { runBtn.disabled = true; runBtn.textContent = '⟳ RUNNING…'; }
+
+  const placeholder = document.getElementById('ca-placeholder');
+  const result = document.getElementById('ca-result');
+  if (placeholder) placeholder.style.display = 'none';
+  if (result) {
+    result.style.display = 'block';
+    result.innerHTML = '<div style="text-align:center;padding:60px 20px;"><div class="big-spin"></div><div class="sl-text" style="margin-top:12px;">Running custom analysis…</div><div class="sl-sub">Synthesising data for: ' + customTags.join(', ') + '</div></div>';
+  }
+
+  const tagsStr = customTags.join(', ');
+  const prompt = `You are a senior macro strategist. Generate a comprehensive thematic analysis report for these topics/themes: ${tagsStr}
+
+Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
+{
+  "title": "concise report title string",
+  "executive_summary": "3-4 sentence executive summary covering all themes",
+  "overall_sentiment": "bullish|bearish|neutral",
+  "overall_score": <number -1.0 to 1.0>,
+  "themes": [
+    {
+      "name": "theme name",
+      "sentiment": "bullish|bearish|neutral",
+      "score": <-1.0 to 1.0>,
+      "weight": <0-100, relative importance>,
+      "insight": "one sentence key insight max 20 words"
+    }
+  ],
+  "key_findings": [
+    {"icon": "▲ or ▼ or ◆", "text": "finding text max 20 words"},
+    ... 4 findings total
+  ],
+  "opportunities": ["opportunity 1 max 20 words", "opportunity 2", "opportunity 3"],
+  "risks": ["risk 1 max 20 words", "risk 2", "risk 3"],
+  "trade_ideas": [
+    {"idea": "trade description max 15 words", "direction": "Long|Short|Neutral", "conviction": "High|Medium|Low"},
+    ... 3 trade ideas
+  ],
+  "outlook": "2-3 sentence forward-looking conclusion"
+}`;
+
+  try {
+    const raw = await callLLM(
+      'You are a senior macro strategist. Output only valid JSON, no markdown.',
+      prompt, 2500, 0.3
+    );
+    const data = repairAndParseJSON(raw);
+    renderCustomAnalysis(data, tagsStr);
+  } catch(err) {
+    if (result) result.innerHTML = `<div style="text-align:center;padding:40px;color:var(--bear);font-family:var(--font-display);font-size:13px;">⚠ Analysis failed: ${err.message}</div>`;
+  } finally {
+    caRunning = false;
+    if (runBtn) { runBtn.disabled = false; runBtn.textContent = '▶ ANALYSE'; }
+  }
+}
+
+function renderCustomAnalysis(d, tagsStr) {
+  const result = document.getElementById('ca-result');
+  if (!result) return;
+
+  const sentClass = { bullish:'wl-badge-bull', bearish:'wl-badge-bear', neutral:'wl-badge-neut' };
+  const sentLabel = { bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL' };
+  const overall = d.overall_sentiment || 'neutral';
+  const score = parseFloat(d.overall_score) || 0;
+
+  // Theme bars HTML
+  const themeBarsHtml = (d.themes || []).sort((a,b) => b.weight - a.weight).map(t => {
+    const tScore = parseFloat(t.score) || 0;
+    const barPct = Math.round(((tScore + 1) / 2) * 100);
+    const col = tScore > 0.1 ? 'var(--bull)' : tScore < -0.1 ? 'var(--bear)' : 'var(--neut)';
+    return `<div class="ca-theme-bar-wrap">
+      <div class="ca-theme-bar-label"><span>${t.name || ''}</span><span style="color:${col};">${tScore >= 0 ? '+' : ''}${tScore.toFixed(2)}</span></div>
+      <div class="ca-theme-bar-track"><div class="ca-theme-bar-fill" style="width:${barPct}%;background:${col};"></div></div>
+      <div style="font-family:var(--font-display);font-size:10px;color:var(--text2);margin-top:2px;">${t.insight || ''}</div>
+    </div>`;
+  }).join('');
+
+  // Findings
+  const findingsHtml = (d.key_findings || []).map(f =>
+    `<div class="ca-finding">
+      <span class="ca-finding-icon">${f.icon || '◆'}</span>
+      <span class="ca-finding-text">${f.text || ''}</span>
+    </div>`).join('');
+
+  // Opportunities
+  const oppsHtml = (d.opportunities || []).map(o =>
+    `<div class="ca-opp-item"><span class="ca-opp-icon">▲</span>${o}</div>`).join('');
+
+  // Risks
+  const risksHtml = (d.risks || []).map(r =>
+    `<div class="ca-risk-item"><span class="ca-risk-icon">▼</span>${r}</div>`).join('');
+
+  // Trade ideas
+  const tradesHtml = (d.trade_ideas || []).map(t => {
+    const dirColor = t.direction === 'Long' ? 'var(--bull)' : t.direction === 'Short' ? 'var(--bear)' : 'var(--neut)';
+    const convColor = t.conviction === 'High' ? 'var(--bull)' : t.conviction === 'Low' ? 'var(--bear)' : 'var(--amber)';
+    return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;margin-bottom:5px;background:rgba(10,18,32,0.6);border:1px solid var(--border);border-radius:3px;">
+      <span style="font-family:var(--font-mono);font-size:9px;color:${dirColor};padding:2px 7px;border:1px solid ${dirColor};border-radius:2px;flex-shrink:0;">${t.direction || '—'}</span>
+      <span style="font-family:var(--font-display);font-size:12px;color:var(--text);flex:1;">${t.idea || ''}</span>
+      <span style="font-family:var(--font-mono);font-size:8px;color:${convColor};flex-shrink:0;">${t.conviction || ''}</span>
+    </div>`;
+  }).join('');
+
+  result.innerHTML = `
+    <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:#fff;margin-bottom:3px;">${d.title || 'Custom Analysis'}</div>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.1em;">TAGS: ${tagsStr}</div>
+      </div>
+      <span class="wl-item-badge ${sentClass[overall] || 'wl-badge-neut'}" style="font-size:12px;padding:5px 14px;">${sentLabel[overall] || '◆ NEUTRAL'} &nbsp;${score >= 0 ? '+' : ''}${score.toFixed(2)}</span>
+    </div>
+
+    <div class="ca-grid">
+      <div class="ca-col">
+        <div class="ca-card">
+          <div class="ca-card-title">EXECUTIVE SUMMARY</div>
+          <div class="ca-summary-text">${d.executive_summary || '—'}</div>
+        </div>
+        <div class="ca-card">
+          <div class="ca-card-title">SENTIMENT GAUGE</div>
+          <div id="ca-gauge-wrap"><svg id="ca-gauge-svg"></svg></div>
+          <div style="text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--text2);margin-top:4px;">Overall Score: <span style="color:${score>0.1?'var(--bull)':score<-0.1?'var(--bear)':'var(--neut)'};">${score >= 0 ? '+' : ''}${score.toFixed(2)}</span></div>
+        </div>
+        <div class="ca-card">
+          <div class="ca-card-title">TRADE IDEAS</div>
+          ${tradesHtml || '<div style="color:var(--text2);font-size:12px;">No trade ideas generated.</div>'}
+        </div>
+      </div>
+      <div class="ca-col">
+        <div class="ca-card">
+          <div class="ca-card-title">THEME SENTIMENT BREAKDOWN</div>
+          ${themeBarsHtml || '<div style="color:var(--text2);font-size:12px;">No theme data.</div>'}
+        </div>
+        <div class="ca-card">
+          <div class="ca-card-title">KEY FINDINGS</div>
+          ${findingsHtml || '<div style="color:var(--text2);font-size:12px;">No findings.</div>'}
+        </div>
+        <div class="ca-card">
+          <div class="ca-card-title">OPPORTUNITIES</div>
+          ${oppsHtml || '<div style="color:var(--text2);font-size:12px;">—</div>'}
+          <div class="ca-card-title" style="margin-top:12px;">RISKS</div>
+          ${risksHtml || '<div style="color:var(--text2);font-size:12px;">—</div>'}
+        </div>
+      </div>
+    </div>
+    <div class="ca-card" style="margin-top:14px;">
+      <div class="ca-card-title">12-MONTH OUTLOOK</div>
+      <div class="ca-summary-text">${d.outlook || '—'}</div>
+    </div>`;
+
+  // Draw sentiment gauge
+  requestAnimationFrame(() => drawCaGauge(score));
+}
+
+function drawCaGauge(score) {
+  const svgEl = document.getElementById('ca-gauge-svg');
+  if (!svgEl) return;
+
+  const W = 220, H = 120;
+  const cx = W / 2, cy = H * 0.82;
+  const R = 78, r = 52;
+
+  const svg = d3.select(svgEl).attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+
+  // Colour gradient arc segments
+  const segments = [
+    { from: Math.PI, to: Math.PI * 1.25, color: '#7F1D1D' },
+    { from: Math.PI * 1.25, to: Math.PI * 1.5, color: '#EF4444' },
+    { from: Math.PI * 1.5, to: Math.PI * 1.75, color: '#F59E0B' },
+    { from: Math.PI * 1.75, to: Math.PI * 2,   color: '#10B981' },
+  ];
+
+  const arc = d3.arc().innerRadius(r).outerRadius(R);
+  segments.forEach(seg => {
+    svg.append('path')
+      .attr('d', arc({ startAngle: seg.from, endAngle: seg.to }))
+      .attr('fill', seg.color).attr('opacity', 0.85)
+      .attr('transform', `translate(${cx},${cy})`);
+  });
+
+  // Needle: score -1 → angle π, score 0 → 1.5π, score +1 → 2π
+  const angle = Math.PI + ((score + 1) / 2) * Math.PI;
+  const needleLen = R - 4;
+  const nx = cx + Math.cos(angle) * needleLen;
+  const ny = cy + Math.sin(angle) * needleLen;
+  svg.append('line').attr('x1', cx).attr('y1', cy).attr('x2', nx).attr('y2', ny)
+    .attr('stroke', '#fff').attr('stroke-width', 2.5).attr('stroke-linecap', 'round');
+  svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 5)
+    .attr('fill', '#fff').attr('stroke', '#0A1220').attr('stroke-width', 1.5);
+
+  // Labels
+  const labels = [['BEAR', Math.PI, -1], ['NEUTRAL', Math.PI * 1.5, 0], ['BULL', Math.PI * 2, 1]];
+  labels.forEach(([txt, ang]) => {
+    svg.append('text')
+      .attr('x', cx + Math.cos(ang) * (R + 12))
+      .attr('y', cy + Math.sin(ang) * (R + 12) + 3)
+      .attr('text-anchor', 'middle')
+      .attr('font-family', 'JetBrains Mono,monospace')
+      .attr('font-size', 8)
+      .attr('fill', 'rgba(100,116,139,0.8)')
+      .text(txt);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
 // EVENT LISTENERS (attached programmatically to avoid scope issues)
 // ════════════════════════════════════════════════════════════════════
 function wireEventListeners() {
@@ -3531,13 +4379,81 @@ function wireEventListeners() {
     });
   }
 
-  // ESC to close stock detail first, then stocks modal, then deep overlay, then social panel
+  // Watchlist floating tab
+  const wlTab = document.getElementById('watchlist-tab');
+  if (wlTab) wlTab.addEventListener('click', toggleWatchlist);
+
+  // Watchlist close
+  const wlClose = document.getElementById('wl-close-btn');
+  if (wlClose) wlClose.addEventListener('click', closeWatchlist);
+
+  // Watchlist add button
+  const wlAddBtn = document.getElementById('wl-add-btn');
+  if (wlAddBtn) wlAddBtn.addEventListener('click', () => {
+    const v = document.getElementById('wl-search-input')?.value;
+    if (v) addWatchlistItem(v);
+  });
+
+  // Watchlist search input — Enter key
+  const wlInput = document.getElementById('wl-search-input');
+  if (wlInput) wlInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && wlInput.value.trim()) addWatchlistItem(wlInput.value);
+  });
+
+  // Watchlist "Add current country" button (in watchlist panel)
+  const wlCntryBtn = document.getElementById('wl-add-country-btn');
+  if (wlCntryBtn) wlCntryBtn.addEventListener('click', addCurrentCountryToWatchlist);
+
+  // "Add to watchlist" button in side panel
+  const addWlBtn = document.getElementById('add-to-watchlist-btn');
+  if (addWlBtn) addWlBtn.addEventListener('click', addCurrentCountryToWatchlist);
+
+  // Custom analysis topbar button
+  const caBtn = document.getElementById('ca-topbar-btn');
+  if (caBtn) caBtn.addEventListener('click', openCustomAnalysis);
+
+  // Custom analysis close
+  const caClose = document.getElementById('ca-close-btn');
+  if (caClose) caClose.addEventListener('click', closeCustomAnalysis);
+
+  // CA overlay backdrop click to close
+  const caOverlay = document.getElementById('ca-overlay');
+  if (caOverlay) caOverlay.addEventListener('click', e => {
+    if (e.target === caOverlay) closeCustomAnalysis();
+  });
+
+  // CA tag input — Enter to add
+  const caTagInput = document.getElementById('ca-tag-input');
+  if (caTagInput) {
+    caTagInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { addCustomTag(caTagInput.value); }
+    });
+  }
+
+  // CA add tag button
+  const caAddTag = document.getElementById('ca-add-tag-btn');
+  if (caAddTag) caAddTag.addEventListener('click', () => {
+    addCustomTag(document.getElementById('ca-tag-input')?.value || '');
+  });
+
+  // CA run button
+  const caRunBtn = document.getElementById('ca-run-btn');
+  if (caRunBtn) caRunBtn.addEventListener('click', runCustomAnalysis);
+
+  // CA suggestion chips
+  document.querySelectorAll('.ca-tag-suggestion').forEach(chip => {
+    chip.addEventListener('click', () => addCustomTag(chip.dataset.tag));
+  });
+
+  // ESC to close overlays in priority order
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (document.getElementById('stock-detail').classList.contains('open')) closeStockDetail();
       else if (document.getElementById('stocks-modal').classList.contains('open')) closeStocks();
+      else if (caOpen) closeCustomAnalysis();
       else if (deepOpen) closeDeepAnalysis();
       else if (socialOpen) closeSocialPanel();
+      else if (watchlistOpen) closeWatchlist();
     }
   });
 }
@@ -3545,6 +4461,7 @@ function wireEventListeners() {
 // ════════════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════════════
+loadWatchlistFromStorage();
 wireEventListeners();
 initMap();
 loadTickers();  // shows "—" placeholders until user enters API key
