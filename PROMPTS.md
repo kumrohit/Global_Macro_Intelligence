@@ -142,7 +142,7 @@ global_macro_intel.html (~4470 lines, single file)
 > Add tasks below. Strike through with `~~task~~` once complete.
 
 - [x] ~~Task 1 — Add user login page~~
-- [ ] Task 2 — *(your next prompt here)*
+- [x] ~~Task 2 — Improve my readme file. Provide description of the project. helpful technical notes and detailed architecture for github repo~~
 - [ ] Task 3 — *(your next prompt here)*
 
 ---
