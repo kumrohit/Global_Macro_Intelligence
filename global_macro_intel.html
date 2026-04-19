@@ -836,6 +836,105 @@ body::after{
 
 #social-loading{text-align:center;padding:40px 20px;}
 #social-error{text-align:center;padding:30px 20px;font-family:var(--font-display);font-size:12px;color:var(--bear);}
+
+/* ── Social Filter ── */
+#soc-filter-row{margin-top:8px;}
+#soc-filter-input{width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;
+  padding:5px 10px;color:var(--text);font-family:var(--font-mono);font-size:9px;
+  outline:none;transition:border-color 0.2s;}
+#soc-filter-input::placeholder{color:var(--text3);}
+#soc-filter-input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(34,211,238,0.1);}
+
+/* ── Country Selector in API Widget ── */
+#country-mode-row{display:flex;gap:4px;margin-top:6px;}
+.cmode-btn{flex:1;background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:8px;padding:4px 6px;
+  letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;}
+.cmode-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.08);}
+#country-search-wrap{display:none;margin-top:6px;}
+#country-search-wrap.show{display:block;}
+#country-search-input{width:100%;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
+  padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:9px;outline:none;margin-bottom:4px;}
+#country-list-box{max-height:110px;overflow-y:auto;border:1px solid var(--border);border-radius:3px;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.clist-item{display:flex;align-items:center;gap:5px;padding:3px 7px;cursor:pointer;
+  font-family:var(--font-mono);font-size:9px;color:var(--text2);transition:background 0.15s;border-bottom:1px solid rgba(26,37,64,0.5);}
+.clist-item:hover{background:rgba(96,165,250,0.06);}
+.clist-item.selected{color:var(--cyan);}
+.clist-check{width:10px;text-align:center;flex-shrink:0;}
+#country-sel-count{font-family:var(--font-mono);font-size:8px;color:var(--text2);margin-top:3px;text-align:center;letter-spacing:0.08em;}
+
+/* ── Deep Analysis Overlay ── */
+#deep-overlay{position:fixed;inset:0;z-index:2000;display:none;background:rgba(3,7,18,0.85);
+  backdrop-filter:blur(8px);padding:20px;align-items:flex-start;justify-content:center;}
+#deep-overlay.open{display:flex;}
+#deep-panel{width:100%;max-width:880px;max-height:90vh;background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
+  border:1px solid var(--border2);border-radius:8px;display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,0.7);overflow:hidden;animation:slideUp 0.3s cubic-bezier(0.4,0,0.2,1);}
+#deep-header{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(59,130,246,0.08) 0%,transparent 100%);flex-shrink:0;}
+#deep-flag{font-size:26px;line-height:1;}
+#deep-title-txt{font-family:var(--font-display);font-size:18px;font-weight:700;color:#fff;letter-spacing:0.03em;}
+#deep-subtitle{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.1em;margin-top:2px;}
+#deep-close-btn{margin-left:auto;background:transparent;border:1px solid var(--border2);border-radius:3px;
+  color:var(--text2);font-size:11px;padding:5px 10px;cursor:pointer;transition:all 0.2s;flex-shrink:0;}
+#deep-close-btn:hover{color:var(--bear);border-color:var(--bear);}
+#deep-tabs{display:flex;gap:2px;padding:10px 22px;border-bottom:1px solid var(--border);
+  background:rgba(5,8,17,0.4);flex-shrink:0;overflow-x:auto;}
+.deep-tab{background:transparent;border:1px solid var(--border);border-radius:3px;white-space:nowrap;
+  color:var(--text2);font-family:var(--font-mono);font-size:9px;padding:6px 14px;
+  letter-spacing:0.12em;cursor:pointer;transition:all 0.2s;}
+.deep-tab:hover{color:var(--text);border-color:var(--border2);}
+.deep-tab.active{background:rgba(59,130,246,0.15);border-color:var(--accent);color:var(--accent);}
+#deep-body{flex:1;overflow-y:auto;padding:22px 26px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+#deep-body::-webkit-scrollbar{width:6px;}
+#deep-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.deep-section h3{font-family:var(--font-mono);font-size:10px;color:var(--cyan);letter-spacing:0.15em;
+  margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);text-transform:uppercase;}
+.deep-section p{font-family:var(--font-display);font-size:13px;color:var(--text);line-height:1.8;margin-bottom:12px;}
+.deep-kv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;}
+.deep-kv{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:10px 12px;}
+.deep-kv-label{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.1em;margin-bottom:4px;}
+.deep-kv-val{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--text);}
+.deep-loading{text-align:center;padding:60px 20px;}
+
+/* Deep analysis button in panel */
+#deep-analysis-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px 14px;cursor:pointer;border:1px solid var(--border);
+  border-radius:4px;background:var(--card);transition:all 0.2s;
+  font-family:var(--font-mono);font-size:10px;color:var(--accent);
+  letter-spacing:0.1em;margin-top:4px;width:100%;
+}
+#deep-analysis-btn:hover{border-color:var(--accent);background:rgba(59,130,246,0.08);}
+
+/* ── History Chart ── */
+#history-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;background:var(--card);border:1px solid var(--border);
+  border-radius:3px;cursor:pointer;margin-top:2px;
+  font-family:var(--font-mono);font-size:10px;color:var(--text);
+  transition:border-color 0.2s;user-select:none;
+}
+#history-toggle:hover{border-color:var(--cyan);}
+#history-arrow{font-size:8px;color:var(--text2);transition:transform 0.2s;}
+#history-arrow.open{transform:rotate(180deg);}
+#history-section{display:none;margin-top:5px;border:1px solid var(--border);border-radius:3px;
+  padding:10px 12px;background:var(--card);}
+#history-section.open{display:block;}
+#history-metric-row{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;}
+.hm-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;padding:3px 8px;
+  border-radius:2px;cursor:pointer;border:1px solid var(--border);
+  color:var(--text2);background:transparent;transition:all 0.2s;}
+.hm-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.08);}
+#history-chart-wrap{position:relative;width:100%;}
+#history-chart-svg{display:block;width:100%;}
+#history-tooltip{position:absolute;pointer-events:none;display:none;
+  background:rgba(8,15,26,0.96);border:1px solid var(--border2);border-radius:3px;
+  padding:6px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text);z-index:10;white-space:nowrap;}
+.hchart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.hchart-leg-item{display:flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:8px;color:var(--text2);}
+.hchart-leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -904,6 +1003,15 @@ body::after{
       <div id="api-progress" style="display:none;margin-top:6px;font-size:9px;font-family:var(--font-mono);color:var(--accent);">
         <div id="api-progress-bar" style="height:2px;background:var(--accent);width:0%;transition:width 0.3s;margin-bottom:4px;border-radius:1px;"></div>
         <span id="api-progress-text">Precomputing 0 / 0…</span>
+      </div>
+      <div id="country-mode-row">
+        <button class="cmode-btn active" data-mode="all">ALL COUNTRIES</button>
+        <button class="cmode-btn" data-mode="select">SELECT</button>
+      </div>
+      <div id="country-search-wrap">
+        <input type="text" id="country-search-input" placeholder="Filter countries…">
+        <div id="country-list-box"></div>
+        <div id="country-sel-count">0 selected — select to restrict analysis</div>
       </div>
     </div>
   </div>
@@ -1047,6 +1155,9 @@ body::after{
         <div class="chip"><div class="chip-label">KEY RISK</div><div class="chip-val" id="c-kr" style="font-size:9px;line-height:1.4;">—</div></div>
       </div>
 
+      <div class="slabel">DEEP ANALYSIS</div>
+      <button id="deep-analysis-btn">⬡ &nbsp;OPEN FULL COUNTRY ANALYSIS</button>
+
       <div class="slabel">AUTHORITY PUBLICATIONS</div>
       <div id="auth-toggle">
         <span id="auth-label">📋 &nbsp;Load latest publications</span>
@@ -1069,6 +1180,14 @@ body::after{
         <span id="news-arrow">▼</span>
       </div>
       <div id="news-list"></div>
+
+      <div class="slabel">MACRO HISTORY CHART</div>
+      <div id="history-toggle">
+        <span>📈 &nbsp;Historical macro data</span>
+        <span id="history-arrow">▼</span>
+      </div>
+      <div id="history-section"></div>
+
       <div style="height:20px;"></div>
     </div>
   </div>
@@ -1093,6 +1212,9 @@ body::after{
       <button class="soc-scope-btn" id="soc-country-btn" data-scope="country" style="display:none;">—</button>
       <button id="soc-refresh-btn">↻ REFRESH</button>
     </div>
+    <div id="soc-filter-row">
+      <input type="text" id="soc-filter-input" placeholder="Filter by hashtag, topic, sector… e.g. #Fed #AI">
+    </div>
   </div>
   <div id="social-body">
     <div id="social-loading" style="display:none;">
@@ -1102,6 +1224,33 @@ body::after{
     </div>
     <div id="social-content"></div>
     <div id="social-error" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Deep Analysis Overlay -->
+<div id="deep-overlay">
+  <div id="deep-panel">
+    <div id="deep-header">
+      <div id="deep-flag">🌍</div>
+      <div>
+        <div id="deep-title-txt">Country Analysis</div>
+        <div id="deep-subtitle">—</div>
+      </div>
+      <button id="deep-close-btn">✕ CLOSE</button>
+    </div>
+    <div id="deep-tabs">
+      <button class="deep-tab active" data-tab="overview">OVERVIEW</button>
+      <button class="deep-tab" data-tab="economy">ECONOMY</button>
+      <button class="deep-tab" data-tab="markets">MARKETS</button>
+      <button class="deep-tab" data-tab="risks">RISKS</button>
+      <button class="deep-tab" data-tab="outlook">OUTLOOK</button>
+    </div>
+    <div id="deep-body">
+      <div class="deep-loading">
+        <div class="big-spin"></div>
+        <div class="sl-text">Select a country and click Open Full Analysis</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1116,6 +1265,7 @@ let authorityOpen = false;
 let langNative = false;
 let socialOpen = false;
 let socialScope = 'global';
+let socialFilter = '';
 let cache = {};
 let stocksCache = {};
 let authorityCache = {};
@@ -1127,6 +1277,21 @@ let currentSector = 'all';
 let countryMeta = {};
 let worldData = null;
 let projection, path;
+
+// Country selector state
+let countryMode = 'all';      // 'all' | 'select'
+let selectedCountries = new Set();
+
+// Deep analysis state
+let deepOpen = false;
+let deepTab = 'overview';
+let deepCache = {};
+
+// History chart state
+let historyOpen = false;
+let historyMetric = 'gdp';
+let historyCache = {};
+let historyCurrentData = null;
 
 // Authority & language metadata per ISO numeric
 const AUTHORITY_INFO = {
@@ -1184,6 +1349,37 @@ const AUTHORITY_INFO = {
   "144": { authority:"Central Bank of Sri Lanka & SEC Sri Lanka",     lang:"සිංහල"            },
   "414": { authority:"Central Bank of Kuwait & CMA Kuwait",           lang:"العربية"           },
   "634": { authority:"Qatar Central Bank & QFMA",                     lang:"العربية"           },
+};
+
+// Official central bank / financial authority websites per ISO numeric
+const AUTHORITY_URLS = {
+  "840":"https://www.federalreserve.gov",  "124":"https://www.bankofcanada.ca",
+  "484":"https://www.banxico.org.mx",      "076":"https://www.bcb.gov.br",
+  "032":"https://www.bcra.gob.ar",         "152":"https://www.bcentral.cl",
+  "170":"https://www.banrep.gov.co",       "604":"https://www.bcrp.gob.pe",
+  "826":"https://www.bankofengland.co.uk", "250":"https://www.banque-france.fr",
+  "276":"https://www.bundesbank.de",       "380":"https://www.bancaditalia.it",
+  "724":"https://www.bde.es",              "620":"https://www.bportugal.pt",
+  "528":"https://www.dnb.nl",              "756":"https://www.snb.ch",
+  "040":"https://www.oenb.at",             "616":"https://www.nbp.pl",
+  "752":"https://www.riksbank.se",         "578":"https://www.norges-bank.no",
+  "246":"https://www.suomenpankki.fi",     "208":"https://www.nationalbanken.dk",
+  "300":"https://www.bankofgreece.gr",     "056":"https://www.nbb.be",
+  "203":"https://www.cnb.cz",              "642":"https://www.bnr.ro",
+  "643":"https://www.cbr.ru",              "792":"https://www.tcmb.gov.tr",
+  "364":"https://www.cbi.ir",              "682":"https://www.sama.gov.sa",
+  "784":"https://www.centralbank.ae",      "376":"https://www.boi.org.il",
+  "818":"https://www.cbe.org.eg",          "566":"https://www.cbn.gov.ng",
+  "710":"https://www.resbank.co.za",       "404":"https://www.centralbank.go.ke",
+  "504":"https://www.bkam.ma",             "356":"https://www.rbi.org.in",
+  "156":"https://www.pbc.gov.cn",          "392":"https://www.boj.or.jp",
+  "410":"https://www.bok.or.kr",           "158":"https://www.cbc.gov.tw",
+  "764":"https://www.bot.or.th",           "704":"https://www.sbv.gov.vn",
+  "458":"https://www.bnm.gov.my",          "360":"https://www.bi.go.id",
+  "608":"https://www.bsp.gov.ph",          "036":"https://www.rba.gov.au",
+  "554":"https://www.rbnz.govt.nz",        "398":"https://www.nationalbank.kz",
+  "288":"https://www.bog.gov.gh",          "144":"https://www.cbsl.gov.lk",
+  "414":"https://www.cbk.gov.kw",          "634":"https://www.qcb.gov.qa",
 };
 
 // Country metadata (iso numeric → info)
@@ -1539,6 +1735,13 @@ function selectCountry(d) {
   document.getElementById('auth-arrow').className = '';
   document.getElementById('auth-list').className = '';
   document.getElementById('auth-list').innerHTML = '';
+
+  // Reset history chart
+  historyOpen = false;
+  historyCurrentData = null;
+  document.getElementById('history-arrow').className = '';
+  const histSec = document.getElementById('history-section');
+  if (histSec) { histSec.className = ''; histSec.innerHTML = ''; }
 
   // Reset news
   newsOpen = false;
@@ -1910,7 +2113,7 @@ source: string, a real financial news outlet name
 time: string, one of "1h ago", "2h ago", "3h ago", "6h ago", "12h ago"
 impact: string, must be one of HIGH, MEDIUM, LOW
 summary: string, one sentence about market implications for ${countryName}, max 20 words
-url: string, use "#"
+url: string, a plausible real URL to a financial news article on that source's website (e.g. "https://www.reuters.com/markets/..." or "https://www.ft.com/content/...") — use the actual source domain
 
 Make headlines specific to ${countryName} — mention the country's central bank, currency, or specific institutions.`;
 
@@ -2278,9 +2481,10 @@ function renderStockAnalysis(d, stock) {
 // API KEY
 // ════════════════════════════════════════════════════════════════════
 async function precomputeAll() {
-  // Deduplicate META entries by key
+  // Deduplicate META entries by key; respect country selection mode
   const entries = Object.entries(META).filter(([k, v], i, arr) =>
-    arr.findIndex(([k2]) => k2 === k) === i
+    arr.findIndex(([k2]) => k2 === k) === i &&
+    (countryMode !== 'select' || selectedCountries.size === 0 || selectedCountries.has(k))
   );
   const total = entries.length;
 
@@ -2552,6 +2756,7 @@ async function loadAuthorityPubs(key) {
   if (!meta) { list.innerHTML = '<div style="padding:10px 14px;color:var(--text2);">Select a country first.</div>'; return; }
 
   const authInfo = getAuthorityInfo(meta);
+  const baseUrl = AUTHORITY_URLS[meta._id || ''] || '#';
   const prompt = `You are a financial analyst. Generate 3 realistic recent publications from ${authInfo.authority} (${meta.name}'s financial authorities).
 
 Respond with ONLY a JSON array of 3 objects. No markdown, no code fences, no trailing commas. Each object must have exactly these fields:
@@ -2559,7 +2764,8 @@ type: string, one of "Policy Statement", "Economic Report", "Speech", "Press Rel
 title: string, specific publication title mentioning ${meta.name} context, max 15 words
 date: string, a recent month-year like "April 2025" or "March 2025"
 summary: string, 2-sentence summary of key policy/economic findings, max 40 words
-impact: string, one of HIGH, MEDIUM, LOW`;
+impact: string, one of HIGH, MEDIUM, LOW
+url: string, use "${baseUrl}" as the base URL — append a plausible path like "/publications/2025/report-name" or just use "${baseUrl}"`;
 
   try {
     let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', prompt, 1000);
@@ -2568,27 +2774,32 @@ impact: string, one of HIGH, MEDIUM, LOW`;
     raw = raw.replace(/,(\s*[\]}])/g, '$1');
     let pubs;
     try { pubs = JSON.parse(raw); } catch (_) { pubs = JSON.parse(closeTruncated(raw)); }
-    authorityCache[key] = { pubs, authority: authInfo.authority };
-    renderAuthorityPubs({ pubs, authority: authInfo.authority }, label);
+    authorityCache[key] = { pubs, authority: authInfo.authority, baseUrl };
+    renderAuthorityPubs({ pubs, authority: authInfo.authority, baseUrl }, label);
   } catch (err) {
     list.innerHTML = `<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
     label.textContent = '📋  Failed to load';
   }
 }
 
-function renderAuthorityPubs({ pubs, authority }, label) {
+function renderAuthorityPubs({ pubs, authority, baseUrl }, label) {
   const list = document.getElementById('auth-list');
   label.textContent = `📋  ${pubs.length} publications · ${authority}`;
   const typeClass = { 'Policy Statement':'policy', 'Economic Report':'report', 'Speech':'speech', 'Press Release':'release', 'Regulatory Notice':'release' };
   list.innerHTML = pubs.map(p => {
     const cls = typeClass[p.type] || 'release';
+    const href = p.url || baseUrl || '#';
     return `
       <div class="auth-item">
         <div class="auth-top">
           <span class="auth-type ${cls}">${p.type || '—'}</span>
           <span class="auth-date">${p.date || '—'}</span>
         </div>
-        <div class="auth-title">${p.title || '—'}</div>
+        <div class="auth-title">
+          <a href="${href}" target="_blank" rel="noopener noreferrer"
+             style="color:inherit;text-decoration:none;"
+             onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color=''">${p.title || '—'} ↗</a>
+        </div>
         <div class="auth-summary">${p.summary || '—'}</div>
         <div class="auth-authority">${authority}</div>
       </div>`;
@@ -2727,9 +2938,10 @@ async function loadSocialSentiment() {
     return;
   }
 
-  const target = socialScope === 'country' && currentCountryMeta
+  const filterText = socialFilter.trim() ? ` — focusing on: ${socialFilter.trim()}` : '';
+  const target = (socialScope === 'country' && currentCountryMeta
     ? currentCountryMeta.name + ' financial markets'
-    : 'global financial markets';
+    : 'global financial markets') + filterText;
 
   const cacheKey = target;
   if (socialCache[cacheKey]) {
@@ -2738,7 +2950,7 @@ async function loadSocialSentiment() {
     return;
   }
 
-  const prompt = `You are a social media market analyst. Synthesise current investor sentiment about ${target} from Twitter/X, Reddit (r/investing, r/stocks, r/wallstreetbets), StockTwits, and Seeking Alpha forums.
+  const prompt = `You are a social media market analyst. Synthesise current investor sentiment about ${target} from Twitter/X, Reddit (r/investing, r/stocks, r/wallstreetbets), StockTwits, and Seeking Alpha forums.${socialFilter.trim() ? ` Pay special attention to discussions tagged with or about: ${socialFilter.trim()}.` : ''}
 
 Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas. Use these exact field names:
 
@@ -2843,6 +3055,353 @@ function renderSocialSentiment(d) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// COUNTRY SELECTOR
+// ════════════════════════════════════════════════════════════════════
+function setCountryMode(mode) {
+  countryMode = mode;
+  document.querySelectorAll('.cmode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  const wrap = document.getElementById('country-search-wrap');
+  if (mode === 'select') {
+    wrap.classList.add('show');
+    if (!wrap._initialized) { initCountrySelector(); wrap._initialized = true; }
+  } else {
+    wrap.classList.remove('show');
+  }
+}
+
+function initCountrySelector() {
+  const listBox = document.getElementById('country-list-box');
+  const searchInput = document.getElementById('country-search-input');
+
+  function renderList(filter) {
+    const q = (filter || '').toLowerCase();
+    // Unique country entries sorted alphabetically
+    const seen = new Set();
+    const entries = Object.entries(META)
+      .filter(([k, v]) => { if (seen.has(k)) return false; seen.add(k); return true; })
+      .map(([k, v]) => ({ id: k, name: v.name, flag: v.flag || '' }))
+      .filter(c => !q || c.name.toLowerCase().includes(q))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    listBox.innerHTML = entries.map(c => `
+      <div class="clist-item ${selectedCountries.has(c.id) ? 'selected' : ''}" data-id="${c.id}">
+        <span class="clist-check">${selectedCountries.has(c.id) ? '✓' : ' '}</span>
+        <span>${c.flag}</span>
+        <span>${c.name}</span>
+      </div>`).join('');
+
+    const count = document.getElementById('country-sel-count');
+    count.textContent = selectedCountries.size === 0
+      ? 'No selection — will analyse ALL countries'
+      : `${selectedCountries.size} selected — only these will be precomputed`;
+  }
+
+  listBox.addEventListener('click', e => {
+    const item = e.target.closest('.clist-item');
+    if (!item) return;
+    const id = item.dataset.id;
+    if (selectedCountries.has(id)) selectedCountries.delete(id);
+    else selectedCountries.add(id);
+    renderList(searchInput.value);
+  });
+
+  searchInput.addEventListener('input', () => renderList(searchInput.value));
+  renderList('');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// DEEP ANALYSIS OVERLAY
+// ════════════════════════════════════════════════════════════════════
+const DEEP_TAB_PROMPTS = {
+  overview: m => `Provide a comprehensive macroeconomic overview of ${m.name} (${m.region}). Cover: economic structure, GDP size and growth drivers, major sectors, trade relationships, demographic profile, and geopolitical positioning. Also include recent economic trajectory and how it fits into the global macro landscape.`,
+  economy:  m => `Analyse the current macroeconomy of ${m.name} in depth. Cover: GDP growth rate and forecast, inflation dynamics and central bank (${(AUTHORITY_INFO[m._id||'']?.authority||'').split('&')[0].trim()}) policy stance, fiscal position (deficit/surplus, debt-to-GDP), trade balance and key exports/imports, unemployment, wage growth, structural challenges, and forward-looking economic assessment.`,
+  markets:  m => `Provide detailed capital markets analysis for ${m.name}. Cover: ${m.index} equity market performance and valuation (P/E, forward multiples), sector rotation trends, ${m.currency} FX dynamics and key drivers, bond market/yield curve shape, foreign portfolio investment flows, top listed companies and their weight, and overall market liquidity and accessibility.`,
+  risks:    m => `Identify and deeply analyse the top macro risks for ${m.name}. Assess: political and geopolitical risks, financial stability (banking system, credit cycle, currency risk), external vulnerabilities (trade shocks, commodity exposure), structural risks (demographics, debt levels), climate/energy transition risks, and contagion risk from global stress. For each risk assess probability and market impact.`,
+  outlook:  m => `Provide a 12-month forward-looking macro outlook for ${m.name}. Include: GDP growth forecast with key upside/downside scenarios, inflation trajectory and expected rate path from ${(AUTHORITY_INFO[m._id||'']?.authority||'').split('&')[0].trim()}, ${m.currency} currency outlook vs USD and EUR, ${m.index} equity market outlook with target range, key upcoming catalysts (elections, central bank meetings, data releases), and overall investment recommendation.`,
+};
+
+function openDeepAnalysis() {
+  if (!currentCountryMeta) return;
+  const overlay = document.getElementById('deep-overlay');
+  overlay.classList.add('open');
+  deepOpen = true;
+  document.getElementById('deep-flag').textContent = currentCountryMeta.flag || '🌍';
+  document.getElementById('deep-title-txt').textContent = currentCountryMeta.name + ' — Full Macro Analysis';
+  document.getElementById('deep-subtitle').textContent =
+    currentCountryMeta.region + ' · ' + currentCountryMeta.currency + ' · ' + currentCountryMeta.index;
+  // Activate overview tab
+  document.querySelectorAll('.deep-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'overview'));
+  deepTab = 'overview';
+  loadOrRenderDeepTab('overview');
+}
+
+function closeDeepAnalysis() {
+  document.getElementById('deep-overlay').classList.remove('open');
+  deepOpen = false;
+}
+
+function setDeepTab(tab) {
+  if (!currentCountryMeta) return;
+  deepTab = tab;
+  document.querySelectorAll('.deep-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  loadOrRenderDeepTab(tab);
+}
+
+function loadOrRenderDeepTab(tab) {
+  const cacheKey = (currentCountryMeta?.name || '') + '|' + tab;
+  if (deepCache[cacheKey]) {
+    renderDeepSection(deepCache[cacheKey], tab);
+  } else {
+    loadDeepSection(tab);
+  }
+}
+
+async function loadDeepSection(tab) {
+  if (!currentCountryMeta || !apiKey) {
+    document.getElementById('deep-body').innerHTML =
+      `<div class="deep-loading"><div style="font-size:13px;color:var(--text2);">${!apiKey ? 'Enter an API key to enable deep analysis.' : 'Select a country first.'}</div></div>`;
+    return;
+  }
+  const body = document.getElementById('deep-body');
+  const tabLabels = { overview:'MACROECONOMIC OVERVIEW', economy:'ECONOMIC ANALYSIS', markets:'CAPITAL MARKETS', risks:'RISK ASSESSMENT', outlook:'12-MONTH OUTLOOK' };
+  body.innerHTML = `<div class="deep-loading"><div class="big-spin"></div><div class="sl-text">Loading ${tabLabels[tab] || tab}…</div></div>`;
+
+  const getPrompt = DEEP_TAB_PROMPTS[tab];
+  if (!getPrompt) return;
+  const basePrompt = getPrompt(currentCountryMeta);
+
+  const sysPrompt = 'You are a senior macro strategist at a major investment bank. Respond with a valid JSON object only.';
+  const userPrompt = `${basePrompt}
+
+Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
+{
+  "title": "section headline string",
+  "keyStats": [
+    {"label": "METRIC NAME", "value": "value string"},
+    ... 5-6 objects total
+  ],
+  "content": "detailed analysis text — use \\n\\n to separate paragraphs. 4-5 paragraphs total."
+}`;
+
+  try {
+    const raw = await callLLM(sysPrompt, userPrompt, 2000);
+    const result = repairAndParseJSON(raw);
+    const cacheKey = currentCountryMeta.name + '|' + tab;
+    deepCache[cacheKey] = result;
+    renderDeepSection(result, tab);
+  } catch (err) {
+    body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--bear);font-family:var(--font-display);font-size:13px;">⚠ Error loading analysis: ${err.message}</div>`;
+  }
+}
+
+function renderDeepSection(d, tab) {
+  const body = document.getElementById('deep-body');
+  const tabLabels = { overview:'MACROECONOMIC OVERVIEW', economy:'ECONOMIC ANALYSIS', markets:'CAPITAL MARKETS', risks:'RISK ASSESSMENT', outlook:'12-MONTH OUTLOOK' };
+
+  const statsHtml = (d.keyStats || []).map(s => `
+    <div class="deep-kv">
+      <div class="deep-kv-label">${s.label || ''}</div>
+      <div class="deep-kv-val">${s.value || '—'}</div>
+    </div>`).join('');
+
+  const paragraphs = (d.content || '—')
+    .split('\n\n')
+    .filter(p => p.trim())
+    .map(p => `<p>${p.trim()}</p>`)
+    .join('');
+
+  body.innerHTML = `
+    <div class="deep-section">
+      <h3>${d.title || tabLabels[tab] || tab.toUpperCase()}</h3>
+      ${statsHtml ? `<div class="deep-kv-grid">${statsHtml}</div>` : ''}
+      ${paragraphs}
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// HISTORY CHART
+// ════════════════════════════════════════════════════════════════════
+function toggleHistoryChart() {
+  historyOpen = !historyOpen;
+  document.getElementById('history-arrow').className = historyOpen ? 'open' : '';
+  const section = document.getElementById('history-section');
+  section.className = historyOpen ? 'open' : '';
+  if (historyOpen) {
+    if (!currentCountryMeta) {
+      section.innerHTML = '<div style="padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--text2);">Select a country first.</div>';
+      return;
+    }
+    if (historyCache[currentCountryMeta.name]) {
+      historyCurrentData = historyCache[currentCountryMeta.name];
+      renderHistoryChart(historyCurrentData);
+    } else {
+      loadHistoryData();
+    }
+  }
+}
+
+async function loadHistoryData() {
+  const section = document.getElementById('history-section');
+  section.innerHTML = '<div style="padding:20px;text-align:center;"><div class="big-spin"></div><div class="sl-text" style="font-size:11px;margin-top:8px;">Loading macro history…</div></div>';
+
+  if (!apiKey) {
+    section.innerHTML = '<div style="padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--text2);">API key required.</div>';
+    return;
+  }
+  const meta = currentCountryMeta;
+  const prompt = `Generate realistic historical macroeconomic data for ${meta.name} covering 12 quarters from Q1 2022 through Q4 2024.
+
+Respond with ONLY a raw JSON object. No markdown, no code fences:
+{
+  "quarters": ["Q1 2022", "Q2 2022", "Q3 2022", "Q4 2022", "Q1 2023", "Q2 2023", "Q3 2023", "Q4 2023", "Q1 2024", "Q2 2024", "Q3 2024", "Q4 2024"],
+  "gdp":       [12 numbers: real GDP growth YoY % — can be negative],
+  "inflation": [12 numbers: CPI YoY % consumer price inflation],
+  "rate":      [12 numbers: central bank policy rate % e.g. 4.5],
+  "fx":        [12 numbers: ${meta.currency}/USD rate — units of ${meta.currency} per 1 USD; if ${meta.currency} is USD use the DXY index level]
+}
+
+Use approximate real historical values for ${meta.name}. Reflect actual cycles — rate hike cycles in 2022-2023, inflation surge and retreat, any recessions or booms.`;
+
+  try {
+    const raw = await callLLM('Output only a raw JSON object. No markdown.', prompt, 800);
+    const result = repairAndParseJSON(raw);
+    historyCache[meta.name] = result;
+    historyCurrentData = result;
+    renderHistoryChart(result);
+  } catch (err) {
+    section.innerHTML = `<div style="padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
+  }
+}
+
+function renderHistoryChart(data) {
+  const section = document.getElementById('history-section');
+  section.innerHTML = `
+    <div id="history-metric-row">
+      <button class="hm-btn ${historyMetric==='gdp'?'active':''}" data-hm="gdp">GDP %</button>
+      <button class="hm-btn ${historyMetric==='inflation'?'active':''}" data-hm="inflation">INFLATION</button>
+      <button class="hm-btn ${historyMetric==='rate'?'active':''}" data-hm="rate">POL. RATE</button>
+      <button class="hm-btn ${historyMetric==='fx'?'active':''}" data-hm="fx">FX RATE</button>
+    </div>
+    <div id="history-chart-wrap">
+      <svg id="history-chart-svg"></svg>
+      <div id="history-tooltip"></div>
+    </div>
+    <div id="hchart-legend-box" class="hchart-legend"></div>`;
+
+  section.querySelectorAll('.hm-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      historyMetric = btn.dataset.hm;
+      section.querySelectorAll('.hm-btn').forEach(b => b.classList.toggle('active', b.dataset.hm === historyMetric));
+      drawHistoryLine(data);
+    });
+  });
+  drawHistoryLine(data);
+}
+
+function drawHistoryLine(data) {
+  const wrap = document.getElementById('history-chart-wrap');
+  const svgEl = document.getElementById('history-chart-svg');
+  const legendBox = document.getElementById('hchart-legend-box');
+  if (!svgEl || !data) return;
+
+  const W = (wrap.clientWidth || 280);
+  const H = 155;
+  const margin = { top: 12, right: 12, bottom: 22, left: 38 };
+  const iW = W - margin.left - margin.right;
+  const iH = H - margin.top - margin.bottom;
+
+  const quarters = data.quarters || [];
+  const SERIES = {
+    gdp:       { label:'GDP Growth %',  color:'#10B981', unit:'%' },
+    inflation: { label:'CPI Inflation', color:'#F59E0B', unit:'%' },
+    rate:      { label:'Policy Rate',   color:'#22D3EE', unit:'%' },
+    fx:        { label:'FX vs USD',     color:'#60A5FA', unit:''  },
+  };
+  const active = SERIES[historyMetric];
+  if (!active) return;
+
+  const vals = (data[historyMetric] || []).map(Number).filter(isFinite);
+  if (vals.length < 2) {
+    svgEl.setAttribute('width', W);
+    svgEl.setAttribute('height', 40);
+    d3.select(svgEl).selectAll('*').remove();
+    d3.select(svgEl).append('text').attr('x', W/2).attr('y', 24)
+      .attr('text-anchor','middle').attr('font-family','JetBrains Mono,monospace')
+      .attr('font-size',10).attr('fill','#64748B').text('No data available');
+    return;
+  }
+
+  const minV = Math.min(...vals), maxV = Math.max(...vals);
+  const pad = ((maxV - minV) * 0.15) || 0.5;
+  const lo = minV - pad, hi = maxV + pad;
+  const xS = i => margin.left + (i / (vals.length - 1)) * iW;
+  const yS = v => margin.top + iH - ((v - lo) / (hi - lo)) * iH;
+
+  const svg = d3.select(svgEl).attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+
+  // Grid + y-axis labels
+  const YTICKS = 4;
+  for (let i = 0; i <= YTICKS; i++) {
+    const v = lo + (i / YTICKS) * (hi - lo);
+    const y = yS(v);
+    svg.append('line').attr('x1', margin.left).attr('x2', margin.left + iW)
+      .attr('y1', y).attr('y2', y).attr('stroke','rgba(26,37,64,0.9)').attr('stroke-width',1);
+    svg.append('text').attr('x', margin.left - 4).attr('y', y + 3)
+      .attr('text-anchor','end').attr('font-family','JetBrains Mono,monospace')
+      .attr('font-size',7).attr('fill','rgba(100,116,139,0.8)').text(v.toFixed(1));
+  }
+
+  // Zero baseline when data crosses zero
+  if (minV < 0 && maxV > 0) {
+    svg.append('line').attr('x1', margin.left).attr('x2', margin.left + iW)
+      .attr('y1', yS(0)).attr('y2', yS(0))
+      .attr('stroke','rgba(100,116,139,0.4)').attr('stroke-width',1).attr('stroke-dasharray','3 3');
+  }
+
+  // X-axis labels (yearly)
+  quarters.forEach((q, i) => {
+    if (i % 4 === 0) {
+      svg.append('text').attr('x', xS(i)).attr('y', H - 5)
+        .attr('text-anchor','middle').attr('font-family','JetBrains Mono,monospace')
+        .attr('font-size',7).attr('fill','rgba(100,116,139,0.8)').text(q.split(' ')[1] || q);
+    }
+  });
+
+  // Area fill
+  const areaD = vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${xS(i)},${yS(v)}`).join(' ')
+    + ` L${xS(vals.length-1)},${yS(lo)} L${xS(0)},${yS(lo)} Z`;
+  svg.append('path').attr('d', areaD).attr('fill', active.color).attr('fill-opacity', 0.09);
+
+  // Line
+  const lineD = vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${xS(i)},${yS(v)}`).join(' ');
+  svg.append('path').attr('d', lineD).attr('fill','none').attr('stroke', active.color)
+    .attr('stroke-width',2).attr('stroke-linejoin','round');
+
+  // Dots with tooltip
+  const tipEl = document.getElementById('history-tooltip');
+  vals.forEach((v, i) => {
+    svg.append('circle').attr('cx', xS(i)).attr('cy', yS(v)).attr('r', 3)
+      .attr('fill', active.color).attr('stroke','#0A1220').attr('stroke-width',1.5)
+      .style('cursor','pointer')
+      .on('mouseover', function(event) {
+        const bRect = wrap.getBoundingClientRect();
+        const svgRect = svgEl.getBoundingClientRect();
+        const tx = xS(i) + (svgRect.left - bRect.left) + 8;
+        const ty = yS(v) + (svgRect.top - bRect.top) - 28;
+        tipEl.style.display = 'block';
+        tipEl.style.left = tx + 'px';
+        tipEl.style.top  = ty + 'px';
+        tipEl.innerHTML = `<span style="color:var(--text2);">${quarters[i] || ''}</span>&nbsp;&nbsp;<span style="color:${active.color};font-weight:700;">${v.toFixed(2)}${active.unit}</span>`;
+      })
+      .on('mouseout', () => { tipEl.style.display = 'none'; });
+  });
+
+  // Legend
+  legendBox.innerHTML = `<div class="hchart-leg-item"><div class="hchart-leg-dot" style="background:${active.color};"></div>${active.label} · Q1 2022–Q4 2024</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
 // EVENT LISTENERS (attached programmatically to avoid scope issues)
 // ════════════════════════════════════════════════════════════════════
 function wireEventListeners() {
@@ -2923,11 +3482,61 @@ function wireEventListeners() {
     btn.addEventListener('click', () => jumpTo(btn.dataset.region));
   });
 
-  // ESC to close stock detail first, then stocks modal, then social panel
+  // Country mode selector buttons
+  document.querySelectorAll('.cmode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setCountryMode(btn.dataset.mode));
+  });
+
+  // Deep analysis button (panel)
+  const deepBtn = document.getElementById('deep-analysis-btn');
+  if (deepBtn) deepBtn.addEventListener('click', openDeepAnalysis);
+
+  // Deep analysis overlay close
+  const deepClose = document.getElementById('deep-close-btn');
+  if (deepClose) deepClose.addEventListener('click', closeDeepAnalysis);
+
+  // Deep analysis overlay — click backdrop to close
+  const deepOverlay = document.getElementById('deep-overlay');
+  if (deepOverlay) deepOverlay.addEventListener('click', e => {
+    if (e.target === deepOverlay) closeDeepAnalysis();
+  });
+
+  // Deep analysis tabs
+  document.querySelectorAll('.deep-tab').forEach(tab => {
+    tab.addEventListener('click', () => setDeepTab(tab.dataset.tab));
+  });
+
+  // History chart toggle
+  const histToggle = document.getElementById('history-toggle');
+  if (histToggle) histToggle.addEventListener('click', toggleHistoryChart);
+
+  // Social filter input — clear cache and reload on change (debounced)
+  const socFilterInput = document.getElementById('soc-filter-input');
+  if (socFilterInput) {
+    let socFilterTimer = null;
+    socFilterInput.addEventListener('input', () => {
+      clearTimeout(socFilterTimer);
+      socFilterTimer = setTimeout(() => {
+        const newFilter = socFilterInput.value.trim();
+        if (newFilter !== socialFilter) {
+          socialFilter = newFilter;
+          // Clear cache entries that used old filter so reload fetches fresh
+          const filterText = socialFilter ? ` — focusing on: ${socialFilter}` : '';
+          const target = (socialScope === 'country' && currentCountryMeta
+            ? currentCountryMeta.name + ' financial markets'
+            : 'global financial markets') + filterText;
+          if (!socialCache[target] && socialOpen) loadSocialSentiment();
+        }
+      }, 600);
+    });
+  }
+
+  // ESC to close stock detail first, then stocks modal, then deep overlay, then social panel
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (document.getElementById('stock-detail').classList.contains('open')) closeStockDetail();
       else if (document.getElementById('stocks-modal').classList.contains('open')) closeStocks();
+      else if (deepOpen) closeDeepAnalysis();
       else if (socialOpen) closeSocialPanel();
     }
   });

@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(node --check /tmp/orig_script.js)",
+      "Bash(node --check /tmp/new_script.js)",
+      "Read(//private/tmp/**)",
+      "Bash(sed -n '1966,1985p' /tmp/new_script.js)",
+      "Bash(sed -n '2258,2278p' /tmp/new_script.js)",
+      "Bash(open /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)"
     ]
   }
 }
