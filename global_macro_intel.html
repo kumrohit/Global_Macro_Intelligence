@@ -1122,14 +1122,38 @@ body::after{
 .ca-theme-bar-track{height:6px;background:var(--border);border-radius:2px;overflow:hidden;}
 .ca-theme-bar-fill{height:100%;border-radius:2px;transition:width 0.7s;}
 
+/* ── Expand-to-details ── */
+.expand-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  background:transparent;border:1px solid var(--border);border-radius:2px;
+  color:var(--text2);font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;
+  padding:2px 7px;cursor:pointer;transition:all 0.15s;margin-top:6px;
+}
+.expand-btn:hover,.expand-btn.open{border-color:var(--cyan);color:var(--cyan);}
+.expand-body{
+  display:none;margin-top:8px;padding:10px 12px;
+  background:rgba(5,8,17,0.65);border:1px solid var(--border);border-radius:3px;
+  font-family:var(--font-mono);font-size:9px;line-height:1.65;color:var(--text);
+}
+.expand-body.open{display:block;}
+.expand-loading{color:var(--text2);letter-spacing:0.1em;}
+.expand-kv{display:flex;gap:6px;margin-bottom:3px;}
+.expand-kv-label{color:var(--text2);min-width:90px;flex-shrink:0;}
+.expand-kv-val{color:var(--text);}
+.expand-section-title{font-family:var(--font-display);font-size:10px;color:var(--cyan);
+  letter-spacing:0.12em;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+
 /* ── Login overlay ── */
 #login-overlay{
   position:fixed;inset:0;z-index:5000;
-  display:flex;align-items:center;justify-content:center;
+  display:none;align-items:center;justify-content:center;
   background:var(--bg);
-  transition:opacity 0.5s ease, visibility 0.5s ease;
+  opacity:0;
+  transition:opacity 0.3s ease;
 }
-#login-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+#login-overlay.visible{display:flex;}
+#login-overlay.visible.fade-in{opacity:1;}
+#login-overlay.hidden{display:none !important;}
 
 #login-box{
   width:380px;
@@ -1665,6 +1689,7 @@ let watchlistSentCache = {};
 let caOpen = false;
 let customTags = [];
 let caRunning = false;
+let expandCache = {};
 
 // Deep analysis state
 let deepOpen = false;
@@ -2517,7 +2542,7 @@ Make headlines specific to ${countryName} — mention the country's central bank
     }
     label.textContent = `📰  ${articles.length} headlines`;
 
-    list.innerHTML = articles.map(a => `
+    list.innerHTML = articles.map((a, idx) => `
       <div class="ni">
         <div class="ni-top">
           <span class="ni-imp ${a.impact}">${a.impact}</span>
@@ -2526,8 +2551,22 @@ Make headlines specific to ${countryName} — mention the country's central bank
         </div>
         <div class="ni-title"><a href="${a.url}" target="_blank">${a.title}</a></div>
         <div class="ni-sum">${a.summary}</div>
+        <button class="expand-btn" data-ni="${idx}">▸ DETAILS</button>
+        <div class="expand-body" id="ni-exp-${idx}"></div>
       </div>
     `).join('');
+
+    // Wire expand buttons
+    list.querySelectorAll('.expand-btn[data-ni]').forEach(btn => {
+      const idx = +btn.dataset.ni;
+      const a = articles[idx];
+      const bodyEl = document.getElementById(`ni-exp-${idx}`);
+      btn.addEventListener('click', () => {
+        const cKey = `news|${a.title}`;
+        const prompt = `Analyse the macro market implications of this news headline: "${a.title}". Context: ${a.summary}. Country context: ${countryName}. Discuss: (1) which asset classes or currencies are most affected, (2) short-term market reaction likely, (3) key risk to watch. Be specific and concise.`;
+        toggleExpand(btn, bodyEl, cKey, prompt);
+      });
+    });
   } catch(err) {
     list.innerHTML = `<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
     label.textContent = '📰  Failed to load';
@@ -3381,6 +3420,37 @@ function restoreEnglish() {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// EXPAND-TO-DETAILS — shared helpers
+// ════════════════════════════════════════════════════════════════════
+
+async function loadExpandDetail(cacheKey, prompt, bodyEl) {
+  if (expandCache[cacheKey]) { bodyEl.innerHTML = expandCache[cacheKey]; return; }
+  bodyEl.innerHTML = '<span class="expand-loading"><span class="spin"></span> &nbsp;Loading analysis…</span>';
+  if (!apiKey) { bodyEl.innerHTML = '<span style="color:var(--bear)">API key required.</span>'; return; }
+  try {
+    const raw = await callLLM(
+      'You are a concise financial analyst. Write 2–3 short paragraphs in plain English. No markdown, no JSON, no bullet lists. Max 150 words.',
+      prompt, 350, 0.3
+    );
+    const html = raw.trim()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\n\n+/g,'</p><p>').replace(/\n/g,' ');
+    const wrapped = `<p>${html}</p>`;
+    expandCache[cacheKey] = wrapped;
+    bodyEl.innerHTML = wrapped;
+  } catch(e) {
+    bodyEl.innerHTML = `<span style="color:var(--bear)">Failed: ${e.message}</span>`;
+  }
+}
+
+function toggleExpand(btn, bodyEl, cacheKey, prompt) {
+  const isOpen = bodyEl.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.textContent = isOpen ? '▴ COLLAPSE' : '▸ DETAILS';
+  if (isOpen) loadExpandDetail(cacheKey, prompt, bodyEl);
+}
+
+// ════════════════════════════════════════════════════════════════════
 // SOCIAL MEDIA SENTIMENT PANEL
 // ════════════════════════════════════════════════════════════════════
 function toggleSocialPanel() {
@@ -3455,6 +3525,7 @@ Make it specific to ${target} with real-sounding tickers and topics.`;
   try {
     const raw = await callLLM('You are a market sentiment analyst. Output only a raw JSON object. No markdown.', prompt, 1200);
     const result = repairAndParseJSON(raw);
+    result._scope = target; // store for expand prompts
     socialCache[cacheKey] = result;
     loading.style.display = 'none';
     renderSocialSentiment(result);
@@ -3485,21 +3556,27 @@ function renderSocialSentiment(d) {
   const trendingHtml = (d.trending || []).map((t, i) => {
     const sentCls = t.sentiment === 'Bullish' ? 'soc-sent-bull' : t.sentiment === 'Bearish' ? 'soc-sent-bear' : 'soc-sent-neut';
     const sentIcon = t.sentiment === 'Bullish' ? '▲' : t.sentiment === 'Bearish' ? '▼' : '◆';
-    return `<div class="soc-trend-item">
+    const safeId = `soc-tr-${i}`;
+    return `<div class="soc-trend-item" style="flex-wrap:wrap;">
       <div class="soc-trend-rank">${i + 1}</div>
       <div class="soc-trend-ticker">${t.ticker || '—'}</div>
       <div class="soc-trend-name">${t.name || '—'}</div>
       <div class="soc-trend-sent ${sentCls}">${sentIcon}</div>
       <div class="soc-trend-vol">${t.mentions || '—'}</div>
+      <button class="expand-btn" style="margin-top:4px;width:100%;" data-soc-tr="${i}" data-ticker="${t.ticker || ''}" data-name="${t.name || ''}">▸ DETAILS</button>
+      <div class="expand-body" id="${safeId}" style="width:100%;"></div>
     </div>`;
   }).join('');
 
-  const topicsHtml = (d.topics || []).map(t => {
+  const topicsHtml = (d.topics || []).map((t, i) => {
     const typeCls = { Bullish:'soc-type-bull', Bearish:'soc-type-bear', Neutral:'soc-type-neut', Breaking:'soc-type-break' }[t.type] || 'soc-type-neut';
-    return `<div class="soc-topic">
+    const safeId = `soc-tp-${i}`;
+    return `<div class="soc-topic" style="flex-wrap:wrap;">
       <div class="soc-topic-tag">${t.tag || '—'}</div>
       <div class="soc-topic-type ${typeCls}">${t.type || '—'}</div>
       <div class="soc-topic-vol">${t.volume || '—'}</div>
+      <button class="expand-btn" style="margin-top:4px;width:100%;" data-soc-tp="${i}" data-tag="${t.tag || ''}" data-type="${t.type || ''}">▸ DETAILS</button>
+      <div class="expand-body" id="${safeId}" style="width:100%;"></div>
     </div>`;
   }).join('');
 
@@ -3541,6 +3618,33 @@ function renderSocialSentiment(d) {
       ${topicsHtml}
     </div>
   `;
+
+  // Wire trending ticker expand buttons
+  const socScope = (d._scope || 'global financial markets');
+  content.querySelectorAll('.expand-btn[data-soc-tr]').forEach(btn => {
+    const i = +btn.dataset.socTr;
+    const ticker = btn.dataset.ticker;
+    const name = btn.dataset.name;
+    const bodyEl = document.getElementById(`soc-tr-${i}`);
+    btn.addEventListener('click', () => {
+      const cKey = `soc-tr|${ticker}|${socScope}`;
+      const prompt = `Analyse current social media and investor sentiment for ${name} (${ticker}) in the context of ${socScope}. Cover: (1) why retail investors are talking about it right now, (2) key catalysts or concerns driving the sentiment, (3) whether the social buzz aligns with fundamental outlook. Be specific.`;
+      toggleExpand(btn, bodyEl, cKey, prompt);
+    });
+  });
+
+  // Wire hot topic expand buttons
+  content.querySelectorAll('.expand-btn[data-soc-tp]').forEach(btn => {
+    const i = +btn.dataset.socTp;
+    const tag = btn.dataset.tag;
+    const type = btn.dataset.type;
+    const bodyEl = document.getElementById(`soc-tp-${i}`);
+    btn.addEventListener('click', () => {
+      const cKey = `soc-tp|${tag}|${socScope}`;
+      const prompt = `Analyse the macro significance of the trending topic "${tag}" (sentiment: ${type}) in the context of ${socScope}. Cover: (1) what is driving this topic right now, (2) which assets, sectors, or currencies are most affected, (3) what investors should watch next. Be concise and specific.`;
+      toggleExpand(btn, bodyEl, cKey, prompt);
+    });
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -4103,12 +4207,29 @@ function renderWatchlist() {
       ${s ? `<div class="wl-score-bar"><div class="wl-score-fill" style="width:${barPct}%;background:${scoreColor(score)};"></div></div>` : ''}
       <div class="wl-item-key">${item.keyNote || (s ? '' : 'Loading sentiment…')}</div>
       <div class="wl-item-meta">${item.regime || item.assetType || ''} ${ts !== '—' ? '· Updated ' + ts : ''}</div>
+      ${s ? `<button class="expand-btn" data-wl-key="${item.key}">▸ DETAILS</button><div class="expand-body" id="wl-exp-${item.key.replace(/[^a-z0-9]/gi,'_')}"></div>` : ''}
     </div>`;
   }).join('');
 
   // Wire delete buttons
   list.querySelectorAll('.wl-item-del').forEach(btn => {
     btn.addEventListener('click', () => removeWatchlistItem(btn.dataset.key));
+  });
+
+  // Wire expand buttons
+  list.querySelectorAll('.expand-btn[data-wl-key]').forEach(btn => {
+    const key = btn.dataset.wlKey;
+    const item = watchlist.find(w => w.key === key);
+    if (!item) return;
+    const safeKey = key.replace(/[^a-z0-9]/gi, '_');
+    const bodyEl = document.getElementById(`wl-exp-${safeKey}`);
+    btn.addEventListener('click', () => {
+      const cKey = `wl|${key}`;
+      const typeCtx = item.type === 'country' ? 'country macro' : item.type === 'ticker' ? 'financial asset' : 'investment theme';
+      const sentCtx = item.sentiment ? `Current sentiment: ${item.sentiment} (score ${item.score?.toFixed(2)}). Key note: ${item.keyNote || 'N/A'}.` : '';
+      const prompt = `Provide a detailed analysis for the ${typeCtx}: "${item.name}". ${sentCtx} Cover: (1) key macro or fundamental drivers right now, (2) main risks to watch, (3) 3-month outlook. Be specific and data-oriented.`;
+      toggleExpand(btn, bodyEl, cKey, prompt);
+    });
   });
 
   // Fetch pending items
@@ -4600,33 +4721,97 @@ const AUTH_USERS_KEY = 'gmi_users';
 const AUTH_SESSION_KEY = 'gmi_session';
 let authMode = 'login'; // 'login' | 'register'
 
+// ── Storage availability ──────────────────────────────────────────
+// localStorage may be blocked in private mode, strict Safari, or some
+// file:// contexts. We test with an actual write/read, then fall back
+// to sessionStorage (survives the tab but not a new window/reload).
+let _storage = null;
+function getStorage() {
+  if (_storage) return _storage;
+  for (const s of [localStorage, sessionStorage]) {
+    try {
+      s.setItem('__gmi_test__', '1');
+      if (s.getItem('__gmi_test__') === '1') { s.removeItem('__gmi_test__'); _storage = s; return s; }
+    } catch(_) {}
+  }
+  return null; // both blocked — in-memory only for this session
+}
+
+// In-memory fallback when storage is unavailable
+const _memStore = {};
+function storageGet(key) {
+  const s = getStorage();
+  if (s) { try { return s.getItem(key); } catch(_) {} }
+  return _memStore[key] ?? null;
+}
+function storageSet(key, val) {
+  const s = getStorage();
+  if (s) { try { s.setItem(key, val); return; } catch(_) {} }
+  _memStore[key] = val;
+}
+function storageRemove(key) {
+  const s = getStorage();
+  if (s) { try { s.removeItem(key); } catch(_) {} }
+  delete _memStore[key];
+}
+function isStoragePersistent() {
+  // Returns true only when localStorage (not sessionStorage fallback) is working.
+  try {
+    localStorage.setItem('__gmi_chk__', '1');
+    const ok = localStorage.getItem('__gmi_chk__') === '1';
+    localStorage.removeItem('__gmi_chk__');
+    return ok;
+  } catch(_) { return false; }
+}
+
 function hashPassword(pw) {
-  // Simple deterministic hash (no backend — single-file app).
   let h = 5381;
   for (let i = 0; i < pw.length; i++) h = ((h << 5) + h) ^ pw.charCodeAt(i);
   return (h >>> 0).toString(36);
 }
 
 function loadUsers() {
-  try { return JSON.parse(localStorage.getItem(AUTH_USERS_KEY) || '{}'); }
+  try { return JSON.parse(storageGet(AUTH_USERS_KEY) || '{}'); }
   catch(_) { return {}; }
 }
 
 function saveUsers(users) {
-  try { localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users)); } catch(_) {}
+  storageSet(AUTH_USERS_KEY, JSON.stringify(users));
 }
 
 function loadSession() {
-  try { return JSON.parse(localStorage.getItem(AUTH_SESSION_KEY) || 'null'); }
+  try { return JSON.parse(storageGet(AUTH_SESSION_KEY) || 'null'); }
   catch(_) { return null; }
 }
 
 function saveSession(session) {
-  try { localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session)); } catch(_) {}
+  storageSet(AUTH_SESSION_KEY, JSON.stringify(session));
 }
 
 function clearSession() {
-  try { localStorage.removeItem(AUTH_SESSION_KEY); } catch(_) {}
+  storageRemove(AUTH_SESSION_KEY);
+}
+
+function showLoginOverlay() {
+  const el = document.getElementById('login-overlay');
+  if (!el) return;
+  el.classList.remove('hidden');
+  el.classList.add('visible');
+  requestAnimationFrame(() => el.classList.add('fade-in'));
+  // Warn if storage is not persistent (private mode / file:// restriction)
+  if (!isStoragePersistent()) {
+    setLoginError('⚠ Storage unavailable — account will only last this session.');
+  }
+}
+
+function hideLoginOverlay() {
+  const el = document.getElementById('login-overlay');
+  if (!el) return;
+  el.classList.remove('fade-in');
+  setTimeout(() => {
+    el.classList.remove('visible');
+    el.classList.add('hidden');
+  }, 300);
 }
 
 function setLoginError(msg) {
@@ -4700,8 +4885,7 @@ function attemptRegister() {
 function startSession(session) {
   saveSession(session);
   applySession(session);
-  const overlay = document.getElementById('login-overlay');
-  if (overlay) overlay.classList.add('hidden');
+  hideLoginOverlay();
 }
 
 function applySession(session) {
@@ -4713,7 +4897,6 @@ function applySession(session) {
 
 function logout() {
   clearSession();
-  // Reset login form
   ['login-username','login-password','login-displayname','login-confirm'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -4722,8 +4905,7 @@ function logout() {
   setAuthMode('login');
   const userEl = document.getElementById('topbar-user');
   if (userEl) userEl.style.display = 'none';
-  const overlay = document.getElementById('login-overlay');
-  if (overlay) overlay.classList.remove('hidden');
+  showLoginOverlay();
 }
 
 function wireLoginEvents() {
@@ -4764,11 +4946,13 @@ function wireLoginEvents() {
 // ════════════════════════════════════════════════════════════════════
 wireLoginEvents();
 
-// Restore session if one exists
+// Restore session — show login only if no valid session is found
 const existingSession = loadSession();
-if (existingSession) {
+if (existingSession && existingSession.username) {
   applySession(existingSession);
-  document.getElementById('login-overlay')?.classList.add('hidden');
+  // Overlay stays hidden (display:none by default) — no flash
+} else {
+  showLoginOverlay();
 }
 
 loadWatchlistFromStorage();

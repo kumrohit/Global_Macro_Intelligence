@@ -139,11 +139,13 @@ global_macro_intel.html (~4470 lines, single file)
 
 ## Next Tasks
 
-> Add tasks below. Strike through with `~~task~~` once complete.
+> Add tasks below. Strike through with `~~task~~` once complete. Make sure to perform robust testing including the edge cases before completing the task. 
 
 - [x] ~~Task 1 — Add user login page~~
 - [x] ~~Task 2 — Improve my readme file. Provide description of the project. helpful technical notes and detailed architecture for github repo~~
 - [x] ~~Task 3 — make it ready for web release. Help me with detailed release instructions~~
+- [x] ~~Task 4 - Could you review user login part. it is not remembering my login info. I need to create account everytime~~
+- [x] ~~Task 5 - Allow the user to expand the analysis to go into details wherever it is providing the summary especially the social media sentiments, watchlist, etc.~~
 
 ---
 
