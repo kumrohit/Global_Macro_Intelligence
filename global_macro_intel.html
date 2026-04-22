@@ -129,8 +129,8 @@ body::after{
   pointer-events:none;z-index:2;
 }
 
-#map-svg{position:relative;z-index:1;width:100%;height:100%;cursor:grab;}
-#map-svg:active{cursor:grabbing;}
+#map-svg{position:relative;z-index:1;width:100%;height:100%;cursor:default;}
+#zoom-ctrls{display:none !important;}
 
 /* Country styles — refined with better colors and smoother transitions */
 .country{
@@ -327,6 +327,8 @@ body::after{
   display:flex;flex-direction:column;
   position:relative;
   z-index:50;
+  will-change:width;
+  contain:layout style;
 }
 #panel.open{width:340px;}
 
@@ -775,6 +777,7 @@ body::after{
   display:flex;flex-direction:column;
   transform:translateX(-100%);transition:transform 0.35s cubic-bezier(0.22,0.61,0.36,1);
   box-shadow:4px 0 24px rgba(0,0,0,0.5);
+  will-change:transform;
 }
 #social-panel.open{transform:translateX(0);}
 
@@ -887,7 +890,8 @@ body::after{
 
 /* ── Deep Analysis Overlay ── */
 #deep-overlay{position:fixed;inset:0;z-index:2000;display:none;background:rgba(3,7,18,0.85);
-  backdrop-filter:blur(8px);padding:20px;align-items:flex-start;justify-content:center;}
+  backdrop-filter:blur(8px);padding:20px;align-items:flex-start;justify-content:center;
+  will-change:opacity;}
 #deep-overlay.open{display:flex;}
 #deep-panel{width:100%;max-width:880px;max-height:90vh;background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
   border:1px solid var(--border2);border-radius:8px;display:flex;flex-direction:column;
@@ -980,6 +984,7 @@ body::after{
   display:flex;flex-direction:column;
   transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.22,0.61,0.36,1);
   box-shadow:-4px 0 24px rgba(0,0,0,0.5);
+  will-change:transform;
 }
 #watchlist-panel.open{transform:translateX(0);}
 #wl-header{padding:16px 18px 12px;border-bottom:1px solid var(--border);
@@ -1046,7 +1051,8 @@ body::after{
 #ca-topbar-btn:hover{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.06);}
 
 #ca-overlay{position:fixed;inset:0;z-index:2100;display:none;background:rgba(3,7,18,0.88);
-  backdrop-filter:blur(10px);padding:16px;align-items:flex-start;justify-content:center;}
+  backdrop-filter:blur(10px);padding:16px;align-items:flex-start;justify-content:center;
+  will-change:opacity;}
 #ca-overlay.open{display:flex;}
 #ca-panel{width:100%;max-width:960px;max-height:94vh;background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
   border:1px solid var(--border2);border-radius:8px;display:flex;flex-direction:column;
@@ -1211,13 +1217,223 @@ body::after{
 
 /* Topbar user info */
 #topbar-user{display:flex;align-items:center;gap:8px;}
-#topbar-username{font-family:var(--font-mono);font-size:9px;color:var(--cyan);letter-spacing:0.1em;}
+#topbar-username{
+  font-family:var(--font-mono);font-size:9px;color:var(--cyan);letter-spacing:0.1em;
+  cursor:pointer;padding:3px 6px;border-radius:3px;transition:background 0.2s;
+}
+#topbar-username:hover{background:rgba(34,211,238,0.08);}
 #logout-btn{
   background:transparent;border:1px solid var(--border);border-radius:3px;
   padding:3px 8px;font-family:var(--font-mono);font-size:8px;color:var(--text2);
   cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;
 }
 #logout-btn:hover{border-color:var(--bear);color:var(--bear);}
+
+/* ── Profile + Digest overlay ── */
+#profile-overlay{
+  position:fixed;inset:0;z-index:3000;display:none;
+  background:rgba(3,7,18,0.88);backdrop-filter:blur(8px);
+  padding:20px;align-items:flex-start;justify-content:center;
+}
+#profile-overlay.open{display:flex;}
+#profile-panel{
+  width:100%;max-width:860px;max-height:calc(100vh - 40px);
+  background:var(--surface);border:1px solid var(--border2);border-radius:6px;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 0 60px rgba(34,211,238,0.06);position:relative;
+}
+#profile-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0.5;
+}
+#profile-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+#profile-header-left{display:flex;align-items:center;gap:14px;}
+#profile-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(34,211,238,0.1);border:1px solid rgba(34,211,238,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--cyan);
+}
+#profile-name{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);letter-spacing:0.08em;}
+#profile-meta{font-family:var(--font-mono);font-size:9px;color:var(--text2);margin-top:2px;}
+#profile-close{
+  background:transparent;border:none;color:var(--text2);font-size:18px;
+  cursor:pointer;padding:4px 8px;border-radius:3px;transition:color 0.2s;
+}
+#profile-close:hover{color:var(--text);}
+#profile-region-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;
+  flex-wrap:wrap;
+}
+.pr-label{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.1em;}
+.pr-region-btn{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  padding:3px 10px;font-family:var(--font-mono);font-size:8px;color:var(--text2);
+  cursor:pointer;letter-spacing:0.08em;transition:all 0.15s;
+}
+.pr-region-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,0.08);}
+#profile-tabs{
+  display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.profile-tab{
+  flex:1;background:transparent;border:none;border-bottom:2px solid transparent;
+  padding:10px 0;font-family:var(--font-display);font-size:11px;font-weight:600;
+  letter-spacing:0.14em;color:var(--text2);cursor:pointer;transition:all 0.2s;
+}
+.profile-tab.active{border-bottom-color:var(--cyan);color:var(--cyan);}
+#profile-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.digest-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.digest-date{font-family:var(--font-mono);font-size:9px;color:var(--text2);}
+.digest-refresh-btn{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  padding:3px 10px;font-family:var(--font-mono);font-size:8px;color:var(--text2);
+  cursor:pointer;transition:all 0.2s;letter-spacing:0.08em;
+}
+.digest-refresh-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.digest-loading{
+  text-align:center;padding:40px 20px;
+  font-family:var(--font-mono);font-size:10px;color:var(--text2);
+}
+.digest-empty{
+  text-align:center;padding:40px 20px;
+  font-family:var(--font-mono);font-size:10px;color:var(--text3);
+}
+.digest-grid{display:flex;flex-direction:column;gap:10px;}
+.digest-card{
+  background:var(--card);border:1px solid var(--border);border-radius:4px;
+  padding:12px 14px;transition:border-color 0.2s;
+}
+.digest-card:hover{border-color:var(--border2);}
+.digest-card-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.digest-rank{
+  font-family:var(--font-mono);font-size:9px;color:var(--text3);
+  min-width:18px;text-align:right;flex-shrink:0;
+}
+.digest-impact{
+  font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;
+  padding:1px 5px;border-radius:2px;flex-shrink:0;
+}
+.digest-impact.HIGH{background:rgba(239,68,68,0.12);color:var(--bear);border:1px solid rgba(239,68,68,0.25);}
+.digest-impact.MEDIUM{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.25);}
+.digest-impact.LOW{background:rgba(100,116,139,0.12);color:var(--neut);border:1px solid rgba(100,116,139,0.25);}
+.digest-region-tag{
+  font-family:var(--font-mono);font-size:8px;color:var(--text2);
+  background:var(--surface);border:1px solid var(--border);border-radius:2px;
+  padding:1px 6px;
+}
+.digest-source{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-left:auto;}
+.digest-source-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.digest-source-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:0.06em;}
+.digest-source-name{font-family:var(--font-mono);font-size:8px;color:var(--text2);}
+.digest-source-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.06em;color:var(--cyan);text-decoration:none;border:1px solid rgba(99,179,237,0.3);border-radius:2px;padding:1px 7px;transition:all 0.15s;margin-left:auto;}
+.digest-source-btn:hover{border-color:var(--cyan);background:rgba(99,179,237,0.08);}
+.digest-title{
+  font-family:var(--font-display);font-size:12px;font-weight:600;
+  color:var(--text);line-height:1.4;margin-bottom:5px;
+}
+.digest-summary{font-family:var(--font-mono);font-size:9px;color:var(--text2);line-height:1.6;}
+.digest-implication{
+  margin-top:7px;padding-top:7px;border-top:1px solid var(--border);
+  font-family:var(--font-mono);font-size:9px;color:var(--cyan);line-height:1.5;
+}
+.digest-implication::before{content:'▸ ';opacity:0.6;}
+.digest-card-footer{display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:8px;border-top:1px solid var(--border);}
+.digest-expand-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;color:var(--text3);background:none;border:1px solid var(--border);border-radius:2px;padding:2px 8px;cursor:pointer;transition:all 0.15s;}
+.digest-expand-btn:hover{border-color:var(--border2);color:var(--text);}
+.digest-expand-btn.open{border-color:var(--cyan);color:var(--cyan);}
+.digest-source-link{font-family:var(--font-mono);font-size:8px;color:var(--text2);text-decoration:none;margin-left:auto;letter-spacing:0.06em;transition:color 0.15s;}
+.digest-source-link:hover{color:var(--cyan);}
+.digest-detail-body{display:none;margin-top:9px;font-family:var(--font-mono);font-size:9px;color:var(--text2);line-height:1.7;border-left:2px solid var(--cyan);padding-left:10px;}
+.digest-detail-body.open{display:block;}
+.digest-detail-body p{margin:0 0 6px;}
+.digest-detail-body p:last-child{margin-bottom:0;}
+
+/* Newsletter subscription tab */
+.nl-section{padding:16px 0;}
+.nl-section-title{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:var(--text3);margin-bottom:10px;text-transform:uppercase;}
+.nl-email-row{display:flex;gap:8px;margin-bottom:12px;}
+.nl-email-input{flex:1;font-family:var(--font-mono);font-size:10px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:7px 10px;outline:none;transition:border-color 0.2s;}
+.nl-email-input:focus{border-color:var(--cyan);}
+.nl-email-input::placeholder{color:var(--text3);}
+.nl-save-btn{font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:var(--cyan);color:#000;border:none;border-radius:3px;padding:7px 14px;cursor:pointer;font-weight:700;white-space:nowrap;transition:opacity 0.2s;}
+.nl-save-btn:hover{opacity:0.85;}
+.nl-freq-row{display:flex;gap:8px;margin-bottom:14px;align-items:center;}
+.nl-freq-label{font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-right:4px;}
+.nl-freq-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;background:none;border:1px solid var(--border);color:var(--text3);border-radius:3px;padding:4px 12px;cursor:pointer;transition:all 0.15s;}
+.nl-freq-btn:hover{border-color:var(--border2);color:var(--text);}
+.nl-freq-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(99,179,237,0.08);}
+.nl-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.nl-action-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;background:none;border:1px solid var(--border);color:var(--text2);border-radius:3px;padding:5px 12px;cursor:pointer;transition:all 0.15s;}
+.nl-action-btn:hover{border-color:var(--border2);color:var(--text);}
+.nl-action-btn.primary{border-color:var(--cyan);color:var(--cyan);}
+.nl-action-btn.primary:hover{background:rgba(99,179,237,0.1);}
+.nl-status{font-family:var(--font-mono);font-size:9px;color:var(--text3);padding:8px 0;line-height:1.6;}
+.nl-status strong{color:var(--text2);}
+.nl-divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+.nl-preview-frame{background:#f8fafc;border:1px solid var(--border);border-radius:4px;width:100%;height:480px;overflow:auto;margin-top:8px;}
+
+/* Toast notification */
+#gmi-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--card);border:1px solid var(--cyan);border-radius:6px;
+  padding:12px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text);
+  z-index:9000;display:flex;align-items:center;gap:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.35s;
+  opacity:0;pointer-events:none;
+}
+#gmi-toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}
+#gmi-toast-msg{flex:1;}
+#gmi-toast-send{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;background:var(--cyan);color:#000;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-weight:700;white-space:nowrap;}
+#gmi-toast-dismiss{font-family:var(--font-mono);font-size:9px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0 2px;}
+#gmi-toast-dismiss:hover{color:var(--text);}
+
+#profile-stats-bar{
+  display:flex;gap:20px;padding:10px 20px;border-bottom:1px solid var(--border);
+  flex-shrink:0;flex-wrap:wrap;
+}
+.ps-stat{font-family:var(--font-mono);font-size:9px;color:var(--text2);}
+.ps-stat strong{color:var(--cyan);}
+
+/* Opportunities tab */
+.opp-horizon-row{display:flex;gap:6px;padding:14px 0 10px;flex-wrap:wrap;}
+.opp-horizon-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;background:none;border:1px solid var(--border);color:var(--text3);border-radius:3px;padding:4px 12px;cursor:pointer;transition:all 0.15s;}
+.opp-horizon-btn:hover{border-color:var(--border2);color:var(--text);}
+.opp-horizon-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(99,179,237,0.08);}
+.opp-grid{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+.opp-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:12px 14px;transition:border-color 0.2s;}
+.opp-card:hover{border-color:var(--border2);}
+.opp-card-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.opp-dir{font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.12em;padding:2px 8px;border-radius:2px;}
+.opp-dir.LONG{background:rgba(34,197,94,0.12);color:var(--bull);border:1px solid rgba(34,197,94,0.3);}
+.opp-dir.SHORT{background:rgba(239,68,68,0.12);color:var(--bear);border:1px solid rgba(239,68,68,0.3);}
+.opp-dir.NEUTRAL{background:rgba(100,116,139,0.12);color:var(--neut);border:1px solid rgba(100,116,139,0.3);}
+.opp-asset{font-family:var(--font-mono);font-size:8px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:1px 6px;}
+.opp-region{font-family:var(--font-mono);font-size:8px;color:var(--text3);}
+.opp-horizon-tag{font-family:var(--font-mono);font-size:8px;color:var(--amber);margin-left:auto;}
+.opp-title{font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px;}
+.opp-thesis{font-family:var(--font-mono);font-size:9px;color:var(--text2);line-height:1.6;margin-bottom:8px;}
+.opp-conviction-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.opp-conviction-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);flex-shrink:0;width:72px;}
+.opp-conviction-bar{flex:1;height:4px;background:var(--surface);border-radius:2px;overflow:hidden;}
+.opp-conviction-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--bull));transition:width 0.6s ease;}
+.opp-conviction-pct{font-family:var(--font-mono);font-size:8px;color:var(--cyan);flex-shrink:0;width:30px;text-align:right;}
+.opp-risk{font-family:var(--font-mono);font-size:9px;color:var(--text3);border-top:1px solid var(--border);padding-top:7px;margin-top:2px;}
+.opp-risk::before{content:'⚠ KEY RISK: ';color:var(--bear);font-size:8px;}
+.opp-source-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:7px;border-top:1px solid var(--border);}
+.opp-source-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);flex-shrink:0;}
+.opp-source-name{font-family:var(--font-mono);font-size:8px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.opp-source-link{font-family:var(--font-mono);font-size:8px;color:var(--cyan);text-decoration:none;border:1px solid rgba(99,179,237,0.3);border-radius:2px;padding:1px 7px;white-space:nowrap;transition:all 0.15s;flex-shrink:0;}
+.opp-source-link:hover{border-color:var(--cyan);background:rgba(99,179,237,0.08);}
+.opp-empty{text-align:center;padding:40px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text3);}
+.opp-loading{display:flex;align-items:center;gap:8px;padding:40px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text2);justify-content:center;}
 </style>
 </head>
 <body>
@@ -1274,7 +1490,7 @@ body::after{
   <div style="display:flex;align-items:center;gap:10px;">
     <button id="ca-topbar-btn" title="Custom Analysis Builder">⊕ CUSTOM ANALYSIS</button>
     <div id="topbar-user" style="display:none;">
-      <span id="topbar-username">—</span>
+      <span id="topbar-username" title="Open Profile &amp; Digest">—</span>
       <button id="logout-btn">⏻ LOGOUT</button>
     </div>
     <div id="clock">—</div>
@@ -1610,6 +1826,45 @@ body::after{
   </div>
 </div>
 
+<!-- Profile + Digest Overlay -->
+<div id="profile-overlay">
+  <div id="profile-panel">
+    <div id="profile-header">
+      <div id="profile-header-left">
+        <div id="profile-avatar" id="profile-avatar-el">?</div>
+        <div>
+          <div id="profile-name">—</div>
+          <div id="profile-meta">Member since —</div>
+        </div>
+      </div>
+      <button id="profile-close">✕</button>
+    </div>
+    <div id="profile-stats-bar">
+      <div class="ps-stat">Watchlist: <strong id="ps-wl">0</strong></div>
+      <div class="ps-stat">Countries Analysed: <strong id="ps-ca">0</strong></div>
+      <div class="ps-stat">Last Active: <strong id="ps-la">—</strong></div>
+    </div>
+    <div id="profile-region-row">
+      <span class="pr-label">YOUR REGION ▸</span>
+      <button class="pr-region-btn active" data-region="global">Global</button>
+      <button class="pr-region-btn" data-region="Americas">Americas</button>
+      <button class="pr-region-btn" data-region="Europe">Europe</button>
+      <button class="pr-region-btn" data-region="Asia">Asia</button>
+      <button class="pr-region-btn" data-region="Africa">Africa</button>
+      <button class="pr-region-btn" data-region="Middle East">Middle East</button>
+    </div>
+    <div id="profile-tabs">
+      <button class="profile-tab active" data-tab="daily">📅 &nbsp;DAILY CAPSULE</button>
+      <button class="profile-tab" data-tab="weekly">📆 &nbsp;WEEKLY DIGEST</button>
+      <button class="profile-tab" data-tab="newsletter">✉ &nbsp;NEWSLETTER</button>
+      <button class="profile-tab" data-tab="opportunities">◎ &nbsp;OPPORTUNITIES</button>
+    </div>
+    <div id="profile-body">
+      <div class="digest-empty">Open your profile to load today's personalised digest.</div>
+    </div>
+  </div>
+</div>
+
 <!-- Custom Analysis Overlay -->
 <div id="ca-overlay">
   <div id="ca-panel">
@@ -1939,10 +2194,9 @@ async function initMap() {
   feMerge.append('feMergeNode').attr('in','coloredBlur');
   feMerge.append('feMergeNode').attr('in','SourceGraphic');
 
-  // Natural Earth projection — closest to a realistic wall map
+  // Natural Earth projection — fitted to fill the window
   projection = d3.geoNaturalEarth1()
-    .scale(W / 6.2)
-    .translate([W / 2, H / 2]);
+    .fitSize([W, H], {type:'Sphere'});
 
   path = d3.geoPath().projection(projection);
 
@@ -1997,23 +2251,11 @@ async function initMap() {
   // Outline
   g.append('path').datum(sphere).attr('class','outline').attr('d', path);
 
-  // Zoom & pan
-  const zoom = d3.zoom()
-    .scaleExtent([0.8, 8])
-    .on('zoom', (event) => {
-      g.attr('transform', event.transform);
-    });
-  svg.call(zoom);
-
-  // Store zoom controls for buttons
-  window._zoom = zoom;
-  window._svg = svg;
-
-  // Resize
+  // Static map — no zoom or pan; refit on window resize
   window.addEventListener('resize', () => {
     const W2 = wrap.clientWidth, H2 = wrap.clientHeight;
-    svg.attr('width',W2).attr('height',H2);
-    projection.scale(W2/6.2).translate([W2/2, H2/2]);
+    svg.attr('width', W2).attr('height', H2);
+    projection.fitSize([W2, H2], {type:'Sphere'});
     g.selectAll('path').attr('d', path);
   });
 }
@@ -2026,55 +2268,73 @@ function getMeta(d) {
   return META[id] || META[String(d.id)] || null;
 }
 
+// Cached element refs — avoids repeated getElementById in hot paths
+const _tt    = document.getElementById('tooltip');
+const _ttFlag  = document.getElementById('tt-flag');
+const _ttName  = document.getElementById('tt-name');
+const _ttRegion= document.getElementById('tt-region');
+const _ttSent  = document.getElementById('tt-sent');
+const _ttScore = document.getElementById('tt-score');
+const _ttAct   = document.getElementById('tt-action');
+let _ttVisible = false;
+
+// rAF throttle state for mousemove
+let _tipRafPending = false;
+let _tipLastEvent = null;
+
 function onCountryHover(event, d) {
   const meta = getMeta(d);
   if (!meta) return;
 
-  const tt = document.getElementById('tooltip');
-  document.getElementById('tt-flag').textContent = meta.flag || '';
-  document.getElementById('tt-name').textContent = meta.name;
-  document.getElementById('tt-region').textContent = meta.region + ' · ' + meta.currency;
+  _ttFlag.textContent  = meta.flag || '';
+  _ttName.textContent  = meta.name;
+  _ttRegion.textContent = meta.region + ' · ' + meta.currency;
 
   const key = 'c' + d.id;
   const cached = cache[key];
-  const sentEl  = document.getElementById('tt-sent');
-  const scoreEl = document.getElementById('tt-score');
-  const actEl   = document.getElementById('tt-action');
+  const icons = {bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL'};
 
   if (cached) {
-    sentEl.style.display = 'block';
-    sentEl.className = 'tt-sentiment tt-' + cached.sentiment;
-    const icons = {bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL'};
-    sentEl.textContent = icons[cached.sentiment] || cached.sentiment.toUpperCase();
-    scoreEl.style.display = 'block';
-    scoreEl.textContent = `Score: ${cached.score > 0 ? '+' : ''}${parseFloat(cached.score).toFixed(2)}  ·  ${cached.regime}`;
-    actEl.textContent = 'CLICK TO VIEW DETAIL';
+    _ttSent.style.display  = 'block';
+    _ttSent.className      = 'tt-sentiment tt-' + cached.sentiment;
+    _ttSent.textContent    = icons[cached.sentiment] || cached.sentiment.toUpperCase();
+    _ttScore.style.display = 'block';
+    _ttScore.textContent   = `Score: ${cached.score > 0 ? '+' : ''}${parseFloat(cached.score).toFixed(2)}  ·  ${cached.regime}`;
+    _ttAct.textContent     = 'CLICK TO VIEW DETAIL';
   } else {
-    sentEl.style.display = 'none';
-    scoreEl.style.display = 'none';
-    actEl.textContent = 'CLICK TO ANALYSE';
+    _ttSent.style.display  = 'none';
+    _ttScore.style.display = 'none';
+    _ttAct.textContent     = 'CLICK TO ANALYSE';
   }
 
-  tt.style.display = 'block';
+  _tt.style.display = 'block';
+  _ttVisible = true;
   moveTip(event);
 }
 
 function moveTip(event) {
-  const tt = document.getElementById('tooltip');
   const mw = window.innerWidth, mh = window.innerHeight;
   let x = event.clientX + 16, y = event.clientY + 16;
   if (x + 200 > mw) x = event.clientX - 200;
   if (y + 140 > mh) y = event.clientY - 140;
-  tt.style.left = x + 'px';
-  tt.style.top  = y + 'px';
+  _tt.style.left = x + 'px';
+  _tt.style.top  = y + 'px';
 }
 
 document.getElementById('map-svg').addEventListener('mousemove', e => {
-  if (document.getElementById('tooltip').style.display !== 'none') moveTip(e);
+  if (!_ttVisible) return;
+  _tipLastEvent = e;
+  if (_tipRafPending) return;
+  _tipRafPending = true;
+  requestAnimationFrame(() => {
+    if (_tipLastEvent) moveTip(_tipLastEvent);
+    _tipRafPending = false;
+  });
 });
 
 function onCountryLeave() {
-  document.getElementById('tooltip').style.display = 'none';
+  _tt.style.display = 'none';
+  _ttVisible = false;
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -2988,39 +3248,38 @@ function updateCount() {
 // ════════════════════════════════════════════════════════════════════
 // ZOOM CONTROLS & REGION JUMP
 // ════════════════════════════════════════════════════════════════════
-function zoomBy(factor) {
-  if (!window._zoom || !window._svg) return;
-  window._svg.transition().duration(350).call(window._zoom.scaleBy, factor);
-}
-function resetZoom() {
-  if (!window._zoom || !window._svg) return;
-  window._svg.transition().duration(600).call(window._zoom.transform, d3.zoomIdentity);
-}
+// Zoom removed — map is static. These are kept as no-ops so any
+// wired buttons don't throw reference errors.
+function zoomBy() {}
+function resetZoom() {}
 
-// Region centroids [lon, lat] + target zoom scale
-const REGION_VIEWS = {
-  americas: { center: [-80, 10],  scale: 2.2 },
-  europe:   { center: [15, 52],   scale: 3.5 },
-  asia:     { center: [95, 35],   scale: 2.4 },
-  africa:   { center: [20, 5],    scale: 2.8 },
-  oceania:  { center: [140, -25], scale: 2.6 },
+// Region jump: highlight all countries in the selected region
+const REGION_NAMES = {
+  americas: 'Americas',
+  europe:   'Europe',
+  asia:     ['East Asia','SE Asia','South Asia','Central Asia','Middle East'],
+  africa:   'Africa',
+  oceania:  'Oceania',
 };
 
 function jumpTo(region) {
-  if (!window._zoom || !window._svg || !projection) return;
-  const view = REGION_VIEWS[region];
-  if (!view) return;
+  const match = REGION_NAMES[region];
+  if (!match || !worldData) return;
+  const regions = Array.isArray(match) ? match : [match];
 
-  const wrap = document.getElementById('map-wrap');
-  const W = wrap.clientWidth, H = wrap.clientHeight;
-  const [px, py] = projection(view.center);
+  // Flash-highlight countries in this region
+  d3.selectAll('.country').each(function(d) {
+    const meta = getMeta(d);
+    if (!meta) return;
+    if (regions.includes(meta.region)) {
+      d3.select(this).transition().duration(200).attr('stroke','var(--cyan)').attr('stroke-width','1.5')
+        .transition().delay(800).duration(400).attr('stroke','#0B1426').attr('stroke-width','0.5');
+    }
+  });
 
-  const transform = d3.zoomIdentity
-    .translate(W / 2, H / 2)
-    .scale(view.scale)
-    .translate(-px, -py);
-
-  window._svg.transition().duration(800).call(window._zoom.transform, transform);
+  // Update active region button style
+  document.querySelectorAll('.rj-btn').forEach(b => b.classList.toggle('active', b.dataset.region === region));
+  setTimeout(() => document.querySelectorAll('.rj-btn').forEach(b => b.classList.remove('active')), 1200);
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -3033,6 +3292,19 @@ function jumpTo(region) {
 
 let tickerTimer = null;
 
+function applyTickerData(data) {
+  TICKERS.forEach(t => {
+    const v = data[t.key];
+    const el = document.getElementById(t.id);
+    if (!el || !v) return;
+    const pct = parseFloat(v.pct || 0);
+    const price = parseFloat(v.price || 0);
+    el.textContent = `${t.label}: ${price >= 100 ? price.toFixed(2) : price.toFixed(3)} (${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%)`;
+    el.className = 'tick-val ' + (pct > 0 ? 'tick-up' : pct < 0 ? 'tick-dn' : 'tick-na');
+    el.title = '';
+  });
+}
+
 async function loadTickers() {
   // If no API key yet, show a friendly placeholder instead of errors
   if (!apiKey) {
@@ -3044,6 +3316,15 @@ async function loadTickers() {
     });
     return;
   }
+
+  // Serve from localStorage cache if < 5 min old
+  try {
+    const cached = storageGet('gmi_ticker_cache');
+    if (cached) {
+      const { data, ts } = JSON.parse(cached);
+      if (Date.now() - ts < 5 * 60 * 1000) { applyTickerData(data); return; }
+    }
+  } catch(_) {}
 
   // Show spinners
   TICKERS.forEach(t => {
@@ -3099,6 +3380,9 @@ Output only the JSON with your estimates substituted in.`;
 
     const quotes = repairAndParseJSON(fullText);
 
+    // Persist to localStorage cache (5-min TTL)
+    try { storageSet('gmi_ticker_cache', JSON.stringify({ data: quotes, ts: Date.now() })); } catch(_) {}
+
     // Render each ticker
     TICKERS.forEach(t => {
       const el = document.getElementById(t.id);
@@ -3127,11 +3411,11 @@ Output only the JSON with your estimates substituted in.`;
 }
 
 const TICKERS = [
-  { id: 't-dxy',  key: 'dxy',   decimals: 2 },
-  { id: 't-gold', key: 'gold',  decimals: 1 },
-  { id: 't-wti',  key: 'wti',   decimals: 2 },
-  { id: 't-vix',  key: 'vix',   decimals: 2 },
-  { id: 't-10y',  key: 'us10y', decimals: 3 },
+  { id: 't-dxy',  key: 'dxy',   decimals: 2, label: 'DXY'   },
+  { id: 't-gold', key: 'gold',  decimals: 1, label: 'GOLD'  },
+  { id: 't-wti',  key: 'wti',   decimals: 2, label: 'WTI'   },
+  { id: 't-vix',  key: 'vix',   decimals: 2, label: 'VIX'   },
+  { id: 't-10y',  key: 'us10y', decimals: 3, label: 'US10Y' },
 ];
 
 // ════════════════════════════════════════════════════════════════════
@@ -4705,6 +4989,7 @@ function wireEventListeners() {
     if (e.key === 'Escape') {
       if (document.getElementById('stock-detail').classList.contains('open')) closeStockDetail();
       else if (document.getElementById('stocks-modal').classList.contains('open')) closeStocks();
+      else if (profileOpen) closeProfile();
       else if (caOpen) closeCustomAnalysis();
       else if (deepOpen) closeDeepAnalysis();
       else if (socialOpen) closeSocialPanel();
@@ -4942,9 +5227,703 @@ function wireLoginEvents() {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// PROFILE + DIGEST
+// ════════════════════════════════════════════════════════════════════
+
+let profileOpen = false;
+let profileTab = 'daily';        // 'daily' | 'weekly'
+let digestCache = {};            // key: 'daily|username|date' or 'weekly|username|week'
+let digestExpandCache = {};      // key: 'tab|rank' → expanded detail HTML
+let userRegion = 'global';       // persisted in user record
+
+// Helpers -----------------------------------------------------------
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+function weekKey() {
+  const d = new Date();
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+function digestStorageKey(period) {
+  const sess = loadSession();
+  const timeKey = period === 'daily' ? todayKey() : weekKey();
+  return `gmi_digest_${period}_${sess?.username || 'anon'}_${timeKey}`;
+}
+
+function saveUserRegion(region) {
+  userRegion = region;
+  const sess = loadSession();
+  if (!sess) return;
+  const users = loadUsers();
+  if (users[sess.username]) {
+    users[sess.username].region = region;
+    saveUsers(users);
+  }
+}
+
+function loadUserRegion() {
+  const sess = loadSession();
+  if (!sess) return 'global';
+  const users = loadUsers();
+  return users[sess.username]?.region || 'global';
+}
+
+// Profile open/close ------------------------------------------------
+
+function openProfile() {
+  profileOpen = true;
+  document.getElementById('profile-overlay').classList.add('open');
+  refreshProfileMeta();
+  loadDigestTab(profileTab, false);
+}
+
+function closeProfile() {
+  profileOpen = false;
+  document.getElementById('profile-overlay').classList.remove('open');
+}
+
+function refreshProfileMeta() {
+  const sess = loadSession();
+  if (!sess) return;
+  const users = loadUsers();
+  const user = users[sess.username] || {};
+
+  // Avatar initial
+  const initial = (sess.displayName || sess.username || '?')[0].toUpperCase();
+  const avatarEl = document.querySelector('#profile-avatar');
+  if (avatarEl) avatarEl.textContent = initial;
+
+  document.getElementById('profile-name').textContent = (sess.displayName || sess.username).toUpperCase();
+
+  const created = user.created ? new Date(user.created).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '—';
+  document.getElementById('profile-meta').textContent = `@${sess.username}  ·  Member since ${created}`;
+
+  // Stats
+  document.getElementById('ps-wl').textContent = watchlist.length;
+  document.getElementById('ps-ca').textContent = Object.keys(cache).length;
+  document.getElementById('ps-la').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  // Region buttons
+  const savedRegion = loadUserRegion();
+  userRegion = savedRegion;
+  document.querySelectorAll('.pr-region-btn').forEach(b => b.classList.toggle('active', b.dataset.region === savedRegion));
+}
+
+// Digest loading ----------------------------------------------------
+
+async function loadDigestTab(tab, forceRefresh) {
+  if (tab === 'newsletter') { loadNewsletterTab(); return; }
+  if (tab === 'opportunities') { await loadOpportunitiesTab(forceRefresh); return; }
+  profileTab = tab;
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+
+  const body = document.getElementById('profile-body');
+  const sKey = digestStorageKey(tab);
+
+  // Check in-memory cache first
+  if (!forceRefresh && digestCache[sKey]) {
+    renderDigest(digestCache[sKey], tab);
+    return;
+  }
+
+  // Check localStorage cache
+  if (!forceRefresh) {
+    try {
+      const stored = storageGet(sKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        digestCache[sKey] = parsed;
+        renderDigest(parsed, tab);
+        return;
+      }
+    } catch(_) {}
+  }
+
+  if (!apiKey) {
+    body.innerHTML = '<div class="digest-empty">Enter a Gemini API key in the API panel to load your personalised digest.</div>';
+    return;
+  }
+
+  body.innerHTML = '<div class="digest-loading"><span class="spin"></span> &nbsp;Generating your personalised ' + (tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest') + '…</div>';
+
+  // Build personalisation context
+  const wlNames = watchlist.map(w => `${w.name} (${w.type}${w.sentiment ? ', ' + w.sentiment : ''})`).slice(0, 8);
+  const recentCountries = [...new Set(Object.values(cache).map(v => v._meta?.name).filter(Boolean))].slice(0, 6);
+  const regionCtx = userRegion === 'global' ? 'global markets' : `${userRegion} region`;
+  const period = tab === 'daily' ? 'today' : 'this week';
+  const periodLabel = tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest';
+
+  const prompt = `You are a senior macro intelligence analyst creating a personalised ${periodLabel} for ${period}.
+
+User profile:
+- Region focus: ${regionCtx}
+- Watchlist: ${wlNames.length ? wlNames.join(', ') : 'none set'}
+- Recently analysed countries: ${recentCountries.length ? recentCountries.join(', ') : 'none yet'}
+
+Generate exactly 10 macro intelligence items most relevant to this user. Prioritise their watchlist and region.
+
+Respond with ONLY a valid JSON object. No markdown, no code fences. Exact structure:
+{
+  "period": "${tab}",
+  "generated": "${tab === 'daily' ? todayKey() : weekKey()}",
+  "items": [
+    {
+      "rank": 1,
+      "title": "headline max 18 words with specific data",
+      "source": "specific real financial media outlet (e.g. Financial Times, Reuters, Bloomberg, WSJ, CNBC, Nikkei)",
+      "impact": "HIGH or MEDIUM or LOW",
+      "region": "region or country name",
+      "summary": "1-2 sentences of factual context, max 30 words",
+      "implication": "1 sentence on what this means for markets or the user's watchlist, max 20 words"
+    }
+  ]
+}`;
+
+  try {
+    const raw = await callLLM(
+      'You are a macro intelligence analyst. Output only valid JSON. No markdown. No code fences.',
+      prompt, 2000, 0.4
+    );
+    const result = repairAndParseJSON(raw);
+    if (!result || !Array.isArray(result.items)) throw new Error('Invalid digest response');
+    digestCache[sKey] = result;
+    try { storageSet(sKey, JSON.stringify(result)); } catch(_) {}
+    renderDigest(result, tab);
+  } catch(err) {
+    body.innerHTML = `<div class="digest-empty">Failed to generate digest: ${err.message}<br><br><button class="digest-refresh-btn" onclick="loadDigestTab('${tab}',true)">↺ RETRY</button></div>`;
+  }
+}
+
+function renderDigest(data, tab) {
+  const body = document.getElementById('profile-body');
+  if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+    body.innerHTML = '<div class="digest-empty">No digest items available. Try refreshing.</div>';
+    return;
+  }
+
+  const label = tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest';
+  const dateStr = tab === 'daily'
+    ? new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+    : `Week of ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+
+  const cardsHtml = data.items.map((item, idx) => {
+    const searchQ = encodeURIComponent(`${item.title} ${item.source}`);
+    const searchUrl = `https://www.google.com/search?q=${searchQ}`;
+    return `
+    <div class="digest-card" data-digest-idx="${idx}">
+      <div class="digest-card-top">
+        <span class="digest-rank">${item.rank || '—'}</span>
+        <span class="digest-impact ${item.impact || 'LOW'}">${item.impact || 'LOW'}</span>
+        <span class="digest-region-tag">${item.region || '—'}</span>
+      </div>
+      <div class="digest-title">${item.title || '—'}</div>
+      <div class="digest-source-row">
+        <span class="digest-source-label">SOURCE:</span>
+        <span class="digest-source-name">${item.source || '—'}</span>
+        <a class="digest-source-btn" href="${searchUrl}" target="_blank" rel="noopener">FIND ARTICLE ↗</a>
+      </div>
+      <div class="digest-summary">${item.summary || '—'}</div>
+      ${item.implication ? `<div class="digest-implication">${item.implication}</div>` : ''}
+      <div class="digest-card-footer">
+        <button class="digest-expand-btn" data-digest-idx="${idx}">▸ DEEP ANALYSIS</button>
+        <a class="digest-source-link" href="${searchUrl}" target="_blank" rel="noopener">READ SOURCE ↗</a>
+      </div>
+      <div class="digest-detail-body" data-digest-body="${idx}"></div>
+    </div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="digest-header">
+      <div>
+        <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.08em;">${label}</div>
+        <div class="digest-date">${dateStr}</div>
+      </div>
+      <button class="digest-refresh-btn" data-tab="${tab}">↺ REFRESH</button>
+    </div>
+    <div class="digest-grid">${cardsHtml}</div>
+  `;
+
+  // Wire refresh button
+  body.querySelector('.digest-refresh-btn[data-tab]')?.addEventListener('click', e => {
+    loadDigestTab(e.target.dataset.tab, true);
+  });
+
+  // Wire expand buttons
+  body.querySelectorAll('.digest-expand-btn').forEach(btn => {
+    const idx = parseInt(btn.dataset.digestIdx, 10);
+    const item = data.items[idx];
+    const bodyEl = body.querySelector(`.digest-detail-body[data-digest-body="${idx}"]`);
+    const cacheKey = `${tab}|${item.rank}|${(item.title||'').slice(0,40)}`;
+    btn.addEventListener('click', () => toggleDigestExpand(btn, bodyEl, cacheKey, item));
+  });
+}
+
+async function loadDigestItemDetail(cacheKey, item, bodyEl) {
+  if (digestExpandCache[cacheKey]) { bodyEl.innerHTML = digestExpandCache[cacheKey]; return; }
+  bodyEl.innerHTML = '<span class="expand-loading"><span class="spin"></span> &nbsp;Loading deep analysis…</span>';
+  if (!apiKey) { bodyEl.innerHTML = '<span style="color:var(--bear)">API key required.</span>'; return; }
+  try {
+    const raw = await callLLM(
+      'You are a senior macro analyst. Provide concise, data-driven analytical insight. Plain text only.',
+      `Deep analysis of this macro development:\n\nTitle: ${item.title}\nRegion: ${item.region}\nSource: ${item.source}\nContext: ${item.summary}\nImplication: ${item.implication}\n\nProvide 3-4 sentences covering: root drivers, key data or policy backdrop, and specific market implications for equities, rates, or FX. Be direct and analytical.`,
+      400, 0.3
+    );
+    const html = raw.trim()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\n\n+/g,'</p><p>').replace(/\n/g,' ');
+    const wrapped = `<p>${html}</p>`;
+    digestExpandCache[cacheKey] = wrapped;
+    bodyEl.innerHTML = wrapped;
+  } catch(e) {
+    bodyEl.innerHTML = `<span style="color:var(--bear)">Failed: ${e.message}</span>`;
+  }
+}
+
+function toggleDigestExpand(btn, bodyEl, cacheKey, item) {
+  const isOpen = bodyEl.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.textContent = isOpen ? '▴ COLLAPSE' : '▸ DEEP ANALYSIS';
+  if (isOpen) loadDigestItemDetail(cacheKey, item, bodyEl);
+}
+
+// ── Newsletter ──────────────────────────────────────────────────────────────
+
+let nlEmail = storageGet('gmi_nl_email') || '';
+let nlSubDaily = storageGet('gmi_nl_daily') === '1';
+let nlSubWeekly = storageGet('gmi_nl_weekly') === '1';
+
+function saveNlPrefs() {
+  storageSet('gmi_nl_email', nlEmail);
+  storageSet('gmi_nl_daily', nlSubDaily ? '1' : '0');
+  storageSet('gmi_nl_weekly', nlSubWeekly ? '1' : '0');
+}
+
+function loadNewsletterTab() {
+  profileTab = 'newsletter';
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'newsletter'));
+  const body = document.getElementById('profile-body');
+  const hasSub = nlSubDaily || nlSubWeekly;
+  const sentDaily = storageGet('gmi_nl_sent_daily') === todayKey();
+  const sentWeekly = storageGet('gmi_nl_sent_weekly') === weekKey();
+  const statusLine = hasSub && nlEmail
+    ? `Subscribed to: ${nlSubDaily ? '<strong>Daily Capsule</strong>' : ''}${nlSubDaily && nlSubWeekly ? ' + ' : ''}${nlSubWeekly ? '<strong>Weekly Digest</strong>' : ''} → <strong>${nlEmail}</strong><br>
+       Daily status: ${sentDaily ? '✓ Sent today' : 'Not yet sent'} · Weekly status: ${sentWeekly ? '✓ Sent this week' : 'Not yet sent'}`
+    : 'No active subscriptions. Enter your email and toggle frequency below.';
+
+  body.innerHTML = `
+    <div class="nl-section">
+      <div class="nl-section-title">DELIVERY EMAIL</div>
+      <div class="nl-email-row">
+        <input class="nl-email-input" id="nl-email-inp" type="email" placeholder="your@email.com" value="${nlEmail}">
+        <button class="nl-save-btn" id="nl-save-btn">SAVE</button>
+      </div>
+      <div class="nl-section-title">SUBSCRIPTION FREQUENCY</div>
+      <div class="nl-freq-row">
+        <span class="nl-freq-label">RECEIVE:</span>
+        <button class="nl-freq-btn${nlSubDaily ? ' active' : ''}" id="nl-btn-daily">📅 DAILY</button>
+        <button class="nl-freq-btn${nlSubWeekly ? ' active' : ''}" id="nl-btn-weekly">📆 WEEKLY</button>
+      </div>
+      <hr class="nl-divider">
+      <div class="nl-section-title">SEND NEWSLETTER</div>
+      <div class="nl-actions">
+        <button class="nl-action-btn primary" id="nl-preview-daily">PREVIEW DAILY ↗</button>
+        <button class="nl-action-btn primary" id="nl-preview-weekly">PREVIEW WEEKLY ↗</button>
+        <button class="nl-action-btn" id="nl-copy-daily">COPY DAILY HTML</button>
+        <button class="nl-action-btn" id="nl-copy-weekly">COPY WEEKLY HTML</button>
+        <button class="nl-action-btn" id="nl-mail-daily">DAILY → MAIL CLIENT</button>
+        <button class="nl-action-btn" id="nl-mail-weekly">WEEKLY → MAIL CLIENT</button>
+      </div>
+      <div class="nl-status">${statusLine}</div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);line-height:1.7;margin-top:8px;">
+        ℹ Automated delivery: when the app is open and your subscription is active, a notification will prompt you to send.<br>
+        For fully automated delivery without opening the app, use the copied HTML with a scheduled email service (e.g. Zapier, n8n).
+      </div>
+    </div>
+  `;
+
+  // Wire events
+  document.getElementById('nl-save-btn').addEventListener('click', () => {
+    nlEmail = document.getElementById('nl-email-inp').value.trim();
+    saveNlPrefs();
+    loadNewsletterTab();
+  });
+  document.getElementById('nl-btn-daily').addEventListener('click', () => {
+    nlSubDaily = !nlSubDaily; saveNlPrefs(); loadNewsletterTab();
+  });
+  document.getElementById('nl-btn-weekly').addEventListener('click', () => {
+    nlSubWeekly = !nlSubWeekly; saveNlPrefs(); loadNewsletterTab();
+  });
+  document.getElementById('nl-preview-daily').addEventListener('click', () => sendOrPreviewNewsletter('daily', 'preview'));
+  document.getElementById('nl-preview-weekly').addEventListener('click', () => sendOrPreviewNewsletter('weekly', 'preview'));
+  document.getElementById('nl-copy-daily').addEventListener('click', () => sendOrPreviewNewsletter('daily', 'copy'));
+  document.getElementById('nl-copy-weekly').addEventListener('click', () => sendOrPreviewNewsletter('weekly', 'copy'));
+  document.getElementById('nl-mail-daily').addEventListener('click', () => sendOrPreviewNewsletter('daily', 'mail'));
+  document.getElementById('nl-mail-weekly').addEventListener('click', () => sendOrPreviewNewsletter('weekly', 'mail'));
+}
+
+async function sendOrPreviewNewsletter(tab, action) {
+  const sKey = digestStorageKey(tab);
+  let data = digestCache[sKey];
+  if (!data) {
+    try { const s = storageGet(sKey); if (s) data = JSON.parse(s); } catch(_) {}
+  }
+  if (!data && !apiKey) {
+    alert('Enter a Gemini API key and load the ' + (tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest') + ' tab first to generate the newsletter.');
+    return;
+  }
+  if (!data) {
+    const body = document.getElementById('profile-body');
+    body.insertAdjacentHTML('beforeend', '<div class="digest-loading" id="nl-gen-msg"><span class="spin"></span> &nbsp;Generating digest…</div>');
+    await loadDigestTab(tab, false);
+    data = digestCache[digestStorageKey(tab)];
+    document.getElementById('nl-gen-msg')?.remove();
+    if (!data) { alert('Could not generate digest. Please try again.'); return; }
+  }
+
+  const html = generateNewsletterHTML(tab, data);
+
+  if (action === 'preview') {
+    const win = window.open('', '_blank');
+    if (win) { win.document.write(html); win.document.close(); }
+  } else if (action === 'copy') {
+    try {
+      await navigator.clipboard.writeText(html);
+      showToast('Newsletter HTML copied to clipboard. Paste into Gmail or Outlook composer.', null, 3500);
+    } catch(_) { alert('Copy failed — please use a secure (HTTPS) context or modern browser.'); }
+  } else if (action === 'mail') {
+    const subject = encodeURIComponent(tab === 'daily'
+      ? `Global Macro Intelligence — Daily Capsule ${todayKey()}`
+      : `Global Macro Intelligence — Weekly Digest ${weekKey()}`);
+    const textBody = encodeURIComponent(generateNewsletterText(data));
+    const to = encodeURIComponent(nlEmail || '');
+    window.location.href = `mailto:${to}?subject=${subject}&body=${textBody}`;
+    storageSet(tab === 'daily' ? 'gmi_nl_sent_daily' : 'gmi_nl_sent_weekly', tab === 'daily' ? todayKey() : weekKey());
+    setTimeout(() => loadNewsletterTab(), 1000);
+  }
+}
+
+function generateNewsletterHTML(tab, data) {
+  const isDaily = tab === 'daily';
+  const label = isDaily ? 'Daily Capsule' : 'Weekly Digest';
+  const dateStr = isDaily
+    ? new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+    : `Week of ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+  const impactColors = { HIGH:'#ef4444', MEDIUM:'#f59e0b', LOW:'#64748b' };
+  const impactBg = { HIGH:'rgba(239,68,68,0.1)', MEDIUM:'rgba(245,158,11,0.1)', LOW:'rgba(100,116,139,0.1)' };
+
+  const items = (data.items||[]).map((item, i) => {
+    const ic = impactColors[item.impact] || '#64748b';
+    const ib = impactBg[item.impact] || 'rgba(100,116,139,0.1)';
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(item.title+' '+item.source)}`;
+    return `
+    <tr><td style="padding:0 0 12px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d1829;border:1px solid #1e3a5f;border-radius:6px;overflow:hidden;">
+        <tr><td style="padding:14px 18px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding-bottom:8px;">
+                <span style="font-family:monospace;font-size:9px;color:#4a6080;margin-right:8px;">${item.rank||i+1}</span>
+                <span style="font-family:monospace;font-size:8px;font-weight:700;letter-spacing:0.1em;padding:2px 7px;border-radius:3px;background:${ib};color:${ic};border:1px solid ${ic}44;">${item.impact||'LOW'}</span>
+                <span style="font-family:monospace;font-size:8px;color:#334155;background:#0f2040;border:1px solid #1e3a5f;border-radius:3px;padding:2px 7px;margin-left:6px;">${item.region||''}</span>
+                <span style="font-family:monospace;font-size:8px;color:#4a6080;float:right;">${item.source||''}</span>
+              </td>
+            </tr>
+            <tr><td style="padding-bottom:6px;">
+              <a href="${searchUrl}" style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:#e2e8f0;text-decoration:none;line-height:1.4;">${item.title||''}</a>
+            </td></tr>
+            <tr><td style="padding-bottom:8px;">
+              <span style="font-family:monospace;font-size:9px;color:#94a3b8;line-height:1.6;">${item.summary||''}</span>
+            </td></tr>
+            ${item.implication ? `<tr><td style="border-top:1px solid #1e3a5f;padding-top:8px;">
+              <span style="font-family:monospace;font-size:9px;color:#63b3ed;line-height:1.5;">▸ ${item.implication}</span>
+            </td></tr>` : ''}
+          </table>
+        </td></tr>
+      </table>
+    </td></tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GMI — ${label} ${dateStr}</title>
+</head>
+<body style="margin:0;padding:0;background:#060d1a;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#060d1a;">
+<tr><td align="center" style="padding:32px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;">
+
+  <!-- Header -->
+  <tr><td style="background:linear-gradient(135deg,#060d1a 0%,#0d1829 100%);border:1px solid #1e3a5f;border-radius:8px 8px 0 0;padding:28px 32px 24px;">
+    <div style="font-family:monospace;font-size:10px;letter-spacing:0.25em;color:#63b3ed;font-weight:700;">◈ GLOBAL MACRO INTELLIGENCE</div>
+    <div style="font-family:monospace;font-size:8px;letter-spacing:0.18em;color:#2d4a6e;margin-top:3px;">MACRO INTELLIGENCE TERMINAL</div>
+    <div style="font-family:Arial,sans-serif;font-size:24px;font-weight:700;color:#e2e8f0;margin-top:20px;letter-spacing:0.01em;">${label}</div>
+    <div style="font-family:monospace;font-size:9px;color:#4a6080;margin-top:6px;letter-spacing:0.06em;">${dateStr}</div>
+    <div style="height:1px;background:linear-gradient(90deg,#63b3ed44,transparent);margin-top:20px;"></div>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="background:#070e1c;border:1px solid #1e3a5f;border-top:none;padding:24px 24px 12px;">
+    <table width="100%" cellpadding="0" cellspacing="0">${items}</table>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#060d1a;border:1px solid #1e3a5f;border-top:none;border-radius:0 0 8px 8px;padding:20px 32px;text-align:center;">
+    <div style="font-family:monospace;font-size:8px;color:#2d4a6e;letter-spacing:0.1em;line-height:1.8;">
+      GLOBAL MACRO INTELLIGENCE · AI-POWERED ANALYSIS<br>
+      Content generated by Gemini AI for informational purposes only. Not financial advice.<br>
+      <span style="color:#1e3a5f;">─────────────────────────────────────────</span>
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+function generateNewsletterText(data) {
+  const lines = ['GLOBAL MACRO INTELLIGENCE', '=' .repeat(40), ''];
+  (data.items||[]).forEach(item => {
+    lines.push(`[${item.rank}] ${item.impact||'LOW'} | ${item.region||''} | ${item.source||''}`);
+    lines.push(item.title||'');
+    lines.push(item.summary||'');
+    if (item.implication) lines.push(`► ${item.implication}`);
+    lines.push('');
+  });
+  lines.push('─'.repeat(40));
+  lines.push('Global Macro Intelligence — AI-powered analysis. Not financial advice.');
+  return lines.join('\n');
+}
+
+// Toast helpers
+let _toastTimer = null;
+function showToast(msg, onSend, duration) {
+  const toast = document.getElementById('gmi-toast');
+  const msgEl = document.getElementById('gmi-toast-msg');
+  const sendBtn = document.getElementById('gmi-toast-send');
+  if (!toast) return;
+  msgEl.textContent = msg;
+  sendBtn.style.display = onSend ? 'inline-block' : 'none';
+  if (onSend) { sendBtn.onclick = () => { onSend(); dismissToast(); }; }
+  toast.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(dismissToast, duration || 5000);
+}
+function dismissToast() {
+  const toast = document.getElementById('gmi-toast');
+  toast?.classList.remove('show');
+  clearTimeout(_toastTimer);
+}
+
+function checkNewsletterAutoNotify() {
+  const today = todayKey();
+  const week = weekKey();
+  if (nlSubDaily && nlEmail && storageGet('gmi_nl_sent_daily') !== today) {
+    setTimeout(() => showToast(
+      `Your Daily Capsule (${today}) is ready to send.`,
+      () => sendOrPreviewNewsletter('daily', 'mail'),
+      8000
+    ), 3000);
+  } else if (nlSubWeekly && nlEmail && storageGet('gmi_nl_sent_weekly') !== week) {
+    setTimeout(() => showToast(
+      'Your Weekly Digest is ready to send.',
+      () => sendOrPreviewNewsletter('weekly', 'mail'),
+      8000
+    ), 3000);
+  }
+}
+
+// ── Opportunities ────────────────────────────────────────────────────────────
+
+const OPP_HORIZONS = ['DAY','WEEK','MONTH','THEMES'];
+let oppHorizon = storageGet('gmi_opp_horizon') || 'WEEK';
+let oppCache = {}; // key: horizon|username|date
+
+function oppCacheKey(horizon) {
+  const sess = loadSession();
+  const timeKey = horizon === 'DAY' ? todayKey() : weekKey();
+  return `gmi_opp_${horizon}_${sess?.username||'anon'}_${timeKey}`;
+}
+
+async function loadOpportunitiesTab(forceRefresh) {
+  profileTab = 'opportunities';
+  document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'opportunities'));
+  const body = document.getElementById('profile-body');
+  const sKey = oppCacheKey(oppHorizon);
+
+  // Horizon selector row
+  const horizonHtml = `
+    <div class="opp-horizon-row">
+      <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-right:4px;line-height:2;">HORIZON:</span>
+      ${OPP_HORIZONS.map(h => `<button class="opp-horizon-btn${oppHorizon===h?' active':''}" data-horizon="${h}">${h}</button>`).join('')}
+      <button class="opp-horizon-btn" id="opp-refresh-btn" style="margin-left:auto;">↺ REFRESH</button>
+    </div>`;
+
+  if (!forceRefresh && oppCache[sKey]) {
+    body.innerHTML = horizonHtml + renderOpportunitiesHTML(oppCache[sKey]);
+    wireOppEvents(body, sKey);
+    return;
+  }
+  if (!forceRefresh) {
+    try {
+      const stored = storageGet(sKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        oppCache[sKey] = parsed;
+        body.innerHTML = horizonHtml + renderOpportunitiesHTML(parsed);
+        wireOppEvents(body, sKey);
+        return;
+      }
+    } catch(_) {}
+  }
+
+  if (!apiKey) {
+    body.innerHTML = horizonHtml + '<div class="opp-empty">Enter a Gemini API key to generate opportunities.</div>';
+    wireOppEvents(body, sKey);
+    return;
+  }
+
+  body.innerHTML = horizonHtml + '<div class="opp-loading"><span class="spin"></span> &nbsp;Analysing markets for ' + oppHorizon.toLowerCase() + ' opportunities…</div>';
+  wireOppEvents(body, sKey);
+
+  const wlNames = watchlist.map(w => `${w.name}(${w.type}${w.sentiment?','+w.sentiment:''})`).slice(0,6);
+  const recentCountries = [...new Set(Object.values(cache).map(v=>v._meta?.name).filter(Boolean))].slice(0,5);
+  const horizonDesc = {DAY:'intraday to next 24 hours',WEEK:'1–5 trading days',MONTH:'2–6 weeks',THEMES:'thematic / structural (3–12 months)'}[oppHorizon]||oppHorizon;
+
+  const prompt = `You are a senior portfolio strategist and macro trader. Generate exactly 8 specific investment and trading opportunities for a ${horizonDesc} horizon.
+
+User profile:
+- Watchlist: ${wlNames.length ? wlNames.join(', ') : 'none'}
+- Recently analysed: ${recentCountries.length ? recentCountries.join(', ') : 'none'}
+- Horizon focus: ${oppHorizon} (${horizonDesc})
+
+For each opportunity, provide a concrete, actionable trade idea with specific assets, direction, and clear reasoning grounded in current macro conditions.
+
+Respond with ONLY valid JSON. No markdown, no code fences. Exact structure:
+{
+  "horizon": "${oppHorizon}",
+  "generated": "${todayKey()}",
+  "opportunities": [
+    {
+      "rank": 1,
+      "direction": "LONG or SHORT or NEUTRAL",
+      "asset_class": "Equities / Fixed Income / FX / Commodities / Crypto / Multi-Asset",
+      "asset": "specific ticker, pair, or instrument (e.g. S&P500, USD/JPY, Gold, BTP-Bund spread)",
+      "region": "region or country",
+      "horizon_tag": "${oppHorizon}",
+      "title": "concise trade idea title max 12 words",
+      "thesis": "2-3 sentences: catalyst, macro backdrop, entry rationale",
+      "conviction": 0.75,
+      "key_risk": "single most important risk to the thesis, max 15 words",
+      "source": "primary institution or data source backing this idea (e.g. Fed minutes, ECB statement, BLS report, Goldman Sachs, Bloomberg)",
+      "catalyst": "specific event or data release that triggered this opportunity, max 10 words"
+    }
+  ]
+}`;
+
+  try {
+    const raw = await callLLM(
+      'You are a senior macro portfolio strategist. Output only valid JSON. No markdown.',
+      prompt, 2000, 0.3
+    );
+    const result = repairAndParseJSON(raw);
+    if (!result || !Array.isArray(result.opportunities)) throw new Error('Invalid opportunities response');
+    oppCache[sKey] = result;
+    try { storageSet(sKey, JSON.stringify(result)); } catch(_) {}
+    const bodyEl = document.getElementById('profile-body');
+    bodyEl.innerHTML = horizonHtml + renderOpportunitiesHTML(result);
+    wireOppEvents(bodyEl, sKey);
+  } catch(err) {
+    const bodyEl = document.getElementById('profile-body');
+    bodyEl.innerHTML = horizonHtml + `<div class="opp-empty">Failed to generate opportunities: ${err.message}<br><br><button class="opp-horizon-btn" onclick="loadOpportunitiesTab(true)">↺ RETRY</button></div>`;
+    wireOppEvents(bodyEl, sKey);
+  }
+}
+
+function renderOpportunitiesHTML(data) {
+  if (!data || !Array.isArray(data.opportunities) || data.opportunities.length === 0) {
+    return '<div class="opp-empty">No opportunities available. Try refreshing.</div>';
+  }
+  const cards = data.opportunities.map(opp => {
+    const dir = (opp.direction||'NEUTRAL').toUpperCase();
+    const conviction = Math.min(1, Math.max(0, opp.conviction || 0.5));
+    const pct = Math.round(conviction * 100);
+    const sourceQ = encodeURIComponent(`${opp.catalyst || opp.asset} ${opp.source}`);
+    const sourceUrl = `https://www.google.com/search?q=${sourceQ}`;
+    return `
+    <div class="opp-card">
+      <div class="opp-card-top">
+        <span class="opp-dir ${dir}">${dir}</span>
+        <span class="opp-asset">${opp.asset_class||'—'}</span>
+        <span class="opp-region">${opp.region||'—'}</span>
+        <span class="opp-horizon-tag">${opp.horizon_tag||''}</span>
+      </div>
+      <div class="opp-title">${opp.asset ? `<span style="color:var(--cyan)">${opp.asset}</span> — ` : ''}${opp.title||'—'}</div>
+      <div class="opp-thesis">${opp.thesis||'—'}</div>
+      <div class="opp-conviction-row">
+        <span class="opp-conviction-label">CONVICTION</span>
+        <div class="opp-conviction-bar"><div class="opp-conviction-fill" style="width:${pct}%"></div></div>
+        <span class="opp-conviction-pct">${pct}%</span>
+      </div>
+      ${opp.key_risk ? `<div class="opp-risk">${opp.key_risk}</div>` : ''}
+      <div class="opp-source-row">
+        <span class="opp-source-label">SOURCE:</span>
+        <span class="opp-source-name">${opp.source || (opp.catalyst ? 'Market data' : '—')}</span>
+        <a class="opp-source-link" href="${sourceUrl}" target="_blank" rel="noopener">RESEARCH ↗</a>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="opp-grid">${cards}</div>`;
+}
+
+function wireOppEvents(body, sKey) {
+  body.querySelectorAll('.opp-horizon-btn[data-horizon]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      oppHorizon = btn.dataset.horizon;
+      storageSet('gmi_opp_horizon', oppHorizon);
+      loadOpportunitiesTab(false);
+    });
+  });
+  body.querySelector('#opp-refresh-btn')?.addEventListener('click', () => loadOpportunitiesTab(true));
+}
+
+function wireProfileEvents() {
+  // Username click → open profile
+  document.getElementById('topbar-username')?.addEventListener('click', openProfile);
+
+  // Close button
+  document.getElementById('profile-close')?.addEventListener('click', closeProfile);
+
+  // Click outside panel
+  document.getElementById('profile-overlay')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('profile-overlay')) closeProfile();
+  });
+
+  // Tab buttons
+  document.querySelectorAll('.profile-tab').forEach(tab => {
+    tab.addEventListener('click', () => loadDigestTab(tab.dataset.tab, false));
+  });
+
+  // Region buttons
+  document.querySelectorAll('.pr-region-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pr-region-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      saveUserRegion(btn.dataset.region);
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════════════
 wireLoginEvents();
+wireProfileEvents();
 
 // Restore session — show login only if no valid session is found
 const existingSession = loadSession();
@@ -4959,6 +5938,14 @@ loadWatchlistFromStorage();
 wireEventListeners();
 initMap();
 loadTickers();  // shows "—" placeholders until user enters API key
+checkNewsletterAutoNotify();
 </script>
+
+<!-- Toast notification -->
+<div id="gmi-toast">
+  <span id="gmi-toast-msg">Your daily capsule is ready.</span>
+  <button id="gmi-toast-send" onclick="openProfile();dismissToast();">OPEN NEWSLETTER</button>
+  <button id="gmi-toast-dismiss" onclick="dismissToast();">✕</button>
+</div>
 </body>
 </html>
