@@ -416,6 +416,7 @@ All calls use `thinkingBudget: 0` to prevent thinking tokens from consuming the 
 - [x] ~~Task 13 - Perform end to end robust testing, covering edge cases and user experience~~
 - [x] ~~Task 14 - I still cant see the source in the capsules and opportunities. Please provide the referred sources and link so I can go to the sources for capsules and opportunities.~~
 - [x] ~~Task 15 - Review and Improve the PROMPTS.md file. Add all the pending sections.~~
+- [x] ~~Task 16 - Perform thorough review of the subscription module. I dont think it is working. Please make sure user receive automatic newsletter once subscribed.~~
 
 
 ---

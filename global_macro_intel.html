@@ -27,6 +27,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
 
@@ -1378,6 +1379,23 @@ body::after{
 .nl-status strong{color:var(--text2);}
 .nl-divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
 .nl-preview-frame{background:#f8fafc;border:1px solid var(--border);border-radius:4px;width:100%;height:480px;overflow:auto;margin-top:8px;}
+.nl-ejs-section{background:rgba(99,179,237,0.04);border:1px solid rgba(99,179,237,0.15);border-radius:4px;padding:12px 14px;margin-top:4px;}
+.nl-ejs-title{font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:var(--cyan);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.nl-ejs-badge{font-family:var(--font-mono);font-size:7px;letter-spacing:0.1em;padding:1px 6px;border-radius:2px;}
+.nl-ejs-badge.ok{background:rgba(34,197,94,0.12);color:var(--bull);border:1px solid rgba(34,197,94,0.3);}
+.nl-ejs-badge.warn{background:rgba(245,158,11,0.12);color:var(--amber);border:1px solid rgba(245,158,11,0.3);}
+.nl-ejs-row{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+.nl-ejs-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);width:100px;flex-shrink:0;}
+.nl-ejs-input{flex:1;font-family:var(--font-mono);font-size:9px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 8px;outline:none;transition:border-color 0.2s;}
+.nl-ejs-input:focus{border-color:var(--cyan);}
+.nl-ejs-input::placeholder{color:var(--text3);}
+.nl-ejs-save{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;background:var(--cyan);color:#000;border:none;border-radius:3px;padding:4px 12px;cursor:pointer;font-weight:700;margin-top:4px;}
+.nl-ejs-save:hover{opacity:0.85;}
+.nl-ejs-guide{font-family:var(--font-mono);font-size:8px;color:var(--text3);line-height:1.7;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.nl-ejs-guide code{color:var(--cyan);background:rgba(99,179,237,0.08);padding:1px 4px;border-radius:2px;}
+.nl-send-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.4);color:var(--bull);border-radius:3px;padding:5px 12px;cursor:pointer;transition:all 0.15s;}
+.nl-send-btn:hover{background:rgba(34,197,94,0.2);border-color:var(--bull);}
+.nl-send-btn:disabled{opacity:0.4;cursor:not-allowed;}
 
 /* Toast notification */
 #gmi-toast{
@@ -5494,11 +5512,65 @@ function toggleDigestExpand(btn, bodyEl, cacheKey, item) {
 let nlEmail = storageGet('gmi_nl_email') || '';
 let nlSubDaily = storageGet('gmi_nl_daily') === '1';
 let nlSubWeekly = storageGet('gmi_nl_weekly') === '1';
+let ejsPK  = storageGet('gmi_ejs_pk')  || '';
+let ejsSID = storageGet('gmi_ejs_sid') || '';
+let ejsTID = storageGet('gmi_ejs_tid') || '';
+let _ejsInited = false;
 
 function saveNlPrefs() {
   storageSet('gmi_nl_email', nlEmail);
   storageSet('gmi_nl_daily', nlSubDaily ? '1' : '0');
   storageSet('gmi_nl_weekly', nlSubWeekly ? '1' : '0');
+}
+
+function saveEjsConfig() {
+  storageSet('gmi_ejs_pk',  ejsPK);
+  storageSet('gmi_ejs_sid', ejsSID);
+  storageSet('gmi_ejs_tid', ejsTID);
+  _ejsInited = false; // force re-init on next send
+}
+
+function ejsConfigured() {
+  return !!(ejsPK && ejsSID && ejsTID);
+}
+
+function initEmailJS() {
+  if (_ejsInited || !ejsConfigured()) return false;
+  try {
+    if (typeof emailjs === 'undefined') return false;
+    emailjs.init({ publicKey: ejsPK });
+    _ejsInited = true;
+    return true;
+  } catch(_) { return false; }
+}
+
+async function ejsSend(tab, data) {
+  if (!ejsConfigured()) throw new Error('EmailJS not configured');
+  if (!initEmailJS() && !_ejsInited) throw new Error('EmailJS library not loaded');
+  if (!nlEmail) throw new Error('No delivery email set');
+
+  const isDaily = tab === 'daily';
+  const subject = isDaily
+    ? `Global Macro Intelligence — Daily Capsule ${todayKey()}`
+    : `Global Macro Intelligence — Weekly Digest ${weekKey()}`;
+  const dateStr = isDaily
+    ? new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+    : `Week of ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+
+  await emailjs.send(ejsSID, ejsTID, {
+    to_email:     nlEmail,
+    to_name:      loadSession()?.displayName || nlEmail,
+    from_name:    'Global Macro Intelligence',
+    subject:      subject,
+    period_label: isDaily ? 'Daily Capsule' : 'Weekly Digest',
+    date_str:     dateStr,
+    message:      generateNewsletterText(data),
+    html_message: generateNewsletterHTML(tab, data),
+    item_count:   String((data.items||[]).length),
+  });
+
+  storageSet(isDaily ? 'gmi_nl_sent_daily' : 'gmi_nl_sent_weekly',
+             isDaily ? todayKey() : weekKey());
 }
 
 function loadNewsletterTab() {
@@ -5513,6 +5585,11 @@ function loadNewsletterTab() {
        Daily status: ${sentDaily ? '✓ Sent today' : 'Not yet sent'} · Weekly status: ${sentWeekly ? '✓ Sent this week' : 'Not yet sent'}`
     : 'No active subscriptions. Enter your email and toggle frequency below.';
 
+  const ejsOk = ejsConfigured();
+  const ejsBadge = ejsOk
+    ? '<span class="nl-ejs-badge ok">✓ CONFIGURED</span>'
+    : '<span class="nl-ejs-badge warn">NOT SET UP</span>';
+
   body.innerHTML = `
     <div class="nl-section">
       <div class="nl-section-title">DELIVERY EMAIL</div>
@@ -5526,9 +5603,42 @@ function loadNewsletterTab() {
         <button class="nl-freq-btn${nlSubDaily ? ' active' : ''}" id="nl-btn-daily">📅 DAILY</button>
         <button class="nl-freq-btn${nlSubWeekly ? ' active' : ''}" id="nl-btn-weekly">📆 WEEKLY</button>
       </div>
+      <div class="nl-status">${statusLine}</div>
+
+      <hr class="nl-divider">
+      <div class="nl-section-title">AUTO-DELIVERY ${ejsBadge}</div>
+      <div class="nl-ejs-section">
+        <div class="nl-ejs-title">⚡ EmailJS Configuration
+          <span style="font-size:7px;color:var(--text3);font-weight:normal;">— sends email automatically when you open the app</span>
+        </div>
+        <div class="nl-ejs-row">
+          <span class="nl-ejs-label">PUBLIC KEY</span>
+          <input class="nl-ejs-input" id="ejs-pk" type="password" placeholder="e.g. user_xxxxxxxxxxxxxxx" value="${ejsPK}">
+        </div>
+        <div class="nl-ejs-row">
+          <span class="nl-ejs-label">SERVICE ID</span>
+          <input class="nl-ejs-input" id="ejs-sid" placeholder="e.g. service_xxxxxxx" value="${ejsSID}">
+        </div>
+        <div class="nl-ejs-row">
+          <span class="nl-ejs-label">TEMPLATE ID</span>
+          <input class="nl-ejs-input" id="ejs-tid" placeholder="e.g. template_xxxxxxx" value="${ejsTID}">
+        </div>
+        <button class="nl-ejs-save" id="ejs-save-btn">SAVE CONFIG</button>
+        <div class="nl-ejs-guide">
+          <strong style="color:var(--text2);">Quick setup (free · 200 emails/month):</strong><br>
+          1. Create account at <strong style="color:var(--cyan);">emailjs.com</strong><br>
+          2. Add a Gmail / Outlook email service → copy <code>Service ID</code><br>
+          3. Create a new template. Add these variables: <code>{{to_email}}</code> <code>{{subject}}</code> <code>{{message}}</code> <code>{{html_message}}</code><br>
+          4. Copy <code>Template ID</code> and your <code>Public Key</code> from Account → API Keys<br>
+          5. Paste all three above and click SAVE CONFIG
+        </div>
+      </div>
+
       <hr class="nl-divider">
       <div class="nl-section-title">SEND NEWSLETTER</div>
       <div class="nl-actions">
+        ${ejsOk ? `<button class="nl-send-btn" id="nl-send-daily">▶ SEND DAILY NOW</button>` : ''}
+        ${ejsOk ? `<button class="nl-send-btn" id="nl-send-weekly">▶ SEND WEEKLY NOW</button>` : ''}
         <button class="nl-action-btn primary" id="nl-preview-daily">PREVIEW DAILY ↗</button>
         <button class="nl-action-btn primary" id="nl-preview-weekly">PREVIEW WEEKLY ↗</button>
         <button class="nl-action-btn" id="nl-copy-daily">COPY DAILY HTML</button>
@@ -5536,11 +5646,9 @@ function loadNewsletterTab() {
         <button class="nl-action-btn" id="nl-mail-daily">DAILY → MAIL CLIENT</button>
         <button class="nl-action-btn" id="nl-mail-weekly">WEEKLY → MAIL CLIENT</button>
       </div>
-      <div class="nl-status">${statusLine}</div>
-      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);line-height:1.7;margin-top:8px;">
-        ℹ Automated delivery: when the app is open and your subscription is active, a notification will prompt you to send.<br>
-        For fully automated delivery without opening the app, use the copied HTML with a scheduled email service (e.g. Zapier, n8n).
-      </div>
+      ${!ejsOk ? `<div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);line-height:1.7;margin-top:6px;">
+        ℹ Configure EmailJS above for one-click sending. Without it, use MAIL CLIENT to open a pre-composed email in your default client.
+      </div>` : ''}
     </div>
   `;
 
@@ -5556,12 +5664,21 @@ function loadNewsletterTab() {
   document.getElementById('nl-btn-weekly').addEventListener('click', () => {
     nlSubWeekly = !nlSubWeekly; saveNlPrefs(); loadNewsletterTab();
   });
+  document.getElementById('ejs-save-btn').addEventListener('click', () => {
+    ejsPK  = document.getElementById('ejs-pk').value.trim();
+    ejsSID = document.getElementById('ejs-sid').value.trim();
+    ejsTID = document.getElementById('ejs-tid').value.trim();
+    saveEjsConfig();
+    loadNewsletterTab();
+  });
   document.getElementById('nl-preview-daily').addEventListener('click', () => sendOrPreviewNewsletter('daily', 'preview'));
   document.getElementById('nl-preview-weekly').addEventListener('click', () => sendOrPreviewNewsletter('weekly', 'preview'));
   document.getElementById('nl-copy-daily').addEventListener('click', () => sendOrPreviewNewsletter('daily', 'copy'));
   document.getElementById('nl-copy-weekly').addEventListener('click', () => sendOrPreviewNewsletter('weekly', 'copy'));
   document.getElementById('nl-mail-daily').addEventListener('click', () => sendOrPreviewNewsletter('daily', 'mail'));
   document.getElementById('nl-mail-weekly').addEventListener('click', () => sendOrPreviewNewsletter('weekly', 'mail'));
+  document.getElementById('nl-send-daily')?.addEventListener('click', () => sendOrPreviewNewsletter('daily', 'send'));
+  document.getElementById('nl-send-weekly')?.addEventListener('click', () => sendOrPreviewNewsletter('weekly', 'send'));
 }
 
 async function sendOrPreviewNewsletter(tab, action) {
@@ -5587,10 +5704,10 @@ async function sendOrPreviewNewsletter(tab, action) {
 
   if (action === 'preview') {
     const win = window.open('', '_blank');
-    if (win) { win.document.write(html); win.document.close(); }
+    if (win) { win.document.write(generateNewsletterHTML(tab, data)); win.document.close(); }
   } else if (action === 'copy') {
     try {
-      await navigator.clipboard.writeText(html);
+      await navigator.clipboard.writeText(generateNewsletterHTML(tab, data));
       showToast('Newsletter HTML copied to clipboard. Paste into Gmail or Outlook composer.', null, 3500);
     } catch(_) { alert('Copy failed — please use a secure (HTTPS) context or modern browser.'); }
   } else if (action === 'mail') {
@@ -5602,6 +5719,18 @@ async function sendOrPreviewNewsletter(tab, action) {
     window.location.href = `mailto:${to}?subject=${subject}&body=${textBody}`;
     storageSet(tab === 'daily' ? 'gmi_nl_sent_daily' : 'gmi_nl_sent_weekly', tab === 'daily' ? todayKey() : weekKey());
     setTimeout(() => loadNewsletterTab(), 1000);
+  } else if (action === 'send') {
+    // Send via EmailJS
+    const btn = document.getElementById(tab === 'daily' ? 'nl-send-daily' : 'nl-send-weekly');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ SENDING…'; }
+    try {
+      await ejsSend(tab, data);
+      showToast(`✓ ${tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest'} sent to ${nlEmail}`, null, 5000);
+      if (profileOpen) loadNewsletterTab();
+    } catch(err) {
+      showToast(`Send failed: ${err.message}`, null, 6000);
+      if (btn) { btn.disabled = false; btn.textContent = `▶ SEND ${tab.toUpperCase()} NOW`; }
+    }
   }
 }
 
@@ -5722,17 +5851,44 @@ function dismissToast() {
 
 function checkNewsletterAutoNotify() {
   const today = todayKey();
-  const week = weekKey();
-  if (nlSubDaily && nlEmail && storageGet('gmi_nl_sent_daily') !== today) {
+  const week  = weekKey();
+  const needsDaily  = nlSubDaily  && nlEmail && storageGet('gmi_nl_sent_daily')  !== today;
+  const needsWeekly = nlSubWeekly && nlEmail && storageGet('gmi_nl_sent_weekly') !== week;
+  const tab = needsDaily ? 'daily' : needsWeekly ? 'weekly' : null;
+  if (!tab) return;
+
+  const label = tab === 'daily' ? `Daily Capsule (${today})` : 'Weekly Digest';
+
+  if (ejsConfigured() && apiKey) {
+    // Auto-generate + auto-send silently after a short delay
+    setTimeout(async () => {
+      try {
+        showToast(`Preparing your ${label}…`, null, 30000);
+        const sKey = digestStorageKey(tab);
+        let data = digestCache[sKey];
+        if (!data) {
+          try { const s = storageGet(sKey); if (s) data = JSON.parse(s); } catch(_) {}
+        }
+        if (!data) { await loadDigestTab(tab, false); data = digestCache[sKey]; }
+        if (!data) throw new Error('Could not generate digest');
+        dismissToast();
+        await ejsSend(tab, data);
+        showToast(`✓ ${label} sent to ${nlEmail}`, null, 6000);
+      } catch(err) {
+        dismissToast();
+        showToast(
+          `Auto-send failed: ${err.message}`,
+          () => sendOrPreviewNewsletter(tab, 'mail'),
+          8000
+        );
+      }
+    }, 4000);
+  } else if (nlEmail) {
+    // Fallback: prompt user to send manually
+    const action = ejsConfigured() ? 'mail' : 'mail';
     setTimeout(() => showToast(
-      `Your Daily Capsule (${today}) is ready to send.`,
-      () => sendOrPreviewNewsletter('daily', 'mail'),
-      8000
-    ), 3000);
-  } else if (nlSubWeekly && nlEmail && storageGet('gmi_nl_sent_weekly') !== week) {
-    setTimeout(() => showToast(
-      'Your Weekly Digest is ready to send.',
-      () => sendOrPreviewNewsletter('weekly', 'mail'),
+      `Your ${label} is ready.`,
+      () => sendOrPreviewNewsletter(tab, 'mail'),
       8000
     ), 3000);
   }
