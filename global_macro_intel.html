@@ -137,9 +137,8 @@ body::after{
 .country{
   stroke:#0B1426;stroke-width:0.5px;
   cursor:pointer;
-  transition:fill 0.4s cubic-bezier(0.4,0,0.2,1),
-             stroke 0.25s ease,
-             filter 0.25s ease;
+  /* filter removed from transition: promotes 195 GPU layers on precompute, causing jank */
+  transition:fill 0.3s ease,stroke 0.2s ease;
 }
 .country.default{fill:url(#landGradient);}
 .country.bullish{fill:url(#bullGradient);}
@@ -179,7 +178,7 @@ body::after{
   padding:10px 14px;
   min-width:160px;
   display:none;
-  backdrop-filter:blur(8px);
+  will-change:transform;
   box-shadow:0 4px 32px rgba(0,0,0,0.8),0 0 0 1px rgba(0,212,255,0.1);
 }
 .tt-country{font-family:var(--font-display);font-size:14px;font-weight:600;color:#fff;letter-spacing:0.05em;margin-bottom:3px;}
@@ -194,9 +193,9 @@ body::after{
 /* ── Floating map header ── */
 #map-header{
   position:absolute;top:20px;left:20px;z-index:10;
-  background:linear-gradient(135deg,rgba(14,24,40,0.92) 0%,rgba(10,18,32,0.88) 100%);
+  background:linear-gradient(135deg,rgba(14,24,40,0.96) 0%,rgba(10,18,32,0.94) 100%);
   border:1px solid var(--border2);border-radius:6px;
-  padding:14px 18px;backdrop-filter:blur(12px);
+  padding:14px 18px;
   box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 0 1px rgba(96,165,250,0.08) inset;
 }
 .mh-line{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
@@ -222,7 +221,7 @@ body::after{
   background:rgba(14,24,40,0.9);
   border:1px solid var(--border2);border-radius:4px;
   color:var(--text);font-size:14px;font-weight:600;
-  cursor:pointer;backdrop-filter:blur(12px);
+  cursor:pointer;
   transition:all 0.2s;display:flex;align-items:center;justify-content:center;
   font-family:var(--font-display);
 }
@@ -239,7 +238,7 @@ body::after{
   z-index:10;
   background:rgba(14,24,40,0.9);
   border:1px solid var(--border2);border-radius:4px;
-  padding:8px 12px;backdrop-filter:blur(12px);
+  padding:8px 12px;
   box-shadow:0 4px 16px rgba(0,0,0,0.4);
 }
 .rj-label{
@@ -261,10 +260,9 @@ body::after{
 /* ── Legend — refined ── */
 #legend{
   position:absolute;bottom:20px;left:20px;z-index:10;
-  background:linear-gradient(135deg,rgba(14,24,40,0.92) 0%,rgba(10,18,32,0.88) 100%);
+  background:linear-gradient(135deg,rgba(14,24,40,0.96) 0%,rgba(10,18,32,0.94) 100%);
   border:1px solid var(--border2);border-radius:6px;
   padding:14px 18px;
-  backdrop-filter:blur(12px);
   box-shadow:0 8px 32px rgba(0,0,0,0.4);
 }
 .legend-title{
@@ -286,10 +284,9 @@ body::after{
 /* ── API key widget — refined ── */
 #api-widget{
   position:absolute;bottom:20px;right:20px;z-index:10;
-  background:linear-gradient(135deg,rgba(14,24,40,0.94) 0%,rgba(10,18,32,0.9) 100%);
+  background:linear-gradient(135deg,rgba(14,24,40,0.97) 0%,rgba(10,18,32,0.95) 100%);
   border:1px solid var(--border2);border-radius:6px;
   padding:14px 16px;width:250px;
-  backdrop-filter:blur(12px);
   box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 0 1px rgba(96,165,250,0.08) inset;
 }
 .aw-label{
@@ -358,7 +355,7 @@ body::after{
 #p-name{font-family:var(--font-display);font-size:20px;font-weight:700;color:#fff;letter-spacing:0.05em;}
 #p-meta{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.1em;margin-top:3px;}
 
-#panel-body{flex:1;overflow-y:auto;padding:16px 20px;}
+#panel-body{flex:1;overflow-y:auto;padding:16px 20px;contain:layout style;}
 #panel-body::-webkit-scrollbar{width:3px;}
 #panel-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 
@@ -811,6 +808,7 @@ body::after{
 #social-body{
   flex:1;overflow-y:auto;padding:14px 18px 20px;
   scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+  contain:layout style;
 }
 #social-body::-webkit-scrollbar{width:5px;}
 #social-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -1009,7 +1007,7 @@ body::after{
 #wl-add-btn:hover{background:rgba(245,158,11,0.22);border-color:var(--amber);}
 
 #wl-body{flex:1;overflow-y:auto;padding:10px 18px 20px;
-  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;contain:layout style;}
 #wl-body::-webkit-scrollbar{width:5px;}
 #wl-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 #wl-empty{text-align:center;padding:40px 20px;font-family:var(--font-display);font-size:12px;color:var(--text2);}
@@ -1286,7 +1284,7 @@ body::after{
   letter-spacing:0.14em;color:var(--text2);cursor:pointer;transition:all 0.2s;
 }
 .profile-tab.active{border-bottom-color:var(--cyan);color:var(--cyan);}
-#profile-body{flex:1;overflow-y:auto;padding:16px 20px;}
+#profile-body{flex:1;overflow-y:auto;padding:16px 20px;contain:layout style;}
 .digest-header{
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:14px;
@@ -2154,12 +2152,12 @@ const META = {
 // ════════════════════════════════════════════════════════════════════
 // CLOCK
 // ════════════════════════════════════════════════════════════════════
+const _clockEl = document.getElementById('clock');
 function tick() {
   const n = new Date();
-  document.getElementById('clock').textContent =
-    n.toUTCString().slice(5,25).replace('GMT','') + ' UTC';
+  _clockEl.textContent = n.toUTCString().slice(5,25).replace('GMT','') + ' UTC';
 }
-setInterval(tick,1000); tick();
+setInterval(tick, 10000); tick();
 
 // ════════════════════════════════════════════════════════════════════
 // D3 MAP — load real world topojson
@@ -2287,14 +2285,44 @@ function getMeta(d) {
 }
 
 // Cached element refs — avoids repeated getElementById in hot paths
-const _tt    = document.getElementById('tooltip');
-const _ttFlag  = document.getElementById('tt-flag');
-const _ttName  = document.getElementById('tt-name');
-const _ttRegion= document.getElementById('tt-region');
-const _ttSent  = document.getElementById('tt-sent');
-const _ttScore = document.getElementById('tt-score');
-const _ttAct   = document.getElementById('tt-action');
-let _ttVisible = false;
+const _tt       = document.getElementById('tooltip');
+const _ttFlag   = document.getElementById('tt-flag');
+const _ttName   = document.getElementById('tt-name');
+const _ttRegion = document.getElementById('tt-region');
+const _ttSent   = document.getElementById('tt-sent');
+const _ttScore  = document.getElementById('tt-score');
+const _ttAct    = document.getElementById('tt-action');
+let _ttVisible  = false;
+
+// Panel hot-path refs (used on every country click)
+const _elPanel        = document.getElementById('panel');
+const _elPFlag        = document.getElementById('p-flag');
+const _elPName        = document.getElementById('p-name');
+const _elPMeta        = document.getElementById('p-meta');
+const _elLangBtn      = document.getElementById('lang-btn');
+const _elNativeNote   = document.getElementById('native-note');
+const _elAuthLabel    = document.getElementById('auth-label');
+const _elExName       = document.getElementById('ex-name');
+const _elExMeta       = document.getElementById('ex-meta');
+const _elExCard       = document.getElementById('exchange-card');
+const _elAuthArrow    = document.getElementById('auth-arrow');
+const _elAuthList     = document.getElementById('auth-list');
+const _elHistArrow    = document.getElementById('history-arrow');
+const _elNewsArrow    = document.getElementById('news-arrow');
+const _elNewsList     = document.getElementById('news-list');
+const _elNewsLabel    = document.getElementById('news-label');
+// renderPanel refs
+const _elSentBadge    = document.getElementById('sent-badge');
+const _elRegimePill   = document.getElementById('regime-pill');
+const _elSbar         = document.getElementById('sbar');
+const _elScoreText    = document.getElementById('score-text');
+const _elRationale    = document.getElementById('rationale');
+const _elCEq          = document.getElementById('c-eq');
+const _elCRt          = document.getElementById('c-rt');
+const _elCFx          = document.getElementById('c-fx');
+const _elCRk          = document.getElementById('c-rk');
+const _elCCy          = document.getElementById('c-cy');
+const _elCKr          = document.getElementById('c-kr');
 
 // rAF throttle state for mousemove
 let _tipRafPending = false;
@@ -2376,42 +2404,38 @@ function selectCountry(d) {
   d3.select('#' + key).classed('active', true);
 
   // Open panel
-  document.getElementById('panel').classList.add('open');
+  _elPanel.classList.add('open');
 
   // Populate header
-  document.getElementById('p-flag').textContent = meta.flag || '🌍';
-  document.getElementById('p-name').textContent = meta.name;
-  document.getElementById('p-meta').textContent = meta.region + ' · ' + meta.currency + ' · ' + meta.index;
+  _elPFlag.textContent = meta.flag || '🌍';
+  _elPName.textContent = meta.name;
+  _elPMeta.textContent = meta.region + ' · ' + meta.currency + ' · ' + meta.index;
 
   // Language toggle button — show only for non-English countries
   const authInfo = AUTHORITY_INFO[isoId];
   const lang = authInfo?.lang || 'English';
-  const langBtn = document.getElementById('lang-btn');
-  langBtn.textContent = `🌐 EN`;
-  langBtn.className = '';
-  langBtn.style.display = lang === 'English' ? 'none' : 'block';
+  _elLangBtn.textContent = '🌐 EN';
+  _elLangBtn.className = '';
+  _elLangBtn.style.display = lang === 'English' ? 'none' : 'block';
   langNative = false;
-  document.getElementById('native-note').className = '';
-  document.getElementById('native-note').textContent = '';
+  _elNativeNote.className = '';
+  _elNativeNote.textContent = '';
 
   // Authority section label — show primary institution only
-  const authInfo2 = AUTHORITY_INFO[isoId];
-  const authDisplay = authInfo2 ? authInfo2.authority.split('&')[0].trim() : meta.name + ' Central Bank';
-  document.getElementById('auth-label').textContent = `📋  ${authDisplay} publications`;
+  const authDisplay = authInfo ? authInfo.authority.split('&')[0].trim() : meta.name + ' Central Bank';
+  _elAuthLabel.textContent = `📋  ${authDisplay} publications`;
 
   // Populate exchange card
-  const exName = document.getElementById('ex-name');
-  const exMeta = document.getElementById('ex-meta');
   if (meta.index && meta.index !== '—') {
-    exName.textContent = meta.index;
-    exMeta.textContent = `${meta.currency} · Click to browse constituents`;
-    document.getElementById('exchange-card').style.opacity = '1';
-    document.getElementById('exchange-card').style.pointerEvents = 'auto';
+    _elExName.textContent = meta.index;
+    _elExMeta.textContent = `${meta.currency} · Click to browse constituents`;
+    _elExCard.style.opacity = '1';
+    _elExCard.style.pointerEvents = 'auto';
   } else {
-    exName.textContent = 'No major exchange';
-    exMeta.textContent = 'Data unavailable';
-    document.getElementById('exchange-card').style.opacity = '0.5';
-    document.getElementById('exchange-card').style.pointerEvents = 'none';
+    _elExName.textContent = 'No major exchange';
+    _elExMeta.textContent = 'Data unavailable';
+    _elExCard.style.opacity = '0.5';
+    _elExCard.style.pointerEvents = 'none';
   }
 
   // Store current meta for stocks modal
@@ -2420,30 +2444,29 @@ function selectCountry(d) {
 
   // Reset authority section
   authorityOpen = false;
-  document.getElementById('auth-arrow').className = '';
-  document.getElementById('auth-list').className = '';
-  document.getElementById('auth-list').innerHTML = '';
+  _elAuthArrow.className = '';
+  _elAuthList.className = '';
+  _elAuthList.innerHTML = '';
 
   // Reset history chart
   historyOpen = false;
   historyCurrentData = null;
-  document.getElementById('history-arrow').className = '';
+  _elHistArrow.className = '';
   const histSec = document.getElementById('history-section');
   if (histSec) { histSec.className = ''; histSec.innerHTML = ''; }
 
   // Reset news
   newsOpen = false;
-  document.getElementById('news-arrow').className = '';
-  document.getElementById('news-list').className = '';
-  document.getElementById('news-list').innerHTML = '';
-  document.getElementById('news-label').textContent = '📰  Load latest headlines';
+  _elNewsArrow.className = '';
+  _elNewsList.className = '';
+  _elNewsList.innerHTML = '';
+  _elNewsLabel.textContent = '📰  Load latest headlines';
 
   // Update social panel country button; reset country scope to global on country change
-  const socBtn = document.getElementById('soc-country-btn');
-  if (socBtn) {
-    socBtn.textContent = meta.name.toUpperCase();
-    socBtn.style.display = 'block';
-    socBtn.dataset.scope = 'country';
+  if (_elSocCountryBtn) {
+    _elSocCountryBtn.textContent = meta.name.toUpperCase();
+    _elSocCountryBtn.style.display = 'block';
+    _elSocCountryBtn.dataset.scope = 'country';
   }
   // Switch social scope back to global whenever user picks a new country
   if (socialScope === 'country') {
@@ -2462,7 +2485,7 @@ function selectCountry(d) {
 }
 
 function closePanel() {
-  document.getElementById('panel').classList.remove('open');
+  _elPanel.classList.remove('open');
   if (activeId) {
     d3.select('#' + activeId).classed('active', false);
     activeId = null;
@@ -2473,23 +2496,22 @@ function closePanel() {
 // PANEL STATES
 // ════════════════════════════════════════════════════════════════════
 function setLoading() {
-  document.getElementById('sent-badge').className = 'loading';
-  document.getElementById('sent-badge').innerHTML = '<span class="spin"></span> &nbsp;ANALYSING';
-  document.getElementById('regime-pill').innerHTML = '';
-  document.getElementById('rationale').textContent = 'Querying AI model...';
-  document.getElementById('sbar').style.width = '50%';
-  document.getElementById('sbar').style.background = 'var(--neut)';
-  document.getElementById('score-text').textContent = 'Score: —';
-  ['c-eq','c-rt','c-fx','c-rk','c-cy','c-kr'].forEach(id => {
-    const el = document.getElementById(id);
+  _elSentBadge.className = 'loading';
+  _elSentBadge.innerHTML = '<span class="spin"></span> &nbsp;ANALYSING';
+  _elRegimePill.innerHTML = '';
+  _elRationale.textContent = 'Querying AI model...';
+  _elSbar.style.width = '50%';
+  _elSbar.style.background = 'var(--neut)';
+  _elScoreText.textContent = 'Score: —';
+  for (const el of [_elCEq,_elCRt,_elCFx,_elCRk,_elCCy,_elCKr]) {
     el.textContent = '—'; el.className = 'chip-val';
-  });
+  }
 }
 
 function renderNoKey() {
-  document.getElementById('sent-badge').className = 'neutral';
-  document.getElementById('sent-badge').innerHTML = '🔑 &nbsp;API KEY REQUIRED';
-  document.getElementById('rationale').textContent = 'Enter a Claude (sk-ant-…) or Gemini (AIza…) API key in the bottom-right panel to enable sentiment analysis.';
+  _elSentBadge.className = 'neutral';
+  _elSentBadge.innerHTML = '🔑 &nbsp;API KEY REQUIRED';
+  _elRationale.textContent = 'Enter a Claude (sk-ant-…) or Gemini (AIza…) API key in the bottom-right panel to enable sentiment analysis.';
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -2723,47 +2745,41 @@ function renderPanel(data) {
   const sentiment = ['bullish','bearish','neutral'].includes(rawSent) ? rawSent : 'neutral';
 
   // Badge
-  const badge = document.getElementById('sent-badge');
-  badge.className = sentiment;
+  _elSentBadge.className = sentiment;
   const icons = { bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL' };
-  badge.textContent = icons[sentiment];
+  _elSentBadge.textContent = icons[sentiment];
 
   // Regime pill
   const rc = { Goldilocks:'rp-goldilocks', Reflation:'rp-reflation', Stagflation:'rp-stagflation', Recession:'rp-recession' };
-  document.getElementById('regime-pill').innerHTML =
+  _elRegimePill.innerHTML =
     `<span class="regime-pill ${rc[data.regime]||'rp-goldilocks'}">${data.regime || '—'}</span>`;
 
   // Score bar
   const score = parseFloat(data.score) || 0;
   const pct = Math.round(((score + 1) / 2) * 100);
-  const bar = document.getElementById('sbar');
-  bar.style.width = pct + '%';
-  bar.style.background = score > 0.1 ? 'var(--bull)' : score < -0.1 ? 'var(--bear)' : 'var(--neut)';
-  document.getElementById('score-text').textContent =
+  _elSbar.style.width = pct + '%';
+  _elSbar.style.background = score > 0.1 ? 'var(--bull)' : score < -0.1 ? 'var(--bear)' : 'var(--neut)';
+  _elScoreText.textContent =
     `Score: ${score >= 0 ? '+' : ''}${score.toFixed(2)}  ·  ${data.key_risk || ''}`;
 
   // Rationale
-  document.getElementById('rationale').textContent = data.rationale || '—';
+  _elRationale.textContent = data.rationale || '—';
 
   // Chips
-  const eq = document.getElementById('c-eq');
-  eq.textContent = data.equity_bias || '—';
-  eq.className = 'chip-val' + (data.equity_bias === 'Overweight' ? ' cv-up' : data.equity_bias === 'Underweight' ? ' cv-dn' : '');
+  _elCEq.textContent = data.equity_bias || '—';
+  _elCEq.className = 'chip-val' + (data.equity_bias === 'Overweight' ? ' cv-up' : data.equity_bias === 'Underweight' ? ' cv-dn' : '');
 
-  const rt = document.getElementById('c-rt');
-  rt.textContent = data.rate_outlook || '—';
-  rt.className = 'chip-val' + (data.rate_outlook === 'Cutting' ? ' cv-up' : data.rate_outlook === 'Hiking' ? ' cv-dn' : '');
+  _elCRt.textContent = data.rate_outlook || '—';
+  _elCRt.className = 'chip-val' + (data.rate_outlook === 'Cutting' ? ' cv-up' : data.rate_outlook === 'Hiking' ? ' cv-dn' : '');
 
-  const fx = document.getElementById('c-fx');
-  fx.textContent = data.fx_bias || '—';
-  fx.className = 'chip-val' + (data.fx_bias === 'Strengthen' ? ' cv-up' : data.fx_bias === 'Weaken' ? ' cv-dn' : '');
+  _elCFx.textContent = data.fx_bias || '—';
+  _elCFx.className = 'chip-val' + (data.fx_bias === 'Strengthen' ? ' cv-up' : data.fx_bias === 'Weaken' ? ' cv-dn' : '');
 
-  const rk = document.getElementById('c-rk');
-  rk.textContent = data.risk_level || '—';
-  rk.className = 'chip-val' + (['High','Very High'].includes(data.risk_level) ? ' cv-dn' : data.risk_level === 'Low' ? ' cv-up' : '');
+  _elCRk.textContent = data.risk_level || '—';
+  _elCRk.className = 'chip-val' + (['High','Very High'].includes(data.risk_level) ? ' cv-dn' : data.risk_level === 'Low' ? ' cv-up' : '');
 
-  document.getElementById('c-cy').textContent = data._meta ? data._meta.currency : '—';
-  document.getElementById('c-kr').textContent = data.key_risk || '—';
+  _elCCy.textContent = data._meta ? data._meta.currency : '—';
+  _elCKr.textContent = data.key_risk || '—';
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -3257,10 +3273,12 @@ document.getElementById('api-save').addEventListener('click', () => {
 // ════════════════════════════════════════════════════════════════════
 // COUNTER
 // ════════════════════════════════════════════════════════════════════
+const _elAnalysedInline = document.getElementById('analysed-inline');
+const _elSocCountryBtn      = document.getElementById('soc-country-btn');
+const _elWlAddCountryBtn    = document.getElementById('wl-add-country-btn');
+const _elAddToWatchlistBtn  = document.getElementById('add-to-watchlist-btn');
 function updateCount() {
-  const n = Object.keys(cache).length;
-  const inline = document.getElementById('analysed-inline');
-  if (inline) inline.textContent = `${n} analysed`;
+  if (_elAnalysedInline) _elAnalysedInline.textContent = `${Object.keys(cache).length} analysed`;
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -4326,8 +4344,8 @@ function closeWatchlist() {
 }
 
 function updateWatchlistCountryBtn() {
-  const btn = document.getElementById('wl-add-country-btn');
-  const panelBtn = document.getElementById('add-to-watchlist-btn');
+  const btn = _elWlAddCountryBtn;
+  const panelBtn = _elAddToWatchlistBtn;
   if (!btn || !panelBtn) return;
   if (currentCountryMeta) {
     btn.style.display = 'block';
@@ -4471,7 +4489,6 @@ function removeWatchlistItem(key) {
 function renderWatchlist() {
   const list   = document.getElementById('wl-list');
   const empty  = document.getElementById('wl-empty');
-  const countryBtn = document.getElementById('wl-add-country-btn');
   if (!list) return;
 
   // Show/hide add-country shortcut
@@ -4958,12 +4975,10 @@ function wireEventListeners() {
   });
 
   // Watchlist "Add current country" button (in watchlist panel)
-  const wlCntryBtn = document.getElementById('wl-add-country-btn');
-  if (wlCntryBtn) wlCntryBtn.addEventListener('click', addCurrentCountryToWatchlist);
+  if (_elWlAddCountryBtn) _elWlAddCountryBtn.addEventListener('click', addCurrentCountryToWatchlist);
 
   // "Add to watchlist" button in side panel
-  const addWlBtn = document.getElementById('add-to-watchlist-btn');
-  if (addWlBtn) addWlBtn.addEventListener('click', addCurrentCountryToWatchlist);
+  if (_elAddToWatchlistBtn) _elAddToWatchlistBtn.addEventListener('click', addCurrentCountryToWatchlist);
 
   // Custom analysis topbar button
   const caBtn = document.getElementById('ca-topbar-btn');
@@ -5082,16 +5097,24 @@ function saveUsers(users) {
   storageSet(AUTH_USERS_KEY, JSON.stringify(users));
 }
 
+// In-memory session cache — avoids repeated storage reads across the many callers
+// undefined = not yet read from storage; null = read and confirmed no session
+let _cachedSession = undefined;
+
 function loadSession() {
-  try { return JSON.parse(storageGet(AUTH_SESSION_KEY) || 'null'); }
-  catch(_) { return null; }
+  if (_cachedSession !== undefined) return _cachedSession;
+  try { _cachedSession = JSON.parse(storageGet(AUTH_SESSION_KEY) || 'null'); }
+  catch(_) { _cachedSession = null; }
+  return _cachedSession;
 }
 
 function saveSession(session) {
+  _cachedSession = session;
   storageSet(AUTH_SESSION_KEY, JSON.stringify(session));
 }
 
 function clearSession() {
+  _cachedSession = null;
   storageRemove(AUTH_SESSION_KEY);
 }
 

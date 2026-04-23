@@ -417,8 +417,8 @@ All calls use `thinkingBudget: 0` to prevent thinking tokens from consuming the 
 - [x] ~~Task 14 - I still cant see the source in the capsules and opportunities. Please provide the referred sources and link so I can go to the sources for capsules and opportunities.~~
 - [x] ~~Task 15 - Review and Improve the PROMPTS.md file. Add all the pending sections.~~
 - [x] ~~Task 16 - Perform thorough review of the subscription module. I dont think it is working. Please make sure user receive automatic newsletter once subscribed.~~
-
+- [x] ~~Task 17 - Perform in-depth review of the backend and frontend. The UI is very slow and it lags many times. Reduce the lag and latency as much as possible keeping all the features intact.~~
 
 ---
 
-*Last updated: 2026-04-22 · Build version: Phase 6 complete · 15/15 tasks done · 102+ tests passing*
+*Last updated: 2026-04-22 · Build version: Phase 6 complete · 17/17 tasks done · 102+ tests passing*
