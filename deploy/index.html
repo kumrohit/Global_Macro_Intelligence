@@ -28,6 +28,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- Firebase SDKs loaded on-demand via loadFirebaseSDK() when user configures Firebase -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
 
@@ -1450,6 +1451,205 @@ body::after{
 .opp-source-link:hover{border-color:var(--cyan);background:rgba(99,179,237,0.08);}
 .opp-empty{text-align:center;padding:40px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text3);}
 .opp-loading{display:flex;align-items:center;gap:8px;padding:40px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text2);justify-content:center;}
+
+/* ── Community Board ── */
+#comm-topbar-btn{
+  background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.35);border-radius:3px;
+  color:#A855F7;font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;
+  padding:5px 10px;cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+#comm-topbar-btn:hover{background:rgba(168,85,247,0.2);border-color:#A855F7;box-shadow:0 0 10px rgba(168,85,247,0.25);}
+
+#comm-overlay{
+  position:fixed;inset:0;z-index:2050;display:none;
+  background:rgba(3,7,18,0.88);backdrop-filter:blur(8px);
+  padding:20px;align-items:flex-start;justify-content:center;
+  will-change:opacity;
+}
+#comm-overlay.open{display:flex;}
+#comm-panel{
+  width:100%;max-width:780px;max-height:92vh;
+  background:linear-gradient(180deg,#0D1828 0%,#0A1220 100%);
+  border:1px solid rgba(168,85,247,0.25);border-radius:8px;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 24px 64px rgba(0,0,0,0.7),0 0 0 1px rgba(168,85,247,0.1) inset;
+}
+#comm-header{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.comm-h-icon{font-size:18px;}
+.comm-h-title{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:0.15em;color:#A855F7;}
+.comm-h-sub{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.08em;margin-top:2px;}
+#comm-close-btn{
+  margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:10px;padding:4px 9px;cursor:pointer;
+  transition:all 0.2s;
+}
+#comm-close-btn:hover{color:var(--bear);border-color:var(--bear);}
+
+#comm-tabs{
+  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.comm-tab{
+  flex:1;padding:10px 0;font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;
+  color:var(--text2);border:none;border-bottom:2px solid transparent;
+  background:transparent;cursor:pointer;transition:all 0.2s;
+}
+.comm-tab.active{border-bottom-color:#A855F7;color:#A855F7;}
+.comm-tab:hover:not(.active){color:var(--text);}
+
+#comm-body{flex:1;overflow-y:auto;contain:layout style;}
+#comm-body::-webkit-scrollbar{width:4px;}
+#comm-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* Feed tab */
+#comm-feed{padding:16px 20px;}
+.comm-mode-notice{
+  font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:0.06em;
+  padding:6px 10px;background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.12);
+  border-radius:3px;margin-bottom:14px;
+}
+
+.comm-composer{
+  background:var(--card);border:1px solid var(--border2);border-radius:6px;
+  padding:12px 14px;margin-bottom:16px;
+}
+.comm-composer-top{display:flex;align-items:flex-start;gap:10px;}
+.comm-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(168,85,247,0.18);border:1px solid rgba(168,85,247,0.35);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:12px;font-weight:700;color:#A855F7;
+  flex-shrink:0;
+}
+.comm-composer textarea{
+  flex:1;background:transparent;border:none;outline:none;resize:none;
+  font-family:var(--font-mono);font-size:11px;color:var(--text);
+  min-height:56px;line-height:1.6;
+}
+.comm-composer textarea::placeholder{color:var(--text3);}
+.comm-composer-footer{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.comm-tag-btn{
+  font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;padding:3px 8px;
+  border-radius:2px;cursor:pointer;transition:all 0.15s;border:1px solid var(--border);
+  background:transparent;color:var(--text2);
+}
+.comm-tag-btn.active-bull{border-color:var(--bull);color:var(--bull);background:rgba(16,185,129,0.1);}
+.comm-tag-btn.active-bear{border-color:var(--bear);color:var(--bear);background:rgba(239,68,68,0.1);}
+.comm-tag-btn.active-neut{border-color:var(--neut);color:var(--neut);background:rgba(100,116,139,0.15);}
+.comm-submit-btn{
+  margin-left:auto;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);
+  border-radius:3px;color:#A855F7;font-family:var(--font-mono);font-size:9px;
+  letter-spacing:0.12em;padding:5px 14px;cursor:pointer;transition:all 0.2s;
+}
+.comm-submit-btn:hover{background:rgba(168,85,247,0.25);}
+.comm-char-count{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-left:auto;}
+
+.comm-post-card{
+  background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:12px 14px;margin-bottom:10px;transition:border-color 0.2s;
+}
+.comm-post-card:hover{border-color:var(--border2);}
+.comm-post-card.official{border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.04);}
+.comm-post-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.comm-post-avatar{
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(99,179,237,0.15);border:1px solid rgba(99,179,237,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--accent);
+  flex-shrink:0;
+}
+.comm-post-avatar.official{background:rgba(168,85,247,0.2);border-color:rgba(168,85,247,0.4);color:#A855F7;}
+.comm-post-author{font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--text);letter-spacing:0.05em;}
+.comm-badge-official{
+  font-family:var(--font-mono);font-size:7px;letter-spacing:0.14em;
+  background:rgba(168,85,247,0.15);color:#A855F7;border:1px solid rgba(168,85,247,0.4);
+  border-radius:2px;padding:1px 6px;
+}
+.comm-badge-verified{
+  font-family:var(--font-mono);font-size:7px;letter-spacing:0.12em;
+  background:rgba(34,211,238,0.1);color:var(--cyan);border:1px solid rgba(34,211,238,0.3);
+  border-radius:2px;padding:1px 6px;
+}
+.comm-post-time{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-left:auto;}
+.comm-post-body{font-family:var(--font-mono);font-size:11px;color:var(--text);line-height:1.65;word-break:break-word;}
+.comm-post-tag{display:inline-block;font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;
+  padding:1px 7px;border-radius:2px;margin-top:6px;}
+.comm-post-tag.bullish{background:rgba(16,185,129,0.1);color:var(--bull);border:1px solid rgba(16,185,129,0.25);}
+.comm-post-tag.bearish{background:rgba(239,68,68,0.1);color:var(--bear);border:1px solid rgba(239,68,68,0.25);}
+.comm-post-tag.neutral{background:rgba(100,116,139,0.1);color:var(--neut);border:1px solid rgba(100,116,139,0.25);}
+.comm-post-footer{display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);}
+.comm-action-btn{
+  background:transparent;border:none;cursor:pointer;
+  font-family:var(--font-mono);font-size:9px;color:var(--text2);
+  display:flex;align-items:center;gap:4px;padding:0;transition:color 0.15s;
+}
+.comm-action-btn:hover{color:var(--text);}
+.comm-action-btn.liked{color:#A855F7;}
+.comm-comments-section{margin-top:10px;border-top:1px solid var(--border);padding-top:10px;}
+.comm-comment-card{
+  display:flex;gap:8px;margin-bottom:8px;
+}
+.comm-comment-avatar{
+  width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  background:rgba(99,179,237,0.12);border:1px solid rgba(99,179,237,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:8px;font-weight:700;color:var(--accent);
+}
+.comm-comment-avatar.official{background:rgba(168,85,247,0.18);border-color:rgba(168,85,247,0.35);color:#A855F7;}
+.comm-comment-body{flex:1;}
+.comm-comment-author{font-family:var(--font-display);font-size:10px;font-weight:600;color:var(--text);letter-spacing:0.04em;display:inline;}
+.comm-comment-time{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-left:6px;}
+.comm-comment-text{font-family:var(--font-mono);font-size:10px;color:var(--text2);line-height:1.6;margin-top:2px;word-break:break-word;}
+.comm-reply-input-row{display:flex;gap:8px;margin-top:8px;align-items:center;}
+.comm-reply-input{
+  flex:1;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
+  color:var(--text);font-family:var(--font-mono);font-size:10px;padding:5px 10px;outline:none;
+}
+.comm-reply-input::placeholder{color:var(--text3);}
+.comm-reply-input:focus{border-color:rgba(168,85,247,0.5);}
+.comm-reply-btn{
+  background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);border-radius:3px;
+  color:#A855F7;font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;
+  padding:5px 10px;cursor:pointer;transition:all 0.15s;white-space:nowrap;
+}
+.comm-reply-btn:hover{background:rgba(168,85,247,0.22);}
+.comm-empty{text-align:center;padding:48px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text3);}
+
+/* Settings tab */
+#comm-settings{padding:20px;}
+.comm-set-section{margin-bottom:20px;}
+.comm-set-title{font-family:var(--font-mono);font-size:8px;letter-spacing:0.16em;color:var(--text2);margin-bottom:8px;}
+.comm-set-desc{font-family:var(--font-mono);font-size:9px;color:var(--text3);line-height:1.6;margin-bottom:10px;}
+.comm-set-textarea{
+  width:100%;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
+  color:var(--text);font-family:var(--font-mono);font-size:9px;padding:8px 10px;
+  outline:none;resize:vertical;min-height:80px;line-height:1.5;
+}
+.comm-set-textarea:focus{border-color:rgba(168,85,247,0.5);}
+.comm-set-input{
+  width:100%;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
+  color:var(--text);font-family:var(--font-mono);font-size:10px;padding:6px 10px;outline:none;
+}
+.comm-set-input:focus{border-color:rgba(168,85,247,0.5);}
+.comm-set-save-btn{
+  background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:3px;
+  color:#A855F7;font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;
+  padding:6px 16px;cursor:pointer;transition:all 0.2s;margin-top:8px;
+}
+.comm-set-save-btn:hover{background:rgba(168,85,247,0.25);}
+.comm-set-status{font-family:var(--font-mono);font-size:9px;margin-top:6px;}
+.comm-set-status.ok{color:var(--bull);}
+.comm-set-status.err{color:var(--bear);}
+.comm-firebase-steps{
+  background:rgba(168,85,247,0.04);border:1px solid rgba(168,85,247,0.12);
+  border-radius:4px;padding:12px 14px;margin-bottom:10px;
+}
+.comm-firebase-steps ol{padding-left:16px;}
+.comm-firebase-steps li{font-family:var(--font-mono);font-size:9px;color:var(--text2);line-height:2;letter-spacing:0.04em;}
+.comm-firebase-steps a{color:var(--cyan);text-decoration:none;}
+.comm-firebase-steps a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -1504,6 +1704,7 @@ body::after{
     <div class="tick"><div class="tick-name">US10Y</div><div class="tick-val tick-na" id="t-10y">—</div></div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
+    <button id="comm-topbar-btn" title="Community Board">◈ COMMUNITY</button>
     <button id="ca-topbar-btn" title="Custom Analysis Builder">⊕ CUSTOM ANALYSIS</button>
     <div id="topbar-user" style="display:none;">
       <span id="topbar-username" title="Open Profile &amp; Digest">—</span>
@@ -1923,6 +2124,88 @@ body::after{
   </div>
 </div>
 
+<!-- Community Board overlay — must be before <script> so wireCommEvents() finds elements -->
+<div id="comm-overlay">
+  <div id="comm-panel">
+    <div id="comm-header">
+      <span class="comm-h-icon">◈</span>
+      <div>
+        <div class="comm-h-title">COMMUNITY BOARD</div>
+        <div class="comm-h-sub">MACRO INTELLIGENCE NETWORK · POST · DISCUSS · COLLABORATE</div>
+      </div>
+      <button id="comm-close-btn">✕ CLOSE</button>
+    </div>
+
+    <div id="comm-tabs">
+      <button class="comm-tab active" data-tab="feed">◉ &nbsp;FEED</button>
+      <button class="comm-tab" data-tab="settings">⚙ &nbsp;SETTINGS</button>
+    </div>
+
+    <div id="comm-body">
+      <!-- Feed Tab -->
+      <div id="comm-feed">
+        <div class="comm-mode-notice" id="comm-mode-notice">
+          ◌ LOCAL BOARD — posts are stored on this device. Connect Firebase in Settings for real-time sharing with other users.
+        </div>
+
+        <!-- Composer -->
+        <div class="comm-composer" id="comm-composer">
+          <div class="comm-composer-top">
+            <div class="comm-avatar" id="comm-my-avatar">?</div>
+            <textarea id="comm-text-input" placeholder="Share a macro view, trade idea, or market observation…" maxlength="600"></textarea>
+          </div>
+          <div class="comm-composer-footer">
+            <button class="comm-tag-btn" data-tag="bullish">▲ BULLISH</button>
+            <button class="comm-tag-btn" data-tag="bearish">▼ BEARISH</button>
+            <button class="comm-tag-btn" data-tag="neutral">◆ NEUTRAL</button>
+            <span class="comm-char-count" id="comm-char-count">600</span>
+            <button class="comm-submit-btn" id="comm-submit-btn">POST →</button>
+          </div>
+        </div>
+
+        <!-- Posts list -->
+        <div id="comm-posts-list"></div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="comm-settings" style="display:none;">
+
+        <div class="comm-set-section">
+          <div class="comm-set-title">OWNER / OFFICIAL ACCOUNTS</div>
+          <div class="comm-set-desc">Comma-separated usernames whose posts appear with an OFFICIAL badge (e.g. admin,editor). Your own username here gives your posts the official mark.</div>
+          <input type="text" class="comm-set-input" id="comm-owners-input" placeholder="admin,yourname">
+          <button class="comm-set-save-btn" id="comm-owners-save-btn">SAVE OWNERS</button>
+          <div class="comm-set-status" id="comm-owners-status"></div>
+        </div>
+
+        <div class="comm-set-section">
+          <div class="comm-set-title">FIREBASE FIRESTORE — REAL-TIME SYNC</div>
+          <div class="comm-firebase-steps">
+            <ol>
+              <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → create a project</li>
+              <li>Add a Web App → copy the <code>firebaseConfig</code> object</li>
+              <li>In Firestore → Create database → Start in <strong>test mode</strong> (or add rules)</li>
+              <li>Paste the config JSON below and click Save</li>
+            </ol>
+          </div>
+          <div class="comm-set-desc">Paste your Firebase config object (JSON format):</div>
+          <textarea class="comm-set-textarea" id="comm-fb-config-input" placeholder='{"apiKey":"AIza…","authDomain":"…","projectId":"…","storageBucket":"…","messagingSenderId":"…","appId":"…"}'></textarea>
+          <button class="comm-set-save-btn" id="comm-fb-save-btn">CONNECT FIREBASE</button>
+          <button class="comm-set-save-btn" id="comm-fb-clear-btn" style="margin-left:8px;background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--bear);">DISCONNECT</button>
+          <div class="comm-set-status" id="comm-fb-status"></div>
+        </div>
+
+        <div class="comm-set-section">
+          <div class="comm-set-title">CLEAR ALL LOCAL POSTS</div>
+          <div class="comm-set-desc">Removes all locally stored posts from this device. Firebase posts are not affected.</div>
+          <button class="comm-set-save-btn" id="comm-clear-local-btn" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--bear);">CLEAR LOCAL BOARD</button>
+          <div class="comm-set-status" id="comm-clear-status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════════════
 // STATE
@@ -2202,16 +2485,8 @@ async function initMap() {
   neutGrad.append('stop').attr('offset','0%').attr('stop-color','#64748B');
   neutGrad.append('stop').attr('offset','100%').attr('stop-color','#334155');
 
-  // Atmospheric glow around the sphere
-  const glowFilter = defs.append('filter')
-    .attr('id','atmosphereGlow').attr('x','-20%').attr('y','-20%').attr('width','140%').attr('height','140%');
-  glowFilter.append('feGaussianBlur').attr('stdDeviation','8').attr('result','coloredBlur');
-  const feMerge = glowFilter.append('feMerge');
-  feMerge.append('feMergeNode').attr('in','coloredBlur');
-  feMerge.append('feMergeNode').attr('in','SourceGraphic');
-
-  // Natural Earth projection — fitted to fill the window
-  projection = d3.geoNaturalEarth1()
+  // Equirectangular projection — flat rectangular map fitted to fill the window
+  projection = d3.geoEquirectangular()
     .fitSize([W, H], {type:'Sphere'});
 
   path = d3.geoPath().projection(projection);
@@ -2233,14 +2508,6 @@ async function initMap() {
 
   // Main map group for zoom/pan
   const g = svg.append('g').attr('class','map-group');
-
-  // Atmosphere halo — glowing ring around sphere
-  g.append('path').datum(sphere)
-    .attr('d', path)
-    .attr('fill','none')
-    .attr('stroke','rgba(96,165,250,0.15)')
-    .attr('stroke-width','12')
-    .attr('filter','url(#atmosphereGlow)');
 
   // Ocean sphere
   g.append('path').datum(sphere).attr('class','sphere').attr('d', path);
@@ -6099,10 +6366,558 @@ function wireProfileEvents() {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// COMMUNITY BOARD
+// ════════════════════════════════════════════════════════════════════
+let commOpen      = false;
+let commTab       = 'feed';
+let commTag       = null;       // current composer tag selection
+let commOwners    = [];
+let _fbApp        = null;
+let _fbDb         = null;
+let _commUnsubPosts = null;
+let _commLocalPosts = [];       // local fallback posts
+
+const COMM_LOCAL_KEY   = 'gmi_comm_local_posts';
+const COMM_OWNERS_KEY  = 'gmi_comm_owners';
+const COMM_FB_KEY      = 'gmi_comm_fb_config';
+const COMM_COLL        = 'gmi-community-posts';  // Firestore collection
+const COMM_MAX_CHARS   = 600;
+const COMM_MAX_POSTS   = 200;
+
+// ── Firebase helpers ──────────────────────────────────────────────
+function loadFbConfig() {
+  try { return JSON.parse(storageGet(COMM_FB_KEY) || 'null'); } catch(_) { return null; }
+}
+function saveFbConfig(cfg) {
+  storageSet(COMM_FB_KEY, JSON.stringify(cfg));
+}
+function commIsFirebase() { return !!_fbDb; }
+
+let _fbSdkLoading = false;
+
+function loadFirebaseSDK() {
+  return new Promise((resolve, reject) => {
+    if (typeof firebase !== 'undefined') { resolve(); return; }
+    if (_fbSdkLoading) { setTimeout(() => resolve(), 3000); return; }
+    _fbSdkLoading = true;
+    let loaded = 0;
+    const done = () => { if (++loaded === 2) resolve(); };
+    const err  = (e) => reject(new Error('Failed to load Firebase SDK — check your connection'));
+    const s1 = document.createElement('script');
+    s1.src = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js';
+    s1.onload = done; s1.onerror = err;
+    const s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js';
+    s2.onload = done; s2.onerror = err;
+    document.head.appendChild(s1);
+    document.head.appendChild(s2);
+  });
+}
+
+async function initFirebase(config) {
+  try {
+    await loadFirebaseSDK();
+    if (typeof firebase === 'undefined') throw new Error('Firebase SDK did not load');
+    if (_fbApp) { _fbApp.delete().catch(() => {}); _fbApp = null; _fbDb = null; }
+    _fbApp = firebase.initializeApp(config, 'gmi-community-' + Date.now());
+    _fbDb  = firebase.firestore(_fbApp);
+    return true;
+  } catch(e) {
+    _fbApp = null; _fbDb = null;
+    throw e;
+  }
+}
+
+function disconnectFirebase() {
+  if (_commUnsubPosts) { _commUnsubPosts(); _commUnsubPosts = null; }
+  if (_fbApp) { _fbApp.delete().catch(() => {}); _fbApp = null; _fbDb = null; }
+}
+
+// ── Owner detection ───────────────────────────────────────────────
+function loadCommOwners() {
+  const raw = storageGet(COMM_OWNERS_KEY) || '';
+  commOwners = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+}
+
+function isOwner(username) {
+  return username && commOwners.includes((username || '').toLowerCase());
+}
+
+// ── Timestamp helpers ─────────────────────────────────────────────
+function relativeTime(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000)  return 'just now';
+  if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+  return Math.floor(diff/86400000) + 'd ago';
+}
+
+// ── Local storage posts ───────────────────────────────────────────
+function loadLocalPosts() {
+  try { _commLocalPosts = JSON.parse(storageGet(COMM_LOCAL_KEY) || '[]'); }
+  catch(_) { _commLocalPosts = []; }
+}
+
+function saveLocalPosts() {
+  try { storageSet(COMM_LOCAL_KEY, JSON.stringify(_commLocalPosts.slice(0, COMM_MAX_POSTS))); } catch(_) {}
+}
+
+function addLocalPost(post) {
+  _commLocalPosts.unshift(post);
+  saveLocalPosts();
+}
+
+function addLocalComment(postId, comment) {
+  const post = _commLocalPosts.find(p => p.id === postId);
+  if (!post) return;
+  post.comments = post.comments || [];
+  post.comments.push(comment);
+  post.commentCount = (post.commentCount || 0) + 1;
+  saveLocalPosts();
+}
+
+function toggleLocalLike(postId) {
+  const post = _commLocalPosts.find(p => p.id === postId);
+  if (!post) return;
+  const sess = loadSession();
+  const me = sess?.username || 'anon';
+  post.likedBy = post.likedBy || [];
+  const idx = post.likedBy.indexOf(me);
+  if (idx >= 0) { post.likedBy.splice(idx, 1); post.likeCount = Math.max(0, (post.likeCount||1)-1); }
+  else           { post.likedBy.push(me);        post.likeCount = (post.likeCount||0)+1; }
+  saveLocalPosts();
+}
+
+// ── Render helpers ────────────────────────────────────────────────
+function renderPostCard(post) {
+  const sess = loadSession();
+  const me   = sess?.username || '';
+  const official = isOwner(post.authorUsername);
+  const liked = (post.likedBy || []).includes(me);
+  const tagHtml = post.tag
+    ? `<div class="comm-post-tag ${post.tag}">▸ ${post.tag.toUpperCase()}</div>` : '';
+  const officialBadge = official
+    ? `<span class="comm-badge-official">OFFICIAL</span>` : '';
+  const avatarInit = (post.authorDisplay || post.authorUsername || '?')[0].toUpperCase();
+
+  return `
+  <div class="comm-post-card ${official?'official':''}" data-post-id="${post.id}">
+    <div class="comm-post-top">
+      <div class="comm-post-avatar ${official?'official':''}">${avatarInit}</div>
+      <span class="comm-post-author">${post.authorDisplay || post.authorUsername}</span>
+      ${officialBadge}
+      <span class="comm-post-time">${relativeTime(post.timestamp)}</span>
+    </div>
+    <div class="comm-post-body">${escHtml(post.content)}</div>
+    ${tagHtml}
+    <div class="comm-post-footer">
+      <button class="comm-action-btn ${liked?'liked':''}" data-action="like" data-post-id="${post.id}">
+        ♥ ${post.likeCount || 0}
+      </button>
+      <button class="comm-action-btn" data-action="comments" data-post-id="${post.id}">
+        ◎ ${post.commentCount || 0} COMMENTS
+      </button>
+    </div>
+    <div class="comm-comments-section" id="comm-cmts-${post.id}" style="display:none;"></div>
+  </div>`;
+}
+
+function renderComments(post) {
+  const sess    = loadSession();
+  const me      = sess?.username || '';
+  const display = sess?.displayName || me;
+  const comments = (post.comments || []);
+  const cHtml = comments.map(c => {
+    const cOfficial = isOwner(c.authorUsername);
+    const cInit = (c.authorDisplay || c.authorUsername || '?')[0].toUpperCase();
+    return `
+    <div class="comm-comment-card">
+      <div class="comm-comment-avatar ${cOfficial?'official':''}">${cInit}</div>
+      <div class="comm-comment-body">
+        <span class="comm-comment-author">${c.authorDisplay || c.authorUsername}</span>
+        ${cOfficial ? `<span class="comm-badge-official" style="margin-left:5px;">OFFICIAL</span>` : ''}
+        <span class="comm-comment-time">${relativeTime(c.timestamp)}</span>
+        <div class="comm-comment-text">${escHtml(c.content)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+    ${cHtml || '<div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);padding:4px 0 8px;">No comments yet.</div>'}
+    <div class="comm-reply-input-row">
+      <input type="text" class="comm-reply-input" data-post-id="${post.id}"
+             placeholder="Add a comment…" maxlength="300">
+      <button class="comm-reply-btn" data-post-id="${post.id}">REPLY →</button>
+    </div>`;
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/\n/g,'<br>');
+}
+
+// ── Render full feed ──────────────────────────────────────────────
+function renderFeed(posts) {
+  const list = document.getElementById('comm-posts-list');
+  if (!list) return;
+  if (!posts.length) {
+    list.innerHTML = '<div class="comm-empty">No posts yet. Be the first to share a macro view.</div>';
+    return;
+  }
+  list.innerHTML = posts.map(renderPostCard).join('');
+  wirePostCardEvents();
+}
+
+function wirePostCardEvents() {
+  const list = document.getElementById('comm-posts-list');
+  if (!list) return;
+  list.querySelectorAll('[data-action="like"]').forEach(btn => {
+    btn.addEventListener('click', () => handleLike(btn.dataset.postId));
+  });
+  list.querySelectorAll('[data-action="comments"]').forEach(btn => {
+    btn.addEventListener('click', () => toggleComments(btn.dataset.postId));
+  });
+}
+
+// ── Like ──────────────────────────────────────────────────────────
+async function handleLike(postId) {
+  if (commIsFirebase()) {
+    const sess = loadSession();
+    const me   = sess?.username || 'anon';
+    const ref  = _fbDb.collection(COMM_COLL).doc(postId);
+    try {
+      await _fbDb.runTransaction(async tx => {
+        const doc = await tx.get(ref);
+        if (!doc.exists) return;
+        const d = doc.data();
+        const likedBy = d.likedBy || [];
+        const idx = likedBy.indexOf(me);
+        if (idx >= 0) { likedBy.splice(idx,1); tx.update(ref, { likedBy, likeCount: Math.max(0,(d.likeCount||1)-1) }); }
+        else           { likedBy.push(me);      tx.update(ref, { likedBy, likeCount: (d.likeCount||0)+1 }); }
+      });
+    } catch(_) {}
+  } else {
+    toggleLocalLike(postId);
+    renderFeed(_commLocalPosts);
+  }
+}
+
+// ── Comments toggle ───────────────────────────────────────────────
+async function toggleComments(postId) {
+  const section = document.getElementById(`comm-cmts-${postId}`);
+  if (!section) return;
+  const visible = section.style.display !== 'none';
+  if (visible) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  section.innerHTML = '<div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);padding:6px 0;">Loading…</div>';
+
+  if (commIsFirebase()) {
+    try {
+      const snap = await _fbDb.collection(COMM_COLL).doc(postId)
+        .collection('comments').orderBy('timestamp','asc').limit(100).get();
+      const comments = snap.docs.map(d => ({ id: d.id, ...d.data(), timestamp: d.data().timestamp?.toMillis() || Date.now() }));
+      const post = { id: postId, comments };
+      section.innerHTML = renderComments(post);
+      wireReplyEvents(section, postId);
+    } catch(e) {
+      section.innerHTML = `<div style="color:var(--bear);font-family:var(--font-mono);font-size:9px;">${e.message}</div>`;
+    }
+  } else {
+    const post = _commLocalPosts.find(p => p.id === postId);
+    if (!post) { section.innerHTML = ''; return; }
+    section.innerHTML = renderComments(post);
+    wireReplyEvents(section, postId);
+  }
+}
+
+function wireReplyEvents(section, postId) {
+  const btn   = section.querySelector('.comm-reply-btn');
+  const input = section.querySelector('.comm-reply-input');
+  if (!btn || !input) return;
+  const submit = async () => {
+    const content = (input.value || '').trim();
+    if (!content) return;
+    const sess = loadSession();
+    const comment = {
+      id: 'c' + Date.now(),
+      postId,
+      authorUsername: sess?.username || 'anon',
+      authorDisplay:  sess?.displayName || sess?.username || 'Anonymous',
+      content,
+      timestamp: Date.now(),
+    };
+    input.value = '';
+    if (commIsFirebase()) {
+      try {
+        await _fbDb.collection(COMM_COLL).doc(postId).collection('comments').add({
+          ...comment, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await _fbDb.collection(COMM_COLL).doc(postId).update({
+          commentCount: firebase.firestore.FieldValue.increment(1)
+        });
+        toggleComments(postId); toggleComments(postId); // refresh
+      } catch(e) { input.value = content; }
+    } else {
+      addLocalComment(postId, comment);
+      const post = _commLocalPosts.find(p => p.id === postId);
+      section.innerHTML = renderComments(post);
+      wireReplyEvents(section, postId);
+    }
+  };
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } });
+}
+
+// ── Submit post ───────────────────────────────────────────────────
+let _commPosting = false;
+async function submitCommPost() {
+  if (_commPosting) return;
+  const input  = document.getElementById('comm-text-input');
+  const sbtn   = document.getElementById('comm-submit-btn');
+  const content = (input?.value || '').trim();
+  if (!content) return;
+  _commPosting = true;
+  if (sbtn) { sbtn.disabled = true; sbtn.textContent = 'POSTING…'; }
+
+  const sess = loadSession();
+  const post = {
+    id: 'p' + Date.now(),
+    authorUsername: sess?.username || 'anon',
+    authorDisplay:  sess?.displayName || sess?.username || 'Anonymous',
+    content,
+    tag: commTag,
+    timestamp: Date.now(),
+    likeCount: 0,
+    likedBy: [],
+    commentCount: 0,
+    comments: [],
+  };
+  if (input) input.value = '';
+  document.querySelectorAll('.comm-tag-btn').forEach(b => b.className = 'comm-tag-btn');
+  commTag = null;
+  updateCommCharCount();
+
+  try {
+    if (commIsFirebase()) {
+      await _fbDb.collection(COMM_COLL).add({
+        ...post,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        likedBy: [],
+      });
+      // onSnapshot listener updates feed automatically
+    } else {
+      addLocalPost(post);
+      renderFeed(_commLocalPosts);
+    }
+  } catch(e) {
+    showToast('Post failed: ' + e.message, null, 4000);
+  } finally {
+    _commPosting = false;
+    if (sbtn) { sbtn.disabled = false; sbtn.textContent = 'POST →'; }
+  }
+}
+
+// ── Firebase real-time listener ───────────────────────────────────
+function subscribeFirebasePosts() {
+  if (_commUnsubPosts) { _commUnsubPosts(); _commUnsubPosts = null; }
+  if (!_fbDb) return;
+  _commUnsubPosts = _fbDb.collection(COMM_COLL)
+    .orderBy('timestamp', 'desc').limit(100)
+    .onSnapshot(snap => {
+      const posts = snap.docs.map(d => ({
+        id: d.id, ...d.data(),
+        timestamp: d.data().timestamp?.toMillis() || Date.now()
+      }));
+      renderFeed(posts);
+    }, err => {
+      console.warn('Firestore error:', err.message);
+    });
+}
+
+// ── Open / close ──────────────────────────────────────────────────
+async function openCommunity() {
+  commOpen = true;
+  document.getElementById('comm-overlay').classList.add('open');
+  const sess = loadSession();
+  const avatar = document.getElementById('comm-my-avatar');
+  if (avatar) avatar.textContent = (sess?.displayName || sess?.username || '?')[0].toUpperCase();
+  switchCommTab('feed');
+  // Auto-reconnect Firebase from saved config if not already connected
+  if (!commIsFirebase()) {
+    const cfg = loadFbConfig();
+    if (cfg) {
+      try { await initFirebase(cfg); } catch(_) {}
+    }
+  }
+  if (commIsFirebase()) subscribeFirebasePosts();
+  else { loadLocalPosts(); renderFeed(_commLocalPosts); }
+}
+
+function closeCommunity() {
+  commOpen = false;
+  document.getElementById('comm-overlay').classList.remove('open');
+  if (_commUnsubPosts) { _commUnsubPosts(); _commUnsubPosts = null; }
+}
+
+// ── Tab switch ────────────────────────────────────────────────────
+function switchCommTab(tab) {
+  commTab = tab;
+  document.querySelectorAll('.comm-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('comm-feed').style.display     = tab === 'feed'     ? 'block' : 'none';
+  document.getElementById('comm-settings').style.display = tab === 'settings' ? 'block' : 'none';
+  if (tab === 'settings') loadCommSettings();
+}
+
+// ── Settings helpers ──────────────────────────────────────────────
+function loadCommSettings() {
+  const ownersEl = document.getElementById('comm-owners-input');
+  if (ownersEl) ownersEl.value = storageGet(COMM_OWNERS_KEY) || '';
+
+  const fbEl = document.getElementById('comm-fb-config-input');
+  const fbCfg = loadFbConfig();
+  if (fbEl && fbCfg) {
+    try { fbEl.value = JSON.stringify(fbCfg, null, 2); } catch(_) {}
+  }
+
+  const fbStatus = document.getElementById('comm-fb-status');
+  if (fbStatus) {
+    if (commIsFirebase()) {
+      fbStatus.textContent = '✓ Firebase connected — real-time sync active';
+      fbStatus.className = 'comm-set-status ok';
+    } else {
+      fbStatus.textContent = fbCfg ? '⚠ Config saved but not connected — reload the page' : '○ Not configured — local mode active';
+      fbStatus.className = 'comm-set-status ' + (fbCfg ? 'err' : '');
+    }
+  }
+  updateCommModeNotice();
+}
+
+function updateCommModeNotice() {
+  const el = document.getElementById('comm-mode-notice');
+  if (!el) return;
+  el.textContent = commIsFirebase()
+    ? '◉ LIVE BOARD — real-time Firebase sync active. Posts visible to all users.'
+    : '◌ LOCAL BOARD — posts are stored on this device. Connect Firebase in Settings for real-time sharing.';
+}
+
+function updateCommCharCount() {
+  const input = document.getElementById('comm-text-input');
+  const counter = document.getElementById('comm-char-count');
+  if (!input || !counter) return;
+  const remaining = COMM_MAX_CHARS - (input.value || '').length;
+  counter.textContent = remaining;
+  counter.style.color = remaining < 60 ? 'var(--amber)' : 'var(--text3)';
+}
+
+// ── Wire community events ─────────────────────────────────────────
+function wireCommEvents() {
+  // Topbar button
+  const btn = document.getElementById('comm-topbar-btn');
+  if (btn) btn.addEventListener('click', openCommunity);
+
+  // Close
+  const closeBtn = document.getElementById('comm-close-btn');
+  if (closeBtn) closeBtn.addEventListener('click', closeCommunity);
+
+  // Backdrop close
+  document.getElementById('comm-overlay')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('comm-overlay')) closeCommunity();
+  });
+
+  // Tab buttons
+  document.querySelectorAll('.comm-tab').forEach(t => {
+    t.addEventListener('click', () => switchCommTab(t.dataset.tab));
+  });
+
+  // Composer — tag toggle
+  document.querySelectorAll('.comm-tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.tag;
+      if (commTag === tag) {
+        commTag = null;
+        document.querySelectorAll('.comm-tag-btn').forEach(b => b.className = 'comm-tag-btn');
+      } else {
+        commTag = tag;
+        document.querySelectorAll('.comm-tag-btn').forEach(b => b.className = 'comm-tag-btn');
+        btn.className = `comm-tag-btn active-${tag==='bullish'?'bull':tag==='bearish'?'bear':'neut'}`;
+      }
+    });
+  });
+
+  // Composer — char count
+  document.getElementById('comm-text-input')?.addEventListener('input', updateCommCharCount);
+
+  // Composer — submit
+  document.getElementById('comm-submit-btn')?.addEventListener('click', submitCommPost);
+  document.getElementById('comm-text-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitCommPost();
+  });
+
+  // Settings — save owners
+  document.getElementById('comm-owners-save-btn')?.addEventListener('click', () => {
+    const val = (document.getElementById('comm-owners-input')?.value || '').trim();
+    storageSet(COMM_OWNERS_KEY, val);
+    loadCommOwners();
+    const st = document.getElementById('comm-owners-status');
+    if (st) { st.textContent = '✓ Saved'; st.className = 'comm-set-status ok'; }
+    setTimeout(() => { const s2 = document.getElementById('comm-owners-status'); if(s2) s2.textContent=''; }, 2500);
+  });
+
+  // Settings — connect Firebase
+  document.getElementById('comm-fb-save-btn')?.addEventListener('click', async () => {
+    const val = (document.getElementById('comm-fb-config-input')?.value || '').trim();
+    const st  = document.getElementById('comm-fb-status');
+    const btn = document.getElementById('comm-fb-save-btn');
+    try {
+      const cfg = JSON.parse(val);
+      if (!cfg.apiKey || !cfg.projectId) throw new Error('Missing apiKey or projectId');
+      if (st) { st.textContent = '⟳ Loading Firebase SDK…'; st.className = 'comm-set-status'; }
+      if (btn) btn.disabled = true;
+      await initFirebase(cfg);
+      saveFbConfig(cfg);
+      if (st) { st.textContent = '✓ Connected! Real-time sync active.'; st.className = 'comm-set-status ok'; }
+      updateCommModeNotice();
+      if (commOpen && commTab === 'feed') subscribeFirebasePosts();
+    } catch(e) {
+      if (st) { st.textContent = '✗ ' + e.message; st.className = 'comm-set-status err'; }
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  // Settings — disconnect Firebase
+  document.getElementById('comm-fb-clear-btn')?.addEventListener('click', () => {
+    disconnectFirebase();
+    storageRemove(COMM_FB_KEY);
+    const fbEl = document.getElementById('comm-fb-config-input');
+    if (fbEl) fbEl.value = '';
+    const st = document.getElementById('comm-fb-status');
+    if (st) { st.textContent = '○ Disconnected — now in local mode'; st.className = 'comm-set-status'; }
+    updateCommModeNotice();
+    loadLocalPosts();
+    renderFeed(_commLocalPosts);
+  });
+
+  // Settings — clear local posts
+  document.getElementById('comm-clear-local-btn')?.addEventListener('click', () => {
+    _commLocalPosts = [];
+    storageRemove(COMM_LOCAL_KEY);
+    const st = document.getElementById('comm-clear-status');
+    if (st) { st.textContent = '✓ Local board cleared'; st.className = 'comm-set-status ok'; }
+    setTimeout(() => { const s2 = document.getElementById('comm-clear-status'); if(s2) s2.textContent=''; }, 2500);
+    if (!commIsFirebase()) renderFeed([]);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════════════
 wireLoginEvents();
 wireProfileEvents();
+wireCommEvents();
+loadCommOwners();
+
+// Always load local posts immediately; Firebase connects lazily when user opens Community
+loadLocalPosts();
 
 // Restore session — show login only if no valid session is found
 const existingSession = loadSession();
