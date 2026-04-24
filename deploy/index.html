@@ -11,6 +11,13 @@
 <meta name="author" content="Global Macro Intelligence">
 <meta name="theme-color" content="#050811">
 
+<!-- PWA / Android -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GMI Terminal">
+
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Global Macro Intelligence — Country Sentiment Terminal">
@@ -1650,6 +1657,152 @@ body::after{
 .comm-firebase-steps li{font-family:var(--font-mono);font-size:9px;color:var(--text2);line-height:2;letter-spacing:0.04em;}
 .comm-firebase-steps a{color:var(--cyan);text-decoration:none;}
 .comm-firebase-steps a:hover{text-decoration:underline;}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — seamless experience on phones & tablets
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Mobile bottom navigation bar (hidden on desktop) ── */
+#mobile-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;height:56px;
+  background:rgba(8,14,24,0.98);
+  border-top:1px solid var(--border);
+  z-index:600;
+  align-items:center;justify-content:space-around;
+  padding:0 4px;
+  backdrop-filter:blur(8px);
+}
+.mob-nav-btn{
+  background:transparent;border:none;
+  color:var(--text2);
+  font-family:var(--font-mono);font-size:8px;letter-spacing:0.06em;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 12px;border-radius:6px;cursor:pointer;
+  transition:color 0.2s,background 0.2s;
+  min-width:52px;
+}
+.mob-nav-btn .mob-icon{font-size:16px;line-height:1;}
+.mob-nav-btn:active{background:rgba(96,165,250,0.12);color:var(--accent);}
+.mob-nav-btn.active-nav{color:var(--cyan);}
+
+/* ── Tablet (≤ 900px) ── */
+@media (max-width:900px){
+  .tickers{gap:12px;}
+  .tick-name{font-size:8px;}
+  .tick-val{font-size:10px;}
+  #api-widget{width:220px;}
+}
+
+/* ── Small tablet / large phone (≤ 768px) ── */
+@media (max-width:768px){
+  /* Topbar — hide heavy tickers, keep essentials */
+  .tickers{display:none !important;}
+  #clock{display:none !important;}
+  #topbar{padding:0 12px;height:48px;}
+  .logo{font-size:12px;letter-spacing:0.1em;}
+  .logo-sub{display:none;}
+  #comm-topbar-btn{font-size:8px;padding:4px 8px;letter-spacing:0.08em;}
+  #ca-topbar-btn{display:none !important;}
+  #topbar-username{font-size:9px;}
+
+  /* Panels — full-width friendly */
+  #panel.open{width:min(340px,92vw);}
+  #social-panel{width:min(340px,100vw);}
+  #watchlist-panel{width:min(360px,100vw);}
+
+  /* Map overlays shrink font */
+  .rj-btn{font-size:8px;padding:4px 8px;}
+  #region-jump{top:16px;}
+  .aw-label{font-size:7px;}
+
+  /* API widget repositioned */
+  #api-widget{
+    right:50%;transform:translateX(50%);
+    bottom:14px;width:calc(100vw - 48px);max-width:340px;
+  }
+
+  /* Legend compact */
+  #legend{padding:10px 12px;bottom:14px;}
+  .legend-title{font-size:7px;margin-bottom:7px;}
+  .legend-row{font-size:9px;}
+
+  /* Deep / CA / Profile overlays already inset:0 — ensure scroll */
+  #deep-box,#ca-box{max-height:100dvh;overflow-y:auto;}
+  #profile-overlay > div{max-height:100dvh;overflow-y:auto;}
+
+  /* Touch-optimised map */
+  #map-svg{touch-action:manipulation;}
+}
+
+/* ── Phone (≤ 480px) — mobile-first layout ── */
+@media (max-width:480px){
+  /* Show bottom nav */
+  #mobile-nav{display:flex !important;}
+
+  /* Push content above bottom nav */
+  #app{padding-bottom:56px;}
+
+  /* Side tabs hidden — use bottom nav instead */
+  #social-tab{display:none !important;}
+  #watchlist-tab{display:none !important;}
+
+  /* Panels go full-width */
+  #panel.open{width:100vw;border-left:none;border-right:none;border-radius:0;}
+  #social-panel{width:100vw;border-left:none;border-right:none;}
+  #watchlist-panel{width:100vw;border-left:none;border-right:none;}
+
+  /* Topbar — minimal */
+  #topbar{padding:0 10px;height:44px;gap:6px;}
+  .logo{font-size:11px;}
+  #comm-topbar-btn{display:none !important;}
+  #topbar-user{gap:6px;}
+  #logout-btn{font-size:7px;padding:3px 6px;}
+
+  /* Map UI — move region jump below topbar */
+  #region-jump{top:52px;left:50%;transform:translateX(-50%);}
+  .rj-btns{flex-wrap:wrap;justify-content:center;gap:3px;}
+
+  /* Legend hidden — too crowded */
+  #legend{display:none !important;}
+
+  /* API widget above bottom nav */
+  #api-widget{
+    left:8px;right:8px;bottom:64px;
+    width:auto;transform:none;max-width:none;
+  }
+
+  /* Map header compress */
+  #map-header{padding:6px 10px;gap:6px;flex-wrap:wrap;}
+
+  /* Social/watchlist headers */
+  #social-header,#wl-header{padding:12px 14px;}
+
+  /* Make panel close buttons bigger for touch */
+  #panel-close{width:36px;height:36px;font-size:16px;}
+  #social-close-btn,#wl-close-btn{min-width:36px;min-height:36px;}
+
+  /* Deep/CA full screen padding */
+  #deep-box{border-radius:0;width:100vw !important;max-width:100vw;}
+  #ca-box{border-radius:0;width:100vw !important;max-width:100vw;}
+
+  /* Bigger tap targets for country interaction */
+  .country{stroke-width:1px;}
+
+  /* Toast — full width */
+  #gmi-toast{left:8px;right:8px;bottom:64px;width:auto;}
+
+  /* Comm overlay full screen */
+  #comm-overlay{padding-bottom:0;}
+  #comm-inner{border-radius:0;width:100vw;height:100dvh;max-height:100dvh;}
+}
+
+/* ── Very small phones (≤ 360px) ── */
+@media (max-width:360px){
+  .logo{font-size:10px;letter-spacing:0.06em;}
+  .mob-nav-btn{font-size:7px;padding:4px 8px;min-width:44px;}
+  .mob-icon{font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -6933,7 +7086,31 @@ wireEventListeners();
 initMap();
 loadTickers();  // shows "—" placeholders until user enters API key
 checkNewsletterAutoNotify();
+
+// Register service worker for PWA / offline support
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 </script>
+
+<!-- Mobile bottom navigation (shown on phones ≤ 480px) -->
+<nav id="mobile-nav" role="navigation" aria-label="Mobile navigation">
+  <button class="mob-nav-btn" onclick="toggleSocialPanel()" title="Social Feed">
+    <span class="mob-icon">◈</span>SOCIAL
+  </button>
+  <button class="mob-nav-btn" onclick="toggleWatchlist()" title="Watchlist">
+    <span class="mob-icon">★</span>WATCH
+  </button>
+  <button class="mob-nav-btn" onclick="openCustomAnalysis()" title="Custom Analysis">
+    <span class="mob-icon">⊕</span>ANALYSE
+  </button>
+  <button class="mob-nav-btn" onclick="openCommunity()" title="Community Board">
+    <span class="mob-icon">◉</span>COMMUNITY
+  </button>
+  <button class="mob-nav-btn" onclick="openProfile()" title="Profile &amp; Digest">
+    <span class="mob-icon">⊙</span>PROFILE
+  </button>
+</nav>
 
 <!-- Toast notification -->
 <div id="gmi-toast">

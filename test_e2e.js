@@ -452,6 +452,56 @@ test('Boot sequence calls initMap', () =>
   js.includes('initMap()'));
 
 // ══════════════════════════════════════════════════════════════════════════════
+// PHASE 13 — Android / Mobile
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n── Phase 13: Android / Mobile ───────────────────────────────────────');
+
+const ANDROID = path.join(__dirname, 'android');
+test('android/ folder exists', () => fs.existsSync(ANDROID) && fs.statSync(ANDROID).isDirectory());
+test('android/index.html exists and is current (≥ 300 KB)', () => {
+  const f = path.join(ANDROID, 'index.html');
+  return fs.existsSync(f) && fs.statSync(f).size >= 300000;
+});
+test('android/manifest.json exists with correct fields', () => {
+  const f = path.join(ANDROID, 'manifest.json');
+  if (!fs.existsSync(f)) return false;
+  const m = JSON.parse(fs.readFileSync(f, 'utf8'));
+  return m.name && m.display === 'standalone' && Array.isArray(m.icons) && m.icons.length > 0;
+});
+test('android/sw.js exists with install + fetch handlers', () => {
+  const f = path.join(ANDROID, 'sw.js');
+  if (!fs.existsSync(f)) return false;
+  const s = fs.readFileSync(f, 'utf8');
+  return s.includes("addEventListener('install'") && s.includes("addEventListener('fetch'");
+});
+test('android/README.md has Capacitor deployment guide', () => {
+  const f = path.join(ANDROID, 'README.md');
+  return fs.existsSync(f) && fs.readFileSync(f, 'utf8').includes('Capacitor');
+});
+test('PWA manifest linked in HTML head', () =>
+  html.includes('rel="manifest"') && html.includes('manifest.json'));
+test('Mobile-web-app-capable meta tag present', () =>
+  html.includes('mobile-web-app-capable'));
+test('Apple mobile web app meta tags present', () =>
+  html.includes('apple-mobile-web-app-capable') && html.includes('apple-mobile-web-app-title'));
+test('Mobile nav bar #mobile-nav exists in HTML', () =>
+  html.includes('id="mobile-nav"'));
+test('Mobile nav bar hidden by default (display:none)', () =>
+  css.includes('#mobile-nav') && css.includes('display:none'));
+test('Mobile nav shows on ≤ 480px (media query)', () =>
+  css.includes('max-width:480px') && css.includes('#mobile-nav') && css.includes('display:flex'));
+test('Full-width panels on mobile (100vw)', () =>
+  css.includes('100vw'));
+test('Service worker registered in boot', () =>
+  js.includes("serviceWorker.register('sw.js')") || js.includes('serviceWorker.register("sw.js")'));
+test('Touch-action set on map SVG for mobile', () =>
+  css.includes('#map-svg') && css.includes('touch-action'));
+test('Bottom nav has all 5 action buttons', () => {
+  const nav = html.slice(html.indexOf('id="mobile-nav"'), html.indexOf('</nav>', html.indexOf('id="mobile-nav"')));
+  return (nav.match(/mob-nav-btn/g) || []).length >= 5;
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // Summary
 // ══════════════════════════════════════════════════════════════════════════════
 const total = pass + fail + warn;

@@ -423,6 +423,7 @@ All calls use `thinkingBudget: 0` to prevent thinking tokens from consuming the 
 - [x] ~~Task 20 - Do end to end testing before deploying so that everything runs smoothly.~~
 - [x] ~~Task 21 - Could you please review the community board? there are many bugs, i.e., I am not able to access settings, it is very slow, my post is also not visible after posting, it is very slow. Please fix it.~~
 - [x] ~~Task 22 - Could you please make the map flat and rectangular? It is curved. Please do thorough testing before finalizing.~~
+- [x] ~~Task 23 - Create a folder for android app. Enhanced the app for seamless user experience on the mobile phone. Provide details guide for one click deployment.~~
 
 ---
 
