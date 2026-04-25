@@ -424,6 +424,8 @@ All calls use `thinkingBudget: 0` to prevent thinking tokens from consuming the 
 - [x] ~~Task 21 - Could you please review the community board? there are many bugs, i.e., I am not able to access settings, it is very slow, my post is also not visible after posting, it is very slow. Please fix it.~~
 - [x] ~~Task 22 - Could you please make the map flat and rectangular? It is curved. Please do thorough testing before finalizing.~~
 - [x] ~~Task 23 - Create a folder for android app. Enhanced the app for seamless user experience on the mobile phone. Provide details guide for one click deployment.~~
+- [x] ~~Task 24 - Implement a feature in the community board that tells the sentiment and analysis based on community board data only.~~
+- [x] ~~Task 25 - Perform thorough review of the communnity board. It should be very smooth and interactive for users. Add more features if that is helpful but it should be very smooth. User experience is a priority here.~~
 
 ---
 

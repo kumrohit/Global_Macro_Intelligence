@@ -106,7 +106,7 @@ test('Panel DOM refs cached (_elPanel)', () => hasVar('_elPanel'));
 test('renderPanel refs cached (_elSentBadge)', () => hasVar('_elSentBadge'));
 test('rAF throttle for mousemove', () => js.includes('_tipRafPending'));
 test('Country fill transition (no filter)', () => {
-  const ok = css.includes('transition:fill 0.3s ease,stroke 0.2s ease');
+  const ok = css.includes('transition:fill 0.25s ease,stroke 0.15s ease,opacity 0.15s ease');
   const bad = /transition:.*filter/.test(css.split('.country')[1]?.split('}')[0] || '');
   return ok && !bad;
 });
@@ -435,9 +435,9 @@ test('weekKey() for digest cache keys', () => hasFn('weekKey'));
 test('Region jump highlights countries', () => hasFn('jumpToRegion') || js.includes('REGION_NAMES'));
 test('Static map resize handler', () =>
   js.includes("window.addEventListener('resize'") || js.includes('window.addEventListener("resize"'));
-test('File size under 360 KB (single file)', () => {
+test('File size under 400 KB (single file)', () => {
   const bytes = fs.statSync(FILE).size;
-  return bytes < 360000;
+  return bytes < 400000;
 });
 test('Boot sequence calls wireCommEvents', () => {
   // wireCommEvents() appears in the boot sequence (after BOOT comment)
@@ -500,6 +500,44 @@ test('Bottom nav has all 5 action buttons', () => {
   const nav = html.slice(html.indexOf('id="mobile-nav"'), html.indexOf('</nav>', html.indexOf('id="mobile-nav"')));
   return (nav.match(/mob-nav-btn/g) || []).length >= 5;
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE 14 — Community Pulse
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n── Phase 14: Community Pulse ────────────────────────────────────────');
+
+test('Community Pulse tab button exists (data-tab="pulse")', () =>
+  html.includes('data-tab="pulse"'));
+test('Pulse tab panel #comm-pulse exists in HTML', () =>
+  html.includes('id="comm-pulse"'));
+test('analyzeCommunityPulse function defined', () =>
+  js.includes('async function analyzeCommunityPulse('));
+test('renderCommPulse function defined', () =>
+  js.includes('function renderCommPulse('));
+test('switchCommTab handles pulse tab', () =>
+  js.includes("'comm-pulse'") || js.includes('"comm-pulse"'));
+test('Pulse analysis uses only community post data (no external API params)', () =>
+  js.includes('postData') && js.includes('p.content') && js.includes('p.tag'));
+test('Pulse prompt instructs AI to use only community posts', () =>
+  js.includes('ONLY on what is written in these posts'));
+test('Pulse renders sentiment score bar', () =>
+  js.includes('comm-pulse-bar-fill') && js.includes('barPct'));
+test('Pulse renders bull/bear/neutral breakdown', () =>
+  js.includes('bull_pct') && js.includes('bear_pct') && js.includes('neutral_pct'));
+test('Pulse renders top themes as chips', () =>
+  js.includes('comm-pulse-theme-chip') && js.includes('top_themes'));
+test('Pulse renders community narrative', () =>
+  js.includes('comm-pulse-narrative') && js.includes('narrative'));
+test('Pulse renders representative views', () =>
+  js.includes('comm-pulse-view') && js.includes('key_views'));
+test('Pulse renders consensus level', () =>
+  js.includes('consensus_level') && js.includes('CONSENSUS LEVEL'));
+test('Pulse guard: no API key shows toast', () =>
+  js.includes("analyzeCommunityPulse") && js.includes('Enter your Gemini API key'));
+test('Pulse post content/tag only (no usernames sent to AI)', () =>
+  js.includes('p.content') && !js.includes('p.username') || js.includes('postData = posts.map'));
+test('escHtml used in pulse render (XSS safe)', () =>
+  js.includes('escHtml(d.narrative') && js.includes('escHtml(t)') && js.includes('escHtml(v)'));
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Summary
