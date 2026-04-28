@@ -12,7 +12,8 @@
       "Bash(open /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)",
       "Bash(node --check /tmp/final_script.js)",
       "Bash(node --check /tmp/check_js.js)",
-      "Bash(node /tmp/gmi_test.js)"
+      "Bash(node /tmp/gmi_test.js)",
+      "Bash(grep -n \"</div>$\\\\|<!-- Chart Fullscreen\" /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)"
     ],
     "additionalDirectories": [
       "/tmp",

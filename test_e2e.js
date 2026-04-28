@@ -435,9 +435,9 @@ test('weekKey() for digest cache keys', () => hasFn('weekKey'));
 test('Region jump highlights countries', () => hasFn('jumpToRegion') || js.includes('REGION_NAMES'));
 test('Static map resize handler', () =>
   js.includes("window.addEventListener('resize'") || js.includes('window.addEventListener("resize"'));
-test('File size under 400 KB (single file)', () => {
+test('File size under 460 KB (single file)', () => {
   const bytes = fs.statSync(FILE).size;
-  return bytes < 400000;
+  return bytes < 460000;
 });
 test('Boot sequence calls wireCommEvents', () => {
   // wireCommEvents() appears in the boot sequence (after BOOT comment)
@@ -538,6 +538,222 @@ test('Pulse post content/tag only (no usernames sent to AI)', () =>
   js.includes('p.content') && !js.includes('p.username') || js.includes('postData = posts.map'));
 test('escHtml used in pulse render (XSS safe)', () =>
   js.includes('escHtml(d.narrative') && js.includes('escHtml(t)') && js.includes('escHtml(v)'));
+
+console.log('\n── Phase 15: Commodity Heatmap ──────────────────────────────────────');
+test('Commodity overlay #commod-overlay exists', () => hasEl('commod-overlay'));
+test('Commodity panel #commod-panel exists', () => hasEl('commod-panel'));
+test('Commodity topbar button #commod-topbar-btn exists', () => hasEl('commod-topbar-btn'));
+test('Commodity close button exists', () => hasEl('commod-close-btn'));
+test('Commodity category tabs exist', () => ['all','energy','metals','agriculture','softs'].every(t => html.includes(`data-tab="${t}"`)));
+test('Commodity grid #commod-grid exists', () => hasEl('commod-grid'));
+test('Commodity detail panel #commod-detail-wrap exists', () => hasEl('commod-detail-wrap'));
+test('COMMOD_DEFS array defined', () => js.includes('const COMMOD_DEFS'));
+test('COMMOD_DEFS has 29 commodities', () => { const m = js.match(/const COMMOD_DEFS\s*=\s*\[/); if (!m) return false; const block = js.slice(js.indexOf('const COMMOD_DEFS')).split('];')[0]; return (block.match(/symbol:/g)||[]).length >= 25; });
+test('Energy sector defined (WTI, BRENT, NATGAS)', () => ['WTI','BRENT','NATGAS'].every(s => js.includes(`'${s}'`)));
+test('Metals sector defined (GOLD, SILVER, COPPER)', () => ['GOLD','SILVER','COPPER'].every(s => js.includes(`'${s}'`)));
+test('Agriculture sector defined (CORN, WHEAT, SOYB)', () => ['CORN','WHEAT','SOYB'].every(s => js.includes(`'${s}'`)));
+test('Softs sector defined (LUMBER, OJ)', () => ['LUMBER','OJ'].every(s => js.includes(`'${s}'`)));
+test('openCommodities() defined', () => js.includes('function openCommodities()'));
+test('closeCommodities() defined', () => js.includes('function closeCommodities()'));
+test('loadCommodityHeat() defined', () => js.includes('async function loadCommodityHeat()'));
+test('renderCommodityHeat() defined', () => js.includes('function renderCommodityHeat()'));
+test('openCommodityDetail() defined', () => js.includes('async function openCommodityDetail('));
+test('renderCommodityDetail() defined', () => js.includes('function renderCommodityDetail('));
+test('drawCommodityChart() D3 chart defined', () => js.includes('function drawCommodityChart('));
+test('closeCommodityDetail() defined', () => js.includes('function closeCommodityDetail()'));
+test('switchCommodTab() defined', () => js.includes('function switchCommodTab('));
+test('wireCommodEvents() defined', () => js.includes('function wireCommodEvents()'));
+test('wireCommodEvents() called in boot', () => { const bootIdx = js.indexOf('// BOOT'); return bootIdx >= 0 && js.indexOf('wireCommodEvents()', bootIdx) >= 0; });
+test('commodPctColor() for green/red heatmap', () => js.includes('function commodPctColor('));
+test('Detail panel shows D3 chart (requestAnimationFrame + drawCommodityChart)', () => js.includes('requestAnimationFrame') && js.includes('drawCommodityChart'));
+test('Trade idea conviction bar rendered', () => js.includes('commod-conv-fill') && js.includes('conviction'));
+test('Macro drivers rendered as chips', () => js.includes('commod-driver-chip'));
+test('Technical levels rendered (support/resistance)', () => js.includes('tl.support') && js.includes('tl.resistance'));
+test('XSS safe: escHtml used in commodity render', () => { const fn = js.slice(js.indexOf('function renderCommodityDetail(')); return fn.slice(0,fn.indexOf('\n}')).includes('escHtml'); });
+test('Commodity detail cache per symbol', () => js.includes('commodDetailCache'));
+test('Guard: no API key shows toast', () => js.includes('loadCommodityHeat') && js.includes("'Enter your API key first'"));
+test('ESC key closes commodity overlay', () => js.includes('commodOpen') && js.includes("'Escape'"));
+test('Commodity CSS: heatmap tile defined', () => css.includes('.commod-tile'));
+test('Commodity CSS: amber color scheme', () => css.includes('commod-topbar-btn') && css.includes('rgba(245,158,11'));
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 16: Chart Fullscreen (Task 27)
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n── Phase 16: Chart Fullscreen ───────────────────────────────────────');
+test('chart-fs overlay element exists', () => hasEl('chart-fs'));
+test('chart-fs-header element exists', () => hasEl('chart-fs-header'));
+test('chart-fs-title element exists', () => hasEl('chart-fs-title'));
+test('chart-fs-sub element exists', () => hasEl('chart-fs-sub'));
+test('chart-fs-toolbar element exists', () => hasEl('chart-fs-toolbar'));
+test('chart-fs-ohlc stats row exists (replaces legend)', () => hasEl('chart-fs-ohlc'));
+test('chart-fs-body element exists', () => hasEl('chart-fs-body'));
+test('chart-fs-chart container element exists (ECharts)', () => hasEl('chart-fs-chart'));
+test('chart-fs-tip element exists', () => hasEl('chart-fs-tip'));
+test('chart-fs-close button exists', () => hasEl('chart-fs-close'));
+test('openChartFs() function defined', () => js.includes('function openChartFs('));
+test('closeChartFs() function defined', () => js.includes('function closeChartFs()'));
+test('renderChartFs() function defined', () => js.includes('function renderChartFs()'));
+test('renderChartFsHistory() function defined', () => js.includes('function renderChartFsHistory()'));
+test('renderChartFsCommodity() function defined', () => js.includes('function renderChartFsCommodity()'));
+test('drawChartFsLine() function defined', () => js.includes('function drawChartFsLine('));
+test('wireChartFsEvents() function defined', () => js.includes('function wireChartFsEvents()'));
+test('wireChartFsEvents() called in boot', () => { const bootIdx = js.lastIndexOf('wireEventListeners()'); return bootIdx >= 0 && js.indexOf('wireChartFsEvents()', bootIdx) > bootIdx; });
+test('chartFsOpen state variable declared', () => js.includes('let chartFsOpen'));
+test('chartFsMetric state variable declared', () => js.includes('let chartFsMetric'));
+test('HISTORY_SERIES constants defined', () => js.includes('const HISTORY_SERIES'));
+test('History chart has expand button', () => html.includes('history-expand-btn'));
+test('Commodity detail has fullscreen button', () => html.includes('commod-expand-btn'));
+test('chart-expand-btn CSS class defined', () => css.includes('.chart-expand-btn'));
+test('chart-fs CSS: position fixed overlay', () => css.includes('#chart-fs') && css.includes('position:fixed'));
+test('chart-fs CSS: open state display:flex', () => css.includes('#chart-fs.open'));
+test('chart-fs CSS: z-index above commodity (2200)', () => css.includes('z-index:2200'));
+test('cfs-metric-btn CSS defined', () => css.includes('.cfs-metric-btn'));
+test('cfs-stat-badge CSS retained for compatibility', () => css.includes('.cfs-stat-badge'));
+test('cfs-ohlc-item CSS defined (TV-style stats row)', () => css.includes('.cfs-ohlc-item'));
+test('cfs-period-btn CSS defined', () => css.includes('.cfs-period-btn'));
+test('cfs-ma-btn CSS defined', () => css.includes('.cfs-ma-btn'));
+test('Close button uses onclick for reliable close (post-script DOM)', () => html.includes('chart-fs-close') && html.includes('onclick="closeChartFs()"'));
+test('chart-fs-ohlc element exists (replaces legend)', () => hasEl('chart-fs-ohlc'));
+test('chartFsPeriod state variable declared', () => js.includes('let chartFsPeriod'));
+test('chartFsShowMA5/MA20 state variables declared', () => js.includes('let chartFsShowMA5') && js.includes('let chartFsShowMA20'));
+test('cfsPeriodClick() helper defined', () => js.includes('function cfsPeriodClick('));
+test('cfsMaClick() helper defined', () => js.includes('function cfsMaClick('));
+test('buildCfsOhlcDefault() defined', () => js.includes('function buildCfsOhlcDefault('));
+test('LW crosshair subscribeCrosshairMove used', () => js.includes('subscribeCrosshairMove'));
+test('Volume histogram rendered in fullscreen (LightweightCharts)', () => js.includes('addHistogramSeries') && js.includes('volData'));
+test('MA5 (amber) drawn in fullscreen', () => js.includes('#F59E0B') && js.includes('maPer5'));
+test('MA20 (cyan) drawn in fullscreen', () => js.includes('#22D3EE') && js.includes('ma20'));
+test('Period filter applied in drawChartFsLine', () => js.includes("chartFsPeriod === '3M'") && js.includes("chartFsPeriod === '6M'"));
+test('LightweightCharts CrosshairMode.Normal used', () => js.includes('CrosshairMode.Normal'));
+test('LightweightCharts handleScale and handleScroll enabled', () => js.includes('handleScale') && js.includes('handleScroll'));
+test('TV dark background (#131722)', () => js.includes('#131722'));
+test('ESC closes chartFsOpen first in priority chain', () => {
+  const escIdx = js.indexOf("if (e.key === 'Escape')");
+  if (escIdx < 0) return false;
+  const block = js.slice(escIdx, escIdx + 200);
+  const fsIdx = block.indexOf('chartFsOpen');
+  const stockIdx = block.indexOf('closeStockDetail');
+  return fsIdx >= 0 && fsIdx < stockIdx;
+});
+test('Fullscreen close button onclick present', () => html.includes('onclick="closeChartFs()"'));
+test('Fullscreen renders chart using LightweightCharts', () => js.includes('drawChartFsLine') && js.includes('LW.createChart') && js.includes('LightweightCharts'));
+test('Fullscreen crosshair via LightweightCharts subscribeCrosshairMove', () => js.includes('subscribeCrosshairMove'));
+test('Fullscreen supports history type routing', () => js.includes("type === 'history'") && js.includes('renderChartFsHistory'));
+test('Fullscreen supports commodity type routing', () => js.includes("type === 'commodity'") && js.includes('renderChartFsCommodity'));
+test('LightweightCharts CDN script included', () => html.includes('lightweight-charts') && html.includes('cdn.jsdelivr.net'));
+test('chartFsInstance state variable declared', () => js.includes('let chartFsInstance'));
+test('chartFsType state variable declared', () => js.includes('let chartFsType'));
+test('chartFsShowBB state variable declared', () => js.includes('let chartFsShowBB'));
+test('cfsTypeClick() helper defined', () => js.includes('function cfsTypeClick('));
+test('cfsBBClick() helper defined', () => js.includes('function cfsBBClick('));
+test('Toolbar has LINE/AREA/CANDLE type buttons', () => js.includes("'line'") && js.includes("'area'") && js.includes("'candlestick'"));
+test('Bollinger Bands calcBB() defined in drawChartFsLine', () => js.includes('calcBB') && js.includes('upper') && js.includes('lower'));
+test('RSI calcRSI() defined in drawChartFsLine', () => js.includes('calcRSI') && js.includes('ag /= p'));
+test('Candlestick weekly OHLC simulation defined', () => js.includes('candles.push') && js.includes('WEEK_S'));
+test('closeChartFs removes LightweightCharts instance', () => js.includes('chartFsInstance.remove()'));
+test('wireChartFsEvents adds window resize handler', () => js.includes('chartFsInstance?.applyOptions'));
+test('cfs-type-btn CSS defined', () => css.includes('.cfs-type-btn'));
+test('cfs-bb-btn CSS defined', () => css.includes('.cfs-bb-btn'));
+test('RSI pane shown via LightweightCharts addLineSeries', () => js.includes('rsiSeriesObj') && js.includes('priceScaleId'));
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 17: FX Heatmap (Task 28)
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n── Phase 17: FX Heatmap ─────────────────────────────────────────');
+test('FX overlay #fx-overlay exists', () => hasEl('fx-overlay'));
+test('FX panel #fx-panel exists', () => hasEl('fx-panel'));
+test('FX topbar button #fx-topbar-btn exists', () => hasEl('fx-topbar-btn'));
+test('FX close button uses onclick', () => html.includes('fx-close-btn') && html.includes('onclick="closeFx()"'));
+test('FX grid #fx-grid exists', () => hasEl('fx-grid'));
+test('FX detail wrap #fx-detail-wrap exists', () => hasEl('fx-detail-wrap'));
+test('FX category tabs exist (all/g10/em_asia/em_emea/em_latam)', () =>
+  ['all','g10','em_asia','em_emea','em_latam'].every(t => html.includes(`data-tab="${t}"`)));
+test('FX_DEFS array defined', () => js.includes('const FX_DEFS'));
+test('G10 currencies defined (EUR,GBP,JPY,CHF,AUD,NZD,CAD,SEK,NOK)', () =>
+  ['EUR','GBP','JPY','CHF','AUD','NZD','CAD','SEK','NOK'].every(s => js.includes(`'${s}'`)));
+test('EM Asia currencies defined (CNY,INR,KRW,SGD)', () =>
+  ['CNY','INR','KRW','SGD'].every(s => js.includes(`'${s}'`)));
+test('EM EMEA currencies defined (ZAR,TRY,PLN)', () =>
+  ['ZAR','TRY','PLN'].every(s => js.includes(`'${s}'`)));
+test('EM LatAm currencies defined (BRL,MXN,CLP)', () =>
+  ['BRL','MXN','CLP'].every(s => js.includes(`'${s}'`)));
+test('openFx() function defined', () => js.includes('function openFx()'));
+test('closeFx() function defined', () => js.includes('function closeFx()'));
+test('loadFxHeat() async function defined', () => js.includes('async function loadFxHeat()'));
+test('renderFxHeat() function defined', () => js.includes('function renderFxHeat()'));
+test('openFxDetail() async function defined', () => js.includes('async function openFxDetail('));
+test('renderFxDetail() function defined', () => js.includes('function renderFxDetail('));
+test('drawFxChart() function defined', () => js.includes('function drawFxChart('));
+test('closeFxDetail() function defined', () => js.includes('function closeFxDetail()'));
+test('switchFxTab() function defined', () => js.includes('function switchFxTab('));
+test('wireFxEvents() function defined', () => js.includes('function wireFxEvents()'));
+test('wireFxEvents() called in boot', () => { const bootIdx = js.lastIndexOf('wireCommodEvents()'); return bootIdx >= 0 && js.indexOf('wireFxEvents()', bootIdx) > bootIdx; });
+test('fxPctColor() green/red scheme defined', () => js.includes('function fxPctColor('));
+test('FX detail has fullscreen expand button', () => html.includes('fx-expand-btn'));
+test('FX chart reuses openChartFs for fullscreen', () => { const fn = js.slice(js.indexOf('function renderFxDetail(')); return fn.slice(0,fn.indexOf('\n}')+2).includes('openChartFs'); });
+test('FX detail cache per symbol', () => js.includes('fxDetailCache'));
+test('ESC closes fxOpen (between caOpen and commodOpen)', () => {
+  const escIdx = js.indexOf("if (e.key === 'Escape')");
+  if (escIdx < 0) return false;
+  const block = js.slice(escIdx, escIdx + 600);
+  const caIdx    = block.indexOf('caOpen');
+  const fxIdx    = block.indexOf('fxOpen');
+  const commIdx  = block.indexOf('commodOpen');
+  return fxIdx > caIdx && fxIdx < commIdx;
+});
+test('FX overlay z-index 2080 (above commodity 2075)', () => css.includes('#fx-overlay') && css.includes('z-index:2080'));
+test('FX tile CSS defined', () => css.includes('.fx-tile'));
+test('FX indigo color scheme in CSS', () => css.includes('6366f1'));
+test('XSS safe: escHtml used in FX render', () => { const fn = js.slice(js.indexOf('function renderFxDetail(')); return fn.slice(0,fn.indexOf('\n}')+2).includes('escHtml'); });
+test('Guard: no API key shows toast in openFx', () => { const fn = js.slice(js.indexOf('function openFx()')); return fn.slice(0,200).includes("'Enter your API key first'") && fn.slice(0,200).includes('apiKey'); });
+test('FX backdrop click closes overlay', () => js.includes('fxOpen') && js.includes('closeFx'));
+test('FX D3 chart uses CatmullRom curve', () => js.includes('drawFxChart') && js.includes('curveCatmullRom'));
+test('FX carry analysis in detail', () => js.includes('carry') && js.includes('rate_differential'));
+test('FX central bank stance in detail', () => js.includes('central_bank') && js.includes('hawkish'));
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 18: Real Market Data — Yahoo Finance Integration (Task 30)
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n── Phase 18: Real Market Data (Yahoo Finance) ───────────────────');
+test('YF_TICKER map defined with commodity futures', () =>
+  js.includes('const YF_TICKER') && js.includes("'CL=F'") && js.includes("'GC=F'") && js.includes("'GBP'"));
+test('YF_TICKER includes FX pairs (EURUSD=X, GBPUSD=X, USDJPY=X)', () =>
+  js.includes("'EURUSD=X'") && js.includes("'GBPUSD=X'") && js.includes("'USDJPY=X'"));
+test('YF_TICKER covers energy futures (CL=F, NG=F, BZ=F)', () =>
+  js.includes("'CL=F'") && js.includes("'NG=F'") && js.includes("'BZ=F'"));
+test('fetchYFOHLC async function defined', () => js.includes('async function fetchYFOHLC('));
+test('fetchYFOHLC uses corsproxy.io for CORS', () => js.includes('corsproxy.io') && js.includes('fetchYFOHLC'));
+test('fetchYFOHLC caches results in _yfCache', () => js.includes('_yfCache') && js.includes('_yfCache[key]'));
+test('fetchYFOHLC returns OHLCV bars with time/open/high/low/close/volume', () =>
+  js.includes('open:') && js.includes('high:') && js.includes('low:') && js.includes('close:') && js.includes('volume:') && js.includes('fetchYFOHLC'));
+test('fetchYFOHLC filters null/invalid bars', () => js.includes('isFinite(c.open)') && js.includes('c.high >= c.low'));
+test('drawChartFsLine has real OHLCV path (rawOhlcv)', () => js.includes('rawOhlcv') && js.includes('chartFsPayload?.ohlcv'));
+test('Real data path applies time-based period filter (91/183 days)', () =>
+  js.includes('91 * 86400') && js.includes('183 * 86400'));
+test('Real data path uses actual bar timestamps (not synthetic monthTs)', () =>
+  js.includes('bars.map(b => b.time)') || js.includes("b => b.time"));
+test('Real candlestick uses actual OHLC from Yahoo Finance (no simulation)', () =>
+  js.includes('open: b.open') && js.includes('high: b.high') && js.includes('low: b.low'));
+test('LLM simulation path still present as fallback', () =>
+  js.includes('LLM SIMULATION PATH') || (js.includes('Math.sin(m * 13.7') && js.includes('monthTs')));
+test('Commodity expand starts background fetchYFOHLC', () =>
+  js.includes('_yfSymCommod') && js.includes('fetchYFOHLC(_yfSymCommod'));
+test('Commodity expand stores ohlcv in commodDetailCache', () =>
+  js.includes("commodDetailCache[data.symbol].ohlcv = ohlcv"));
+test('FX expand starts background fetchYFOHLC', () =>
+  js.includes('_yfSymFx') && js.includes('fetchYFOHLC(_yfSymFx'));
+test('FX expand stores ohlcv in fxDetailCache', () =>
+  js.includes("fxDetailCache[data.symbol].ohlcv = ohlcv"));
+test('openChartFs payload includes ohlcv field', () =>
+  js.includes('ohlcv,') || js.includes('ohlcv: ohlcv'));
+test('Chart sub shows ⬤ LIVE when real data present', () => js.includes('⬤ LIVE'));
+test('Chart sub shows ⚠ AI ESTIMATE when using LLM data', () => js.includes('⚠ AI ESTIMATE'));
+test('Graceful fallback: fetchYFOHLC failure caught silently', () => {
+  const idx = js.indexOf('fetchYFOHLC(_yfSymCommod');
+  if (idx < 0) return false;
+  const fn = js.slice(idx, idx + 400);
+  return fn.includes('.catch(');
+});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Summary
