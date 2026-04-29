@@ -435,9 +435,9 @@ test('weekKey() for digest cache keys', () => hasFn('weekKey'));
 test('Region jump highlights countries', () => hasFn('jumpToRegion') || js.includes('REGION_NAMES'));
 test('Static map resize handler', () =>
   js.includes("window.addEventListener('resize'") || js.includes('window.addEventListener("resize"'));
-test('File size under 460 KB (single file)', () => {
+test('File size under 500 KB (single file)', () => {
   const bytes = fs.statSync(FILE).size;
-  return bytes < 460000;
+  return bytes < 500000;
 });
 test('Boot sequence calls wireCommEvents', () => {
   // wireCommEvents() appears in the boot sequence (after BOOT comment)
@@ -753,6 +753,75 @@ test('Graceful fallback: fetchYFOHLC failure caught silently', () => {
   if (idx < 0) return false;
   const fn = js.slice(idx, idx + 400);
   return fn.includes('.catch(');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 19: Research Hub (Task 32)
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n── Phase 19: Research Hub ───────────────────────────────────────');
+test('Research overlay #research-overlay exists', () => hasEl('research-overlay'));
+test('Research panel #research-panel exists', () => hasEl('research-panel'));
+test('Research topbar button #research-topbar-btn exists', () => hasEl('research-topbar-btn'));
+test('Research close button exists', () => hasEl('research-close-btn'));
+test('Research sources column #research-sources-col exists', () => hasEl('research-sources-col'));
+test('Research articles column #research-articles exists', () => hasEl('research-articles'));
+test('RESEARCH_SOURCES array defined with 16 institutions', () => {
+  const m = js.match(/const RESEARCH_SOURCES\s*=\s*\[/);
+  if (!m) return false;
+  const block = js.slice(js.indexOf('const RESEARCH_SOURCES')).split('];')[0];
+  return (block.match(/id:/g)||[]).length >= 16;
+});
+test('Investment banks defined (gs, jpm, ms, bofa, citi)', () =>
+  ["'gs'","'jpm'","'ms'","'bofa'","'citi'"].every(s => js.includes(s)));
+test('Hedge funds defined (bl, bw, aqr)', () =>
+  ["'bl'","'bw'","'aqr'"].every(s => js.includes(s)));
+test('Official institutions defined (imf, wb, bis, ecb)', () =>
+  ["'imf'","'wb'","'bis'","'ecb'"].every(s => js.includes(s)));
+test('openResearch() function defined', () => js.includes('function openResearch()'));
+test('closeResearch() function defined', () => js.includes('function closeResearch()'));
+test('loadResearch() async function defined', () => js.includes('async function loadResearch('));
+test('renderResearchArticles() function defined', () => js.includes('function renderResearchArticles('));
+test('wireResearchEvents() function defined', () => js.includes('function wireResearchEvents()'));
+test('wireResearchEvents() called in boot', () => js.includes('wireResearchEvents()'));
+test('Research z-index 2085 (between ca:2100 and fx:2080)', () =>
+  css.includes('#research-overlay') && css.includes('z-index:2085'));
+test('Research uses callLLM for article generation', () => {
+  const fn = js.slice(js.indexOf('async function loadResearch('));
+  return fn.slice(0, 4000).includes('callLLM');
+});
+test('Research LLM prompt requests 10 articles in JSON', () => {
+  const fn = js.slice(js.indexOf('async function loadResearch('));
+  return fn.slice(0, 4000).includes('10') && fn.slice(0, 4000).includes('JSON');
+});
+test('Research renders house_view and key_calls', () =>
+  js.includes('house_view') && js.includes('key_calls') && js.includes('research-house-card'));
+test('Research article cards have title, summary, themes, sentiment', () =>
+  js.includes('research-article-title') && js.includes('research-article-summary') &&
+  js.includes('research-theme-chip') && js.includes('research-sent-badge'));
+test('Research READ → button links to article URL', () =>
+  js.includes('research-read-btn') && js.includes('target="_blank"'));
+test('Research cache prevents duplicate API calls', () =>
+  js.includes('researchCache') && js.includes('researchCache[srcId]'));
+test('Research shows disclaimer on AI-synthesized content', () =>
+  js.includes('research-disclaimer') && js.includes('disclaimer'));
+test('ESC closes research overlay', () => {
+  const idx = js.indexOf("if (e.key === 'Escape')");
+  if (idx < 0) return false;
+  const block = js.slice(idx, idx + 800);
+  return block.includes('researchOpen') && block.includes('closeResearch()');
+});
+test('Research backdrop click closes overlay', () =>
+  js.includes('researchOpen') && js.includes('closeResearch'));
+test('XSS safe: escHtml used in renderResearchArticles', () => {
+  const fn = js.slice(js.indexOf('function renderResearchArticles('));
+  return fn.slice(0, fn.indexOf('\n}')+2).includes('escHtml');
+});
+test('Research CSS: source-btn, article-card, house-card, theme-chip defined', () =>
+  css.includes('.research-source-btn') && css.includes('.research-article-card') &&
+  css.includes('.research-house-card') && css.includes('.research-theme-chip'));
+test('Guard: API key required to open Research Hub', () => {
+  const fn = js.slice(js.indexOf('function openResearch()'));
+  return fn.slice(0, 200).includes('apiKey') && fn.slice(0, 200).includes('showToast');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════

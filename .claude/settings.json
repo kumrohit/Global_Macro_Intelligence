@@ -13,7 +13,8 @@
       "Bash(node --check /tmp/final_script.js)",
       "Bash(node --check /tmp/check_js.js)",
       "Bash(node /tmp/gmi_test.js)",
-      "Bash(grep -n \"</div>$\\\\|<!-- Chart Fullscreen\" /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)"
+      "Bash(grep -n \"</div>$\\\\|<!-- Chart Fullscreen\" /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)",
+      "Bash(awk '{printf \"%.1f KB\\\\n\", $1/1024}')"
     ],
     "additionalDirectories": [
       "/tmp",
