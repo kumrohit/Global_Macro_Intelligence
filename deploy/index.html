@@ -1197,6 +1197,8 @@ body::after{
 .research-article-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 a.research-read-btn{font-family:var(--font-mono);font-size:8px;color:var(--accent);border:1px solid rgba(96,165,250,0.3);background:transparent;padding:4px 8px;border-radius:2px;cursor:pointer;text-decoration:none;letter-spacing:0.08em;transition:color 0.15s,border-color 0.15s,background 0.15s;display:inline-block;}
 a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--accent);}
+a.research-read-btn--search{color:var(--text2);border-color:rgba(100,116,139,0.3);font-size:7px;}
+a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,250,0.4);background:rgba(96,165,250,0.05);}
 .research-sent-badge{font-family:var(--font-mono);font-size:8px;font-weight:700;padding:2px 7px;border-radius:2px;letter-spacing:0.08em;}
 .research-sent-badge.bullish{background:rgba(16,185,129,0.1);color:#10B981;border:1px solid rgba(16,185,129,0.25);}
 .research-sent-badge.bearish{background:rgba(239,68,68,0.1);color:#EF4444;border:1px solid rgba(239,68,68,0.25);}
@@ -1683,6 +1685,50 @@ a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--acc
 .nl-send-btn{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.4);color:var(--bull);border-radius:3px;padding:5px 12px;cursor:pointer;transition:color 0.12s,border-color 0.12s,background 0.12s,opacity 0.12s;}
 .nl-send-btn:hover{background:rgba(34,197,94,0.2);border-color:var(--bull);}
 .nl-send-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* Onboarding banner */
+#onboard-banner{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:4900;
+  background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(245,158,11,0.08));
+  border-bottom:1px solid rgba(245,158,11,0.35);
+  padding:7px 20px;font-family:var(--font-mono);font-size:10px;color:var(--amber);
+  display:none;align-items:center;gap:12px;justify-content:center;
+  letter-spacing:0.05em;
+}
+#onboard-banner.visible{display:flex;}
+#onboard-banner-addkey{
+  font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.1em;
+  background:var(--amber);color:#000;border:none;border-radius:3px;
+  padding:4px 12px;cursor:pointer;white-space:nowrap;
+}
+#onboard-banner-dismiss{
+  font-family:var(--font-mono);font-size:11px;color:rgba(245,158,11,0.5);
+  background:none;border:none;cursor:pointer;margin-left:auto;padding:0 4px;
+}
+#onboard-banner-dismiss:hover{color:var(--amber);}
+
+/* Panel welcome card */
+#panel-welcome{
+  display:block;padding:28px 0 12px;text-align:center;
+}
+#panel-welcome .pw-icon{font-size:28px;margin-bottom:10px;color:var(--text3);}
+#panel-welcome .pw-title{font-family:var(--font-mono);font-size:11px;color:var(--text2);letter-spacing:0.08em;margin-bottom:6px;}
+#panel-welcome .pw-sub{font-family:var(--font-mono);font-size:9px;color:var(--text3);line-height:1.7;}
+
+/* Map click hint */
+#map-hint{
+  position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+  font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:0.12em;
+  pointer-events:none;text-align:center;
+  animation:hint-pulse 2.5s ease-in-out infinite;
+}
+@keyframes hint-pulse{0%,100%{opacity:0.4;}50%{opacity:0.9;}}
+
+/* ESC hint on overlay headers */
+.overlay-esc-hint{
+  font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:0.08em;
+  opacity:0.6;white-space:nowrap;
+}
 
 /* Toast notification */
 #gmi-toast{
@@ -2235,6 +2281,11 @@ a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--acc
 
 <div id="app">
 
+<div id="onboard-banner">
+  <span>🔑 Add your API key to unlock AI analysis across the full dashboard</span>
+  <button id="onboard-banner-addkey">ADD KEY →</button>
+  <button id="onboard-banner-dismiss" title="Dismiss">✕</button>
+</div>
 <div id="topbar">
   <div>
     <div class="logo">◈ GLOBAL MACRO INTELLIGENCE</div>
@@ -2274,6 +2325,8 @@ a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--acc
       <div class="mh-title">World Sentiment Map</div>
       <div class="mh-sub">Click any country · Pan · Zoom · <span id="analysed-inline">0 analysed</span></div>
     </div>
+
+    <div id="map-hint">▼ &nbsp;CLICK ANY COUNTRY TO ANALYSE &nbsp;▼</div>
 
     <!-- Zoom controls -->
     <div id="zoom-ctrls">
@@ -2421,6 +2474,11 @@ a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--acc
       <button id="lang-btn" title="Translate to native language">🌐 EN</button>
     </div>
     <div id="panel-body">
+      <div id="panel-welcome">
+        <div class="pw-icon">◈</div>
+        <div class="pw-title">SELECT A COUNTRY</div>
+        <div class="pw-sub">Click any country on the map<br>to run live macro sentiment analysis.</div>
+      </div>
       <div id="native-note" class=""></div>
       <div class="slabel">MACRO SENTIMENT</div>
       <div id="sent-badge" class="loading"><span class="spin"></span> &nbsp;ANALYSING</div><br>
@@ -2613,7 +2671,7 @@ a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--acc
       <div class="aw-label">API KEY — CLAUDE (sk-ant-…) OR GEMINI (AIza…)</div>
       <input type="password" id="api-input" placeholder="sk-ant-… or AIza…">
       <button id="api-save">SAVE &amp; ACTIVATE</button>
-      <div id="api-ok">✓ KEY ACTIVE — PRECOMPUTING ALL COUNTRIES…</div>
+      <div id="api-ok">✓ KEY ACTIVE</div>
       <div id="api-progress" style="display:none;margin-top:6px;font-size:9px;font-family:var(--font-mono);color:var(--accent);">
         <div id="api-progress-bar" style="height:2px;background:var(--accent);width:0%;transition:width 0.3s;margin-bottom:4px;border-radius:1px;"></div>
         <span id="api-progress-text">Precomputing 0 / 0…</span>
@@ -2621,9 +2679,12 @@ a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--acc
     </div>
     <div id="country-widget">
       <div class="aw-label">COUNTRY ANALYSIS SCOPE</div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-bottom:10px;line-height:1.6;">
+        Controls which countries are available for on-demand analysis when you click the map. <span style="color:var(--text2);">Analysis runs only when you click a country.</span>
+      </div>
       <div id="country-mode-row">
         <button class="cmode-btn active" data-mode="all">ALL COUNTRIES</button>
-        <button class="cmode-btn" data-mode="select">SELECT</button>
+        <button class="cmode-btn" data-mode="select">SELECT SCOPE</button>
       </div>
       <div id="country-search-wrap">
         <input type="text" id="country-search-input" placeholder="Filter countries…">
@@ -2642,8 +2703,9 @@ a.research-read-btn:hover{background:rgba(96,165,250,0.1);border-color:var(--acc
         <div id="research-header-title">📄 RESEARCH HUB</div>
         <div id="research-header-sub">INVESTMENT BANKS · HEDGE FUNDS · OFFICIAL INSTITUTIONS · AI-SYNTHESIZED</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <button id="research-refresh-btn" onclick="refreshResearch()" title="Clear cache and reload">↺ REFRESH</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="overlay-esc-hint">ESC</span>
+        <button id="research-refresh-btn" onclick="refreshResearch()" title="Clear cached data and reload from AI">↺ REFRESH</button>
         <button id="research-close-btn" onclick="closeResearch()">✕ CLOSE</button>
       </div>
     </div>
@@ -3345,8 +3407,10 @@ function selectCountry(d) {
   activeId = key;
   d3.select('#' + key).classed('active', true);
 
-  // Open panel
+  // Open panel — show welcome card while analysis loads, hide map hint
   _elPanel.classList.add('open');
+  const _pwCard = document.getElementById('panel-welcome');
+  if (_pwCard && !cache[key]) _pwCard.style.display = 'block';
 
   // Populate header
   _elPFlag.textContent = meta.flag || '🌍';
@@ -3686,6 +3750,12 @@ news_topics: array of 3 strings, each a specific ${meta.name} macro topic, max 5
 // RENDER PANEL
 // ════════════════════════════════════════════════════════════════════
 function renderPanel(data) {
+  // Hide welcome state and map hint once a country is being rendered
+  const welcome = document.getElementById('panel-welcome');
+  if (welcome) welcome.style.display = 'none';
+  const hint = document.getElementById('map-hint');
+  if (hint) hint.style.display = 'none';
+
   // Normalise sentiment (model may return mixed case or extra words)
   const rawSent = (data.sentiment || '').toLowerCase().trim();
   const sentiment = ['bullish','bearish','neutral'].includes(rawSent) ? rawSent : 'neutral';
@@ -4204,12 +4274,13 @@ document.getElementById('api-save').addEventListener('click', () => {
   }
 
   apiKey = v;
+  hideOnboardBanner();
   const ok = document.getElementById('api-ok');
-  const label = provider === 'gemini' ? '✓ GEMINI ACTIVE — PRECOMPUTING ALL COUNTRIES…' : '✓ CLAUDE ACTIVE — PRECOMPUTING ALL COUNTRIES…';
+  const label = provider === 'gemini' ? '✓ GEMINI ACTIVE' : '✓ CLAUDE ACTIVE';
   ok.textContent = label;
   ok.style.color = '';
   ok.style.display = 'block';
-  setTimeout(() => ok.style.display = 'none', 5000);
+  setTimeout(() => ok.style.display = 'none', 4000);
 
   loadTickers();
   if (tickerTimer) clearInterval(tickerTimer);
@@ -4221,7 +4292,7 @@ document.getElementById('api-save').addEventListener('click', () => {
       else { loadTickers(); tickerTimer = setInterval(loadTickers, 300000); }
     });
   }
-  precomputeAll();
+  // Country analysis runs on demand from the 🌍 COUNTRIES tab — no precompute on key save.
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -4768,7 +4839,7 @@ async function loadSocialSentiment() {
   if (!apiKey) {
     loading.style.display = 'none';
     errEl.style.display = 'block';
-    errEl.textContent = 'Enter an API key to enable social sentiment.';
+    errEl.textContent = 'Add your API key in Profile → ⚙ API to enable social sentiment.';
     return;
   }
 
@@ -5797,6 +5868,14 @@ function drawCaGauge(score) {
 // EVENT LISTENERS (attached programmatically to avoid scope issues)
 // ════════════════════════════════════════════════════════════════════
 function wireEventListeners() {
+  // Onboarding banner
+  document.getElementById('onboard-banner-addkey')?.addEventListener('click', () => {
+    hideOnboardBanner();
+    showApiSettings();
+    openProfile();
+  });
+  document.getElementById('onboard-banner-dismiss')?.addEventListener('click', hideOnboardBanner);
+
   // Panel close
   const pClose = document.getElementById('p-close');
   if (pClose) pClose.addEventListener('click', closePanel);
@@ -6191,6 +6270,8 @@ function startSession(session) {
   saveSession(session);
   applySession(session);
   hideLoginOverlay();
+  // Show onboarding banner if no API key set yet
+  if (!apiKey) setTimeout(showOnboardBanner, 600);
 }
 
 function applySession(session) {
@@ -6391,7 +6472,7 @@ async function loadDigestTab(tab, forceRefresh) {
   }
 
   if (!apiKey) {
-    body.innerHTML = '<div class="digest-empty">Enter an API key in the ⚙ API &amp; SETTINGS tab to load your personalised digest.</div>';
+    body.innerHTML = '<div class="digest-empty" style="cursor:pointer;" onclick="showApiSettings()">🔑 Add your API key in Profile → ⚙ API to load your personalised digest.</div>';
     return;
   }
 
@@ -6862,6 +6943,25 @@ function generateNewsletterText(data) {
 
 // Toast helpers
 let _toastTimer = null;
+function showApiKeyToast(hint) {
+  showToast(
+    (hint || 'API key required.') + ' →',
+    () => { showApiSettings(); openProfile(); },
+    5000
+  );
+  // repurpose the send button label
+  const sendBtn = document.getElementById('gmi-toast-send');
+  if (sendBtn) sendBtn.textContent = 'ADD KEY';
+}
+
+function showOnboardBanner() {
+  const b = document.getElementById('onboard-banner');
+  if (b && !apiKey) b.classList.add('visible');
+}
+function hideOnboardBanner() {
+  document.getElementById('onboard-banner')?.classList.remove('visible');
+}
+
 function showToast(msg, onSend, duration) {
   const toast = document.getElementById('gmi-toast');
   const msgEl = document.getElementById('gmi-toast-msg');
@@ -7625,44 +7725,44 @@ async function fetchYFOHLC(yfSym, range, interval) {
 // RESEARCH HUB
 // ════════════════════════════════════════════════════════════════════
 const RESEARCH_SOURCES = [
-  // Investment Banks — searchUrl used to generate per-article Google site search links
+  // Investment Banks
   { id:'gs',   name:'Goldman Sachs',     cat:'banks',    color:'#3b82f6',
     url:'https://www.goldmansachs.com/insights/',
-    searchUrl:'https://www.google.com/search?q={q}+Goldman+Sachs+research+filetype:pdf+OR+site:goldmansachs.com' },
+    searchUrl:'https://www.goldmansachs.com/intelligence/search-results/?q={q}' },
   { id:'jpm',  name:'JPMorgan',          cat:'banks',    color:'#1d4ed8',
-    url:'https://www.jpmorgan.com/insights',
-    searchUrl:'https://www.google.com/search?q={q}+JPMorgan+research+report' },
+    url:'https://www.jpmorgan.com/insights/global-research',
+    searchUrl:'https://www.jpmorgan.com/insights/global-research?q={q}' },
   { id:'ms',   name:'Morgan Stanley',    cat:'banks',    color:'#2563eb',
     url:'https://www.morganstanley.com/ideas',
-    searchUrl:'https://www.google.com/search?q={q}+Morgan+Stanley+research+report' },
+    searchUrl:'https://www.morganstanley.com/search#q={q}&t=All' },
   { id:'bofa', name:'BofA Securities',   cat:'banks',    color:'#dc2626',
-    url:'https://www.bofasecurities.com',
-    searchUrl:'https://www.google.com/search?q={q}+Bank+of+America+research+report' },
+    url:'https://institute.bankofamerica.com/insights.html',
+    searchUrl:'https://institute.bankofamerica.com/insights.html?q={q}' },
   { id:'citi', name:'Citi Research',     cat:'banks',    color:'#1e40af',
-    url:'https://www.citigroup.com',
-    searchUrl:'https://www.google.com/search?q={q}+Citi+research+global+markets' },
+    url:'https://www.privatebank.citibank.com/insights-and-ideas',
+    searchUrl:'https://www.privatebank.citibank.com/insights-and-ideas?q={q}' },
   { id:'ubs',  name:'UBS',               cat:'banks',    color:'#ef4444',
     url:'https://www.ubs.com/global/en/wealth-management/insights.html',
-    searchUrl:'https://www.google.com/search?q={q}+UBS+research+report' },
+    searchUrl:'https://www.ubs.com/global/en/wealth-management/insights.html?q={q}' },
   { id:'db',   name:'Deutsche Bank',     cat:'banks',    color:'#60a5fa',
     url:'https://www.db.com/what-we-do/research',
-    searchUrl:'https://www.google.com/search?q={q}+Deutsche+Bank+research+report' },
+    searchUrl:'https://www.db.com/what-we-do/research?q={q}' },
   { id:'barc', name:'Barclays Research', cat:'banks',    color:'#818cf8',
-    url:'https://www.investmentbank.barclays.com',
-    searchUrl:'https://www.google.com/search?q={q}+Barclays+research+report' },
+    url:'https://www.investmentbank.barclays.com/our-insights.html',
+    searchUrl:'https://www.investmentbank.barclays.com/our-insights.html?q={q}' },
   // Hedge Funds & Asset Managers
   { id:'bl',   name:'BlackRock BII',     cat:'hedge',    color:'#7c3aed',
-    url:'https://www.blackrock.com/corporate/insights',
-    searchUrl:'https://www.blackrock.com/corporate/insights?q={q}' },
+    url:'https://www.blackrock.com/us/individual/insights',
+    searchUrl:'https://www.blackrock.com/us/individual/insights?q={q}' },
   { id:'bw',   name:'Bridgewater',       cat:'hedge',    color:'#6d28d9',
     url:'https://www.bridgewater.com/research-and-insights',
-    searchUrl:'https://www.google.com/search?q={q}+Bridgewater+Associates+research' },
+    searchUrl:'https://www.bridgewater.com/research-and-insights?q={q}' },
   { id:'aqr',  name:'AQR Capital',       cat:'hedge',    color:'#5b21b6',
     url:'https://www.aqr.com/Insights/Research',
     searchUrl:'https://www.aqr.com/Insights/Research?q={q}' },
   { id:'man',  name:'Man Group',         cat:'hedge',    color:'#a78bfa',
     url:'https://www.man.com/insights',
-    searchUrl:'https://www.google.com/search?q={q}+Man+Group+research' },
+    searchUrl:'https://www.man.com/insights?query={q}' },
   // Official Institutions — have public RSS feeds for real article data
   { id:'imf',  name:'IMF Research',      cat:'official', color:'#b45309',
     url:'https://www.imf.org/en/Publications',
@@ -7687,7 +7787,7 @@ let researchSrc  = null;
 const researchCache = {};
 
 function openResearch() {
-  if (!apiKey) { showToast('Enter your API key in Profile → ⚙ API to enable Research Hub', null, 4000); return; }
+  if (!apiKey) { showApiKeyToast('API key required to open Research Hub'); return; }
   researchOpen = true;
   document.getElementById('research-overlay').classList.add('open');
   if (!researchSrc) researchSrc = 'gs'; // default to Goldman Sachs
@@ -7738,9 +7838,16 @@ function _extractResearchJSON(raw) {
 }
 
 function _articleLink(a, src) {
+  // RSS articles carry verified direct source URLs — use them as-is
   if (a.directUrl) return a.directUrl;
-  if (!src?.searchUrl) return src?.url || '#';
-  return src.searchUrl.replace('{q}', encodeURIComponent(a.title || ''));
+  // LLM-provided URLs are unreliable (hallucinated paths) — fall back to the
+  // institution's known-good publications page which is guaranteed to exist
+  return src?.url || '#';
+}
+
+function _isDirectLink(a) {
+  // Only RSS-sourced articles have guaranteed direct links
+  return !!a.directUrl;
 }
 
 async function _fetchRSSResearch(src) {
@@ -7824,9 +7931,8 @@ Output ONLY a JSON object — no markdown, no code fences, no explanation. Struc
 
 Requirements:
 - articles array: exactly 10 items, sorted newest-first, 2024-2025 publications only
-- title: real specific ${src.name} report name (not generic)
-- score: number between -1.0 and 1.0 (negative=bearish, positive=bullish)
-- No "url" field in articles`;
+- title: real specific ${src.name} report name (not generic); must be exact enough that a reader could find it by searching the title
+- score: number between -1.0 and 1.0 (negative=bearish, positive=bullish)`;
 
   try {
     const raw = await callLLM('You output only valid minified JSON. No markdown, no code fences, no extra text before or after the JSON object.', prompt, 4000, 0.4);
@@ -7900,7 +8006,11 @@ function renderResearchArticles(data, srcId) {
         <div class="research-themes">${(a.themes||[]).map(t=>`<span class="research-theme-chip">${escHtml(String(t))}</span>`).join('')}</div>
         <div class="research-article-actions">
           <span class="research-sent-badge ${sentClass}">${(a.sentiment||'neutral').toUpperCase()}</span>
-          <a class="research-read-btn" href="${escHtml(_articleLink(a, src))}" target="_blank" rel="noopener noreferrer">READ →</a>
+          ${_isDirectLink(a)
+            ? `<a class="research-read-btn" href="${escHtml(_articleLink(a, src))}" target="_blank" rel="noopener noreferrer" title="Open article directly">OPEN ARTICLE →</a>`
+            : `<a class="research-read-btn research-read-btn--search" href="https://www.google.com/search?q=${encodeURIComponent('"'+(a.title||'')+'" '+(src?.name||''))}" target="_blank" rel="noopener noreferrer" title="Search Google for this exact report title — finds the paper, PDF, or news coverage">FIND ARTICLE ↗</a>
+               <a class="research-read-btn research-read-btn--search" href="${escHtml(src?.url||'#')}" target="_blank" rel="noopener noreferrer" title="Go to ${escHtml(src?.name||'institution')} research publications page">PUBLICATIONS →</a>`
+          }
         </div>
       </div>
     </div>`;
@@ -8001,7 +8111,7 @@ function commodPctColor(pct) {
 }
 
 async function loadCommodityHeat() {
-  if (!apiKey) { showToast('Enter your API key first', null, 3000); return; }
+  if (!apiKey) { showApiKeyToast('API key required for Commodities'); return; }
   if (commodLoading) return;
   commodLoading = true;
   const grid = document.getElementById('commod-grid');
@@ -8072,7 +8182,7 @@ async function openCommodityDetail(symbol) {
   if (commodDetailLoading) return;
   const base = commodData.find(d => d.symbol === symbol) || COMMOD_DEFS.find(d => d.symbol === symbol) || {};
   det.innerHTML = `<div class="commod-det-loading"><span style="color:var(--amber);">⬡</span> Analysing ${escHtml(base.name || symbol)}…</div>`;
-  if (!apiKey) { det.innerHTML = '<div class="commod-det-loading">Enter API key first.</div>'; return; }
+  if (!apiKey) { det.innerHTML = '<div class="commod-det-loading" style="cursor:pointer;" onclick="showApiSettings();openProfile();">🔑 Add API key in Profile → ⚙ API to enable analysis</div>'; return; }
   commodDetailLoading = true;
   const sys = 'You are a commodity market analyst. Output ONLY a valid JSON object. No markdown, no code fences, no prose before or after. Start your response with { and end with }.';
   const usr = `Provide detailed macro analysis for ${base.name || symbol} (${base.unit || ''}).
@@ -8328,7 +8438,7 @@ function fxPctColor(pct) {
 }
 
 function openFx() {
-  if (!apiKey) { showToast('Enter your API key first'); return; }
+  if (!apiKey) { showApiKeyToast('API key required for FX Markets'); return; }
   fxOpen = true;
   document.getElementById('fx-overlay').classList.add('open');
   if (!fxData.length && !fxLoading) loadFxHeat();
@@ -9074,7 +9184,7 @@ let _commPulseRunning = false;
 
 async function analyzeCommunityPulse() {
   if (_commPulseRunning) return;
-  if (!apiKey) { showToast('Enter your Gemini API key first', null, 3000); return; }
+  if (!apiKey) { showApiKeyToast('API key required for Community Pulse analysis'); return; }
 
   // Collect posts from Firebase or local store
   let posts = [];

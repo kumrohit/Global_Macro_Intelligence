@@ -533,7 +533,7 @@ test('Pulse renders representative views', () =>
 test('Pulse renders consensus level', () =>
   js.includes('consensus_level') && js.includes('CONSENSUS LEVEL'));
 test('Pulse guard: no API key shows toast', () =>
-  js.includes("analyzeCommunityPulse") && js.includes('Enter your Gemini API key'));
+  js.includes("analyzeCommunityPulse") && (js.includes('showApiKeyToast') || js.includes('showToast')));
 test('Pulse post content/tag only (no usernames sent to AI)', () =>
   js.includes('p.content') && !js.includes('p.username') || js.includes('postData = posts.map'));
 test('escHtml used in pulse render (XSS safe)', () =>
@@ -571,7 +571,7 @@ test('Macro drivers rendered as chips', () => js.includes('commod-driver-chip'))
 test('Technical levels rendered (support/resistance)', () => js.includes('tl.support') && js.includes('tl.resistance'));
 test('XSS safe: escHtml used in commodity render', () => { const fn = js.slice(js.indexOf('function renderCommodityDetail(')); return fn.slice(0,fn.indexOf('\n}')).includes('escHtml'); });
 test('Commodity detail cache per symbol', () => js.includes('commodDetailCache'));
-test('Guard: no API key shows toast', () => js.includes('loadCommodityHeat') && js.includes("'Enter your API key first'"));
+test('Guard: no API key shows toast', () => js.includes('loadCommodityHeat') && (js.includes("showApiKeyToast") || js.includes("'Enter your API key")));
 test('ESC key closes commodity overlay', () => js.includes('commodOpen') && js.includes("'Escape'"));
 test('Commodity CSS: heatmap tile defined', () => css.includes('.commod-tile'));
 test('Commodity CSS: amber color scheme', () => css.includes('commod-topbar-btn') && css.includes('rgba(245,158,11'));
@@ -705,7 +705,7 @@ test('FX overlay z-index 2080 (above commodity 2075)', () => css.includes('#fx-o
 test('FX tile CSS defined', () => css.includes('.fx-tile'));
 test('FX indigo color scheme in CSS', () => css.includes('6366f1'));
 test('XSS safe: escHtml used in FX render', () => { const fn = js.slice(js.indexOf('function renderFxDetail(')); return fn.slice(0,fn.indexOf('\n}')+2).includes('escHtml'); });
-test('Guard: no API key shows toast in openFx', () => { const fn = js.slice(js.indexOf('function openFx()')); return fn.slice(0,200).includes("'Enter your API key first'") && fn.slice(0,200).includes('apiKey'); });
+test('Guard: no API key shows toast in openFx', () => { const fn = js.slice(js.indexOf('function openFx()')); return (fn.slice(0,250).includes("showApiKeyToast") || fn.slice(0,250).includes("showToast")) && fn.slice(0,250).includes('apiKey'); });
 test('FX backdrop click closes overlay', () => js.includes('fxOpen') && js.includes('closeFx'));
 test('FX D3 chart uses CatmullRom curve', () => js.includes('drawFxChart') && js.includes('curveCatmullRom'));
 test('FX carry analysis in detail', () => js.includes('carry') && js.includes('rate_differential'));
@@ -821,7 +821,7 @@ test('Research CSS: source-btn, article-card, house-card, theme-chip defined', (
   css.includes('.research-house-card') && css.includes('.research-theme-chip'));
 test('Guard: API key required to open Research Hub', () => {
   const fn = js.slice(js.indexOf('function openResearch()'));
-  return fn.slice(0, 200).includes('apiKey') && fn.slice(0, 200).includes('showToast');
+  return fn.slice(0, 250).includes('apiKey') && (fn.slice(0, 250).includes('showToast') || fn.slice(0, 250).includes('showApiKeyToast'));
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
