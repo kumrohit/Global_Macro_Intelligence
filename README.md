@@ -1,11 +1,11 @@
 # Global Macro Intelligence
 
-> AI-powered country sentiment terminal for macro analysts, traders, and researchers — delivered as a single self-contained HTML file.
+> AI-powered macro intelligence terminal for analysts, traders, and researchers — delivered as a single self-contained HTML file.
 
-![Tests](https://img.shields.io/badge/tests-260%2F260%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-482%2F482%20passing-brightgreen)
 ![Stack](https://img.shields.io/badge/stack-HTML%20%2F%20CSS%20%2F%20JS-informational)
-![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash%20%7C%20Claude-blue)
-![Charts](https://img.shields.io/badge/charts-D3.js%20v7-orange)
+![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash%20%7C%20Claude%20%7C%20Free%20Mode-blue)
+![Charts](https://img.shields.io/badge/charts-D3.js%20v7%20%7C%20TradingView%20LW-orange)
 ![PWA](https://img.shields.io/badge/PWA-installable-purple)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -13,48 +13,84 @@
 
 ## What it does
 
-Click any country on the flat rectangular world map and instantly receive an AI-generated macro brief — sentiment regime, equity bias, rate outlook, FX bias, risk level, rationale, central bank publications, news, social sentiment, and historical charts. Everything runs in a **single HTML file** with zero dependencies to install.
+Click any country on the world map and instantly get an AI-generated macro brief — sentiment regime, equity bias, rate outlook, FX bias, risk level, rationale, central bank publications, news, social sentiment, and historical charts. No API key needed for country analysis. Advanced features (Deep Analysis, Research Hub, FX/Commodities heatmaps, Digest, Opportunities, Custom Analysis, Stocks) unlock with your own Gemini or Claude API key.
+
+Everything runs in a **single HTML file** with zero dependencies to install.
+
+---
+
+## Access Tiers
+
+### Free — no API key required
+- Interactive world map — click any of 195 countries
+- AI country sentiment panel (Pollinations.ai free backend)
+- Macro news feed, authority publications, social sentiment
+- History chart, language translation, expand-to-detail
+- Community Board (post, discuss, like, comment)
+- Live ticker tape (DXY, Gold, WTI, VIX, US10Y)
+
+### Advanced — requires your own API key (Gemini or Claude)
+- Deep Analysis overlay (5-tab per-country deep dive)
+- Research Hub (16 institutions — Goldman, JPMorgan, IMF, BIS, ECB, and more)
+- FX Markets heatmap (G10 + EM currencies)
+- Commodity Markets heatmap
+- Stock Market Analysis (top-30 constituents + individual stock deep-dive)
+- Custom Analysis Builder (multi-theme thematic reports)
+- Daily Capsule & Weekly Digest
+- Opportunities (AI trade ideas by horizon)
+
+API keys are stored on-device only — never sent to any server other than the selected AI provider. Get a free Gemini key at [aistudio.google.com](https://aistudio.google.com) or a Claude key at [console.anthropic.com](https://console.anthropic.com).
 
 ---
 
 ## Features
 
-### Map & Analysis
+### Map & Country Analysis (Free)
 - **Interactive world map** — flat equirectangular D3 projection; click any of 195 countries
 - **Country sentiment panel** — sentiment score, regime pill (dovish / hawkish / neutral), key indicator chips (equity, rate, FX, risk, currency, key rate), AI rationale
-- **Deep analysis overlay** — full-screen 5-tab deep dive per country (Overview, Economy, Markets, Risks, Outlook); 2000-token per tab, cached
-- **Historical macro chart** — D3 multi-line chart: GDP, Inflation, Rate, FX over 12 quarters (Q1 2022–Q4 2024)
-- **Authority publications** — real links to 54 central banks and finance ministries
+- **Historical macro chart** — D3 multi-line chart: GDP, Inflation, Rate, FX over 12 quarters
+- **Authority publications** — links to 54 central banks and finance ministries
 - **Macro news feed** — AI-generated news with clickable source URLs
+- **Social sentiment panel** — community-style macro posts with hashtag/topic filter
 - **Regional language translation** — one-click full panel translation to the country's native language
-- **Stocks / Exchange panel** — top 30 equities for the active country's index with live AI analysis per stock
+- **Expand-to-detail** — inline deep-dives on any news or data point
 
-### Intelligence Tools
-- **Watchlist** — track countries, tickers, sectors, or any theme with AI sentiment scores and progress bars; persists to localStorage
+### Advanced Analysis (API Key Required)
+- **Deep Analysis overlay** — full-screen 5-tab deep dive per country (Overview, Economy, Markets, Risks, Outlook); 2000 tokens per tab
+- **Stock Market Analysis** — top-30 equities for the active country's index; per-stock AI analysis
 - **Custom Analysis Builder** — tag up to 10 themes; generates a full report with D3 arc sentiment gauge, trade ideas, opportunities, and risks
-- **Opportunities tab** — AI-generated trade opportunities across day / week / month / themes horizons
+- **Opportunities** — AI-generated trade ideas across Day / Week / Month / Themes horizons
+- **Daily Capsule & Weekly Digest** — personalised AI macro briefings; expand any item for deeper analysis
+- **Newsletter** — generate and email your digest via EmailJS; preview in a new tab
 
-### Community Board
-- **Feed tab** — post macro views, like, and comment; bullish / bearish / neutral tagging
-- **Pulse tab** — AI sentiment analysis derived exclusively from community posts (no external data): bull/bear/neutral breakdown, top themes, representative views, narrative, consensus level
+### Research Hub (API Key Required)
+- 16 institutions: Goldman Sachs, JPMorgan, Morgan Stanley, BofA, Citi, BlackRock, Bridgewater, AQR, IMF, World Bank, BIS, ECB, Fed, BoJ, BoE, MAS
+- Per-institution house view, key calls, and 10 article cards with sentiment scoring
+- Live RSS feeds for official institutions (IMF, BIS, ECB, World Bank); AI synthesis for investment banks
+- Session-cached source results, keyword filter, refresh button
+
+### FX & Commodity Markets (API Key Required)
+- **FX heatmap** — G10 and EM currencies vs USD; colour-coded sentiment tiles
+- **Commodity heatmap** — energy, metals, agriculture; colour-coded sentiment tiles
+- **Full-screen TradingView charts** — LINE / AREA / CANDLESTICK; real OHLCV from Yahoo Finance with AI simulation fallback
+- MA(5/20), Bollinger Bands (20,2), RSI(14), Volume histogram, LIVE / AI ESTIMATE badge
+
+### Community Board (Free)
+- **Feed** — post macro views; bullish / bearish / neutral tagging; like, comment, delete
+- **Pulse** — AI sentiment analysis derived exclusively from community posts: bull/bear breakdown, top themes, narrative, consensus level
 - **Firebase real-time sync** — optional Firestore integration for multi-user live boards; falls back to localStorage in local mode
-- **Official badges** — configurable owner accounts with OFFICIAL badge on posts
-- Search/filter posts · sort by newest or top liked · delete your own posts · animated post entry
-
-### Profile & Digest
-- **Daily & Weekly Digest** — AI macro briefing across all analysed countries; expand any section for detail
-- **Newsletter** — generate and send your digest via EmailJS; preview in a new tab
-- **Opportunities** — curated AI trade ideas across time horizons
+- Search/filter posts · sort by newest or top liked · animated post entry · official-account badges
 
 ### Auth & Session
 - **Login / Register** — full auth flow with djb2 password hashing
-- **Three-tier storage** — localStorage → sessionStorage → in-memory fallback (private mode safe)
+- **Social sign-in** — Google (GIS JWT), Apple (Sign in with Apple), GitHub (public API verification)
+- **Three-tier storage** — localStorage → sessionStorage → in-memory fallback (private-mode safe)
 - **Session persistence** — reload without re-logging-in
 
 ### Mobile & PWA
 - **Progressive Web App** — installable on Android from Chrome; standalone mode, dark theme
-- **Bottom navigation bar** — Social, Watchlist, Analyse, Community, Profile; shown on phones ≤ 480 px
-- **Fully responsive** — 4 breakpoints (900 px, 768 px, 480 px, 360 px); full-width panels on phones
+- **Bottom navigation bar** — Social, Watchlist, Analyse, Community, Profile (phones ≤ 480 px)
+- **Fully responsive** — 4 breakpoints (900 px, 768 px, 480 px, 360 px)
 - **Offline support** — service worker caches app shell and map data
 - **Touch-optimised** — `touch-action: manipulation` on map, 44 px tap targets
 
@@ -70,9 +106,9 @@ open global_macro_intel.html
 Or deploy to any static host (see [deploy/README.md](deploy/README.md)).
 
 **First run:**
-1. Register an account (top-right login screen)
-2. Click the **API** widget (bottom-right) and paste your [Gemini API key](https://aistudio.google.com/app/apikey)
-3. Click any country on the map
+1. Register an account (top-right sign-in button)
+2. Click any country on the map — free AI analysis loads immediately
+3. To unlock advanced features, open your profile → **⚙ API & SETTINGS** and paste a Gemini or Claude key
 
 No build step. No `npm install`. No server.
 
@@ -82,7 +118,7 @@ No build step. No `npm install`. No server.
 
 ```
 global_macro_intelligence/
-├── global_macro_intel.html   # Entire application (~352 KB · 7491 lines)
+├── global_macro_intel.html   # Entire application (~499 KB · ~10 000 lines)
 │
 ├── deploy/                   # Production deploy assets
 │   ├── index.html            # Synced copy of the app
@@ -99,8 +135,8 @@ global_macro_intelligence/
 │   ├── sw.js                 # Cache-first service worker
 │   └── README.md             # PWA install · Capacitor APK · Play Store guide
 │
-├── test_e2e.js               # 260-test E2E suite (Node.js, no browser needed)
-├── PROMPTS.md                # Full build log — all 25 tasks with specs
+├── test_e2e.js               # 482-test E2E suite (Node.js, no browser needed)
+├── PROMPTS.md                # Full build log — 42 tasks with specs
 └── README.md                 # This file
 ```
 
@@ -136,125 +172,150 @@ See [android/README.md](android/README.md) for:
 global_macro_intel.html
 │
 ├── <head>
-│   ├── D3.js v7          (CDN — charts and map)
-│   ├── TopoJSON v3       (CDN — world geometry)
-│   ├── EmailJS v4        (CDN — newsletter delivery)
-│   ├── PWA meta tags     (manifest, apple-mobile-web-app-capable)
-│   └── Google Fonts      (Rajdhani + JetBrains Mono)
+│   ├── D3.js v7                  (CDN — world map, history chart, sentiment gauge)
+│   ├── TopoJSON v3               (CDN — world geometry)
+│   ├── TradingView Lightweight   (CDN — candlestick / line / area charts)
+│   ├── EmailJS v4                (CDN — newsletter delivery)
+│   ├── Google Identity Services  (CDN — Google sign-in)
+│   ├── Apple Sign-In JS          (CDN — Apple sign-in)
+│   ├── PWA meta tags             (manifest, apple-mobile-web-app-capable)
+│   └── Google Fonts              (Rajdhani + JetBrains Mono)
 │
-├── <style>               (~1600 lines)
-│   ├── CSS custom properties   (:root — palette, fonts)
-│   ├── Layout                  (topbar, map, panels, mobile nav)
-│   ├── Component styles        (chips, pills, badges, cards, gauges)
-│   ├── Overlay styles          (deep, watchlist, CA, login, community, profile)
-│   ├── Performance CSS         (contain, will-change, no backdrop-filter on hot paths)
-│   └── Mobile responsive       (4 breakpoints, bottom nav, full-width panels)
+├── <style>               (~1900 lines)
+│   ├── CSS custom properties     (:root — palette, fonts)
+│   ├── Layout                    (topbar, map, panels, mobile nav)
+│   ├── Component styles          (chips, pills, badges, cards, gauges)
+│   ├── Overlay styles            (deep, research, FX, commodities, community,
+│   │                              watchlist, custom analysis, profile, API key gate)
+│   └── Mobile responsive         (4 breakpoints, bottom nav, full-width panels)
 │
-├── <body>                (~600 lines)
-│   ├── #login-overlay          Full-screen auth gate
-│   ├── #comm-overlay           Community Board (Feed · Pulse · Settings tabs)
+├── <body>                (~700 lines)
+│   ├── #login-overlay            Full-screen auth (login/register + Google/Apple/GitHub)
+│   ├── #apikey-gate-overlay      API key prompt modal (shown on first access to paid features)
 │   ├── #app
-│   │   ├── #topbar             Logo · Community · Custom Analysis · User · Clock
+│   │   ├── #topbar               Logo · Community · FX · Commodities · User · Clock
 │   │   └── #main
-│   │       ├── #map-wrap       SVG world map (equirectangular D3 projection)
-│   │       │   ├── #region-jump    Region highlight buttons
-│   │       │   ├── #legend         Sentiment colour legend
-│   │       │   └── #api-widget     API key + country mode selector
-│   │       ├── #social-panel   Left floating panel — social sentiment
-│   │       ├── #panel          Right sliding panel — country analysis detail
-│   │       ├── #deep-overlay   Full-screen 5-tab deep dive
-│   │       ├── #watchlist-*    Floating tab + sliding watchlist panel
-│   │       ├── #ca-overlay     Full-screen custom analysis builder
-│   │       └── #profile-overlay Full-screen profile, digest, newsletter, opportunities
-│   └── #mobile-nav             Bottom navigation (phones ≤ 480 px)
+│   │       ├── #map-wrap         SVG world map (equirectangular D3 projection)
+│   │       ├── #social-panel     Left floating panel — social sentiment
+│   │       ├── #panel            Right sliding panel — country analysis detail
+│   │       ├── #deep-overlay     5-tab full-screen deep analysis
+│   │       ├── #research-overlay Research Hub (16 institutions)
+│   │       ├── #fx-overlay       FX heatmap + TradingView charts
+│   │       ├── #commod-overlay   Commodity heatmap + TradingView charts
+│   │       ├── #comm-overlay     Community Board (Feed · Pulse · Settings)
+│   │       ├── #watchlist-*      Floating tab + sliding watchlist panel
+│   │       ├── #ca-overlay       Custom analysis builder
+│   │       └── #profile-overlay  Profile, Digest, Opportunities, Newsletter, ⚙ API
+│   └── #mobile-nav               Bottom navigation (phones ≤ 480 px)
 │
-└── <script>              (~5200 lines)
+└── <script>              (~7100 lines)
     ├── Constants
-    │   ├── META{}              195 countries → {name, flag, currency, index, …}
-    │   ├── AUTHORITY_INFO{}    54 central banks / finance ministries
-    │   └── AUTHORITY_URLS{}    54 real institution website URLs
+    │   ├── META{}                195 countries → {name, flag, currency, index, …}
+    │   ├── AUTHORITY_INFO{}      54 central banks / finance ministries
+    │   ├── RESEARCH_SOURCES[]    16 institution definitions (id, name, color, rss)
+    │   ├── DEEP_TAB_PROMPTS{}    Per-tab prompt builders for deep analysis
+    │   └── OPP_HORIZONS[]        Trade-idea time horizons
     │
     ├── Storage layer
-    │   ├── storageGet/Set/Remove   localStorage → sessionStorage → _memStore fallback
-    │   └── isStoragePersistent()   detects private mode
+    │   └── storageGet/Set/Remove  localStorage → sessionStorage → _memStore fallback
     │
     ├── API layer
-    │   ├── callLLM(prompt, maxTokens, temp)
-    │   │     Routes to Gemini or Claude based on key prefix.
-    │   │     thinkingBudget:0 suppresses thinking tokens.
+    │   ├── detectProvider()       Returns 'gemini' | 'claude' | 'unknown' | null
+    │   ├── callLLM(sys, usr, tokens, temp)
+    │   │     Routes to Gemini 2.5 Flash, Claude Sonnet, or callLLMFree()
+    │   │     when no API key is set.
+    │   ├── callLLMFree(sys, usr, tokens)
+    │   │     Pollinations.ai (free, CORS-enabled, no-auth) — GPT-4o backend.
+    │   │     32-second AbortController timeout; markdown code-fence stripping.
+    │   │     Used for all free-tier country analysis.
+    │   ├── requireApiKey(callback, featureName)
+    │   │     Shows #apikey-gate-overlay when no key; fires callback on save.
+    │   │     Gated: Deep Analysis, Research Hub, FX, Commodities, Stocks,
+    │   │     Custom Analysis, Digest, Opportunities.
     │   ├── repairAndParseJSON(raw)
     │   │     7-step repair pipeline for truncated/malformed LLM JSON.
     │   └── closeTruncated(s)
     │         Character-walk state machine — closes open strings/arrays/objects.
     │
     ├── Map
-    │   ├── initMap()            Fetches TopoJSON, renders equirectangular SVG, wires events
-    │   ├── selectCountry(d)     Sets active country, triggers panel + sentiment fetch
-    │   ├── renderPanel(data)    Populates all side-panel DOM fields from cache
-    │   └── fetchSentiment(id)   LLM → country macro JSON → stored in cache{}
+    │   ├── initMap()              Fetches TopoJSON, renders SVG, wires events
+    │   ├── selectCountry(d)       Sets active country, triggers panel + fetch
+    │   ├── renderPanel(data)      Populates all side-panel DOM fields from cache
+    │   └── fetchSentiment(id)     LLM → country macro JSON → stored in cache{}
     │
-    ├── Feature modules
-    │   ├── loadAuthorityPubs()  Central bank publications
-    │   ├── loadNewsFeed()       Macro news with real source URLs
-    │   ├── loadSocialSentiment() Social posts; hashtag/topic filter
-    │   ├── loadDeepSection(tab) 2000-token per-tab deep analysis
-    │   ├── loadHistoryData()    12-quarter macro history → D3 chart
-    │   ├── toggleLanguage()     Full panel translation
-    │   ├── loadStocksPanel()    Country equity screen (30 stocks + detail)
-    │   ├── loadExpandDetail()   350-token expand-to-detail for any summary
-    │   ├── addWatchlistItem()   Auto-type-detect → LLM sentiment → localStorage
-    │   ├── runCustomAnalysis()  2500-token multi-theme analysis + D3 gauge
-    │   ├── loadDigestTab()      Daily / weekly AI digest
-    │   ├── loadNewsletterTab()  Newsletter HTML + plain-text generation
-    │   ├── sendOrPreviewNewsletter() EmailJS send or new-tab preview
+    ├── Free-tier features (no API key needed)
+    │   ├── loadAuthorityPubs()    Central bank publications
+    │   ├── loadNews()             Macro news with clickable source URLs
+    │   ├── loadSocialSentiment()  Social-style macro posts; hashtag/topic filter
+    │   ├── loadHistoryData()      12-quarter macro history → D3 chart
+    │   ├── toggleLanguage()       Full panel translation
+    │   └── loadExpandDetail()     Inline expand-to-detail for any summary
+    │
+    ├── Advanced features (API key required)
+    │   ├── loadDeepSection(tab)   2000-token per-tab deep analysis (5 tabs)
+    │   ├── openStocks()           Country equity screen (30 stocks + detail)
+    │   ├── runCustomAnalysis()    2500-token multi-theme analysis + D3 gauge
+    │   ├── loadDigestTab()        Daily / weekly AI macro digest
     │   ├── loadOpportunitiesTab() Trade opportunities by horizon
-    │   └── analyzeCommunityPulse() Community-post-only sentiment analysis
+    │   ├── loadResearch(srcId)    Institution research + RSS + AI synthesis
+    │   ├── loadCommodityHeat()    Commodity heatmap + TradingView charts
+    │   └── loadFxHeat()           FX heatmap + TradingView charts
     │
-    ├── Community Board
-    │   ├── Local mode           localStorage with full CRUD
-    │   ├── Firebase mode        Firestore real-time with onSnapshot listener
-    │   ├── renderFeed()         Search filter + sort (newest/top) + post count
-    │   ├── renderPostCard()     Like · Comments · Delete (own posts)
+    ├── Community Board (free — login required)
+    │   ├── Local mode             localStorage with full CRUD
+    │   ├── Firebase mode          Firestore real-time with onSnapshot listener
     │   └── analyzeCommunityPulse() AI sentiment from post content only
     │
     ├── Auth
-    │   ├── hashPassword(pw)     djb2 deterministic hash
-    │   ├── attemptLogin/Register Validates against gmi_users
-    │   └── loadSession()        Cached with `undefined` sentinel (not null)
+    │   ├── hashPassword(pw)       djb2 deterministic hash
+    │   ├── attemptLogin/Register  Validates against gmi_users
+    │   ├── googleSignIn()         Google Identity Services JWT
+    │   ├── appleSignIn()          Apple Sign-In JS SDK (popup mode)
+    │   ├── githubSignIn()         Public GitHub API verification (no OAuth backend)
+    │   └── loadSession()          Cached with `undefined` sentinel (not null)
     │
     └── Boot sequence
           wireLoginEvents() → wireProfileEvents() → wireCommEvents()
           → loadCommOwners() → loadLocalPosts()
-          → restore session → loadWatchlistFromStorage()
-          → wireEventListeners() → initMap() → loadTickers()
-          → checkNewsletterAutoNotify()
-          → register service worker
+          → restore API key from storage → restore session
+          → loadWatchlistFromStorage() → wireEventListeners()
+          → initMap() → loadTickers()
+          → checkNewsletterAutoNotify() → register service worker
 ```
 
 ---
 
-## LLM Calls
+## LLM Routing
 
-| Function | Max Tokens | Temp | Purpose |
-|----------|-----------|------|---------|
-| `fetchSentiment` | 800 | 0 | Country macro sentiment JSON |
-| `loadAuthorityPubs` | 600 | 0 | Central bank publications |
-| `loadNewsFeed` | 700 | 0 | Macro news with source URLs |
-| `loadSocialSentiment` | 500 | 1.0 | Social-style macro posts |
-| `loadDeepSection` | 2000 | 0 | Per-tab deep country analysis |
-| `loadHistoryData` | 800 | 0 | 12-quarter macro history |
-| `toggleLanguage` | 2000 | 0 | Full panel translation |
-| `fetchWatchlistSentiment` | 400 | 0.8 | Per-item watchlist sentiment |
-| `runCustomAnalysis` | 2500 | 0.3 | Multi-theme thematic analysis |
-| `loadExpandDetail` | 350 | 0.4 | Expand-to-detail for any summary |
-| `loadDigestTab` | 1000 | 0.5 | Daily / weekly macro digest |
-| `loadNewsletterTab` | 1200 | 0.4 | Newsletter content generation |
-| `loadOpportunitiesTab` | 1500 | 0.3 | Trade opportunities by horizon |
-| `loadStocksPanel` | 800 | 0 | Country equity screener |
-| `loadStockDetail` | 1000 | 0.3 | Individual stock deep analysis |
-| `analyzeCommunityPulse` | 600 | 0.2 | Sentiment from community posts only |
+```
+callLLM(systemPrompt, userPrompt, maxTokens, temperature)
+    │
+    ├── detectProvider() === null  ──► callLLMFree()  [Pollinations.ai, GPT-4o]
+    ├── detectProvider() === 'gemini' ──► Gemini 2.5 Flash API
+    └── detectProvider() === 'claude' ──► Claude Sonnet API
+```
 
-All calls pass `thinkingBudget: 0` to prevent thinking tokens from consuming the output budget.
+| Function | Max Tokens | Temp | Tier | Purpose |
+|----------|-----------|------|------|---------|
+| `fetchSentiment` | 800 | 0 | Free | Country macro sentiment JSON |
+| `loadAuthorityPubs` | 600 | 0 | Free | Central bank publications |
+| `loadNews` | 700 | 0 | Free | Macro news with source URLs |
+| `loadSocialSentiment` | 500 | 1.0 | Free | Social-style macro posts |
+| `loadHistoryData` | 800 | 0 | Free | 12-quarter macro history |
+| `toggleLanguage` | 2000 | 0 | Free | Full panel translation |
+| `loadExpandDetail` | 350 | 0.4 | Free | Expand-to-detail for any summary |
+| `loadTickers` | 400 | 0 | Free | Global price ticker estimation |
+| `loadDeepSection` | 2000 | 0 | Key | Per-tab deep country analysis |
+| `fetchWatchlistSentiment` | 400 | 0.8 | Key | Per-item watchlist sentiment |
+| `runCustomAnalysis` | 2500 | 0.3 | Key | Multi-theme thematic analysis |
+| `loadDigestTab` | 2000 | 0.4 | Key | Daily / weekly macro digest |
+| `loadOpportunitiesTab` | 2000 | 0.3 | Key | Trade opportunities by horizon |
+| `loadResearch` | 1600 | 0.3 | Key | Institution research synthesis |
+| `fetchStocks` | 400 | 0 | Key | Country equity screener |
+| `fetchStockAnalysis` | 1000 | 0.3 | Key | Individual stock analysis |
+| `analyzeCommunityPulse` | 600 | 0.2 | Key | Sentiment from community posts |
+| `loadCommodityHeat` | 500 | 0 | Key | Commodity price/sentiment |
+| `loadFxHeat` | 500 | 0 | Key | FX rate/sentiment |
 
 ---
 
@@ -264,18 +325,25 @@ All calls pass `thinkingBudget: 0` to prevent thinking tokens from consuming the
 |-----|----------|
 | `gmi_users` | `{ [username]: { hash, displayName, created } }` |
 | `gmi_session` | `{ username, displayName }` |
+| `gmi_api_key` | User-entered Gemini / Claude API key |
 | `gmi_watchlist` | `WatchlistItem[]` |
 | `gmi_comm_local_posts` | Community posts (local mode) |
 | `gmi_comm_owners` | Comma-separated official usernames |
 | `gmi_comm_fb_config` | Firebase project config JSON |
-| `gmi_api_key` | User-entered Gemini / Claude API key |
+| `gmi_nl_email` | Newsletter recipient email |
+| `gmi_nl_sub_daily` | Daily digest subscription flag |
+| `gmi_nl_sub_weekly` | Weekly digest subscription flag |
 | `gmi_newsletter_*` | EmailJS service ID, template ID, public key |
+| `gmi_apple_service_id` | Apple Sign-In Service ID |
+| `gmi_digest_daily_*` | Cached daily digest JSON |
+| `gmi_digest_weekly_*` | Cached weekly digest JSON |
+| `gmi_opp_*` | Cached opportunities by horizon |
 
 ---
 
 ## Caching Strategy
 
-All LLM responses are cached in-memory to avoid duplicate API calls within a session:
+All LLM responses are cached to avoid duplicate calls within a session:
 
 | Cache | Key pattern | Scope |
 |-------|-------------|-------|
@@ -287,30 +355,37 @@ All LLM responses are cached in-memory to avoid duplicate API calls within a ses
 | `authCache` | `countryName` | Authority publications |
 | `watchlistSentCache` | item key | Watchlist sentiment |
 | `stocksCache` | `countryName` | Equity screener |
-| `digestExpandCache` | section key | Expanded digest sections |
+| `researchCache` | source id | Research Hub articles |
+| `commodData` | global array | Commodity heatmap |
+| `fxData` | global array | FX heatmap |
+| `digestCache` | storage key | Digest by tab + user |
+| `oppCache` | horizon + user | Opportunities |
+| `digestExpandCache` | section key | Expanded digest items |
 
-Cache is in-memory only — cleared on page reload. Ticker data has a 5-minute TTL.
+`digestCache` and `oppCache` are also persisted to localStorage (keyed by user + date). All other caches are in-memory only — cleared on page reload.
 
 ---
 
 ## Performance
 
-Key optimisations implemented:
+Key optimisations:
 
 - **195 DOM refs cached** at boot for all hot-path panel fields
 - **`will-change: transform`** on tooltip, social panel, watchlist panel
-- **`contain: layout style`** on all scroll containers (panel body, social body, watchlist body, profile body)
+- **`contain: layout style`** on all scroll containers
 - **Country `transition`** on fill + stroke only — `filter` excluded to prevent 195 GPU layer promotions on hover
 - **`touch-action: manipulation`** on map SVG — eliminates 300 ms tap delay on mobile
 - **Clock interval 10 s** (not 1 s)
 - **Firebase SDK loaded dynamically** — only when user connects Firebase; not blocking at boot
-- **No `backdrop-filter`** on always-visible elements (legend, API widget, topbar) — only on modal overlays
+- **TradingView charts rendered on-demand** — container cleared and redrawn on open
+- **Yahoo Finance data cached per ticker** — no repeated CORS-proxy calls within a session
+- **No `backdrop-filter`** on always-visible elements (topbar, legend) — only on modal overlays
 
 ---
 
 ## JSON Repair Pipeline
 
-Gemini occasionally truncates JSON at token limits. `repairAndParseJSON` applies 7 sequential steps:
+`repairAndParseJSON` applies 7 sequential steps to handle truncated or malformed LLM output:
 
 1. Strip markdown code fences (` ```json … ``` `)
 2. Extract the outermost `{…}` or `[…]` block
@@ -324,12 +399,14 @@ Gemini occasionally truncates JSON at token limits. `repairAndParseJSON` applies
 
 ## Security
 
-- **API keys** held in-memory only; never written to localStorage or sent to any server except the configured AI provider
+- **API keys** persisted to localStorage (on-device only); never sent to any server except the selected AI provider
+- **Free-tier requests** routed through Pollinations.ai with `private: true` — not indexed publicly
 - **Passwords** hashed client-side with djb2 before storage; plaintext never persisted
 - **XSS prevention** — all community post content, author names, and AI-generated strings rendered via `escHtml()` before `innerHTML` assignment
 - **No `eval()`** anywhere in the codebase
 - **CSP headers** in `deploy/netlify.toml`, `deploy/vercel.json`, and `deploy/_headers` restrict script and connect sources to only the required CDNs and APIs
 - **Community posts** sent to AI for pulse analysis stripped of usernames — only `content` + `tag` fields
+- **Social sign-in tokens** decoded client-side only; sub/email used as local account identifier, not forwarded
 
 ---
 
@@ -339,32 +416,38 @@ Gemini occasionally truncates JSON at token limits. `repairAndParseJSON` applies
 node test_e2e.js
 ```
 
-No browser, no Playwright, no Puppeteer — pure Node.js static analysis.
+No browser, no Playwright, no Puppeteer — pure Node.js static analysis of the HTML source.
 
 ```
-═════════════��═══════════════════════════════════════════════════
-  RESULTS   260/260 passing   0 failing   0 warnings
-═════════════════��═══════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════
+  RESULTS   482/482 passing   0 failing   0 warnings
+═════════════════════════════════════════════════════════════════
 ```
 
-**14 test phases:**
+**20 test phases:**
 
 | Phase | Tests | Coverage |
 |-------|-------|----------|
 | 1 — Core Structure | 23 | HTML, CDNs, DOM elements |
 | 2 — Map & Country Analysis | 24 | Projection, panel refs, sentiment |
-| 3 — API Layer | 10 | callLLM, JSON repair, providers |
-| 4 — Feature Panels | 14 | Social, news, authority, history, translation |
-| 5 — Watchlist | 10 | CRUD, type detection, localStorage |
-| 6 — Custom Analysis | 10 | Tags, gauge, guard, tokens |
-| 7 — Authentication | 19 | Login, register, session, storage tiers |
-| 8 — Profile / Digest / Newsletter | 24 | Digest, newsletter, opportunities, toast |
-| 9 — Performance | 14 | DOM cache, will-change, contain, transitions |
-| 10 — Community Board | 45 | Feed, posts, Firebase, local, escaping |
-| 11 — Deploy Folder | 11 | Files, CSP, Netlify/Vercel config |
-| 12 — Security & XSS | 7 | escHtml, no eval, key storage |
+| 2 — API Layer | 10 | callLLM, callLLMFree, JSON repair, providers |
+| 3 — Feature Panels | 14 | Social, news, authority, history, translation |
+| 4 — Watchlist | 10 | CRUD, type detection, localStorage |
+| 5 — Custom Analysis | 10 | Tags, gauge, gate, tokens |
+| 6 — Authentication | 19 | Login, register, Google/Apple/GitHub, session |
+| 7 — Profile / Digest / Newsletter / Opportunities | 26 | Digest, newsletter, opportunities, toast |
+| 8 — Performance | 14 | DOM cache, will-change, contain, transitions |
+| 9 — Community Board | 42 | Feed, posts, Firebase, local, escaping |
+| 10 — Deploy Folder | 11 | Files, CSP, Netlify/Vercel config |
+| 11 — Security & XSS | 7 | escHtml, no eval, key storage |
+| 12 — UX / Edge Cases | 51 | Free mode, API gate, ESC, callbacks |
 | 13 — Android / Mobile | 15 | PWA, service worker, responsive, bottom nav |
 | 14 — Community Pulse | 16 | Analysis, render, XSS, prompt integrity |
+| 15 — Commodity Heatmap | 35 | Grid, tiles, sorting, detail, charts |
+| 16 — Chart Fullscreen | 68 | TradingView, OHLC, MA, BB, RSI, volume |
+| 17 — FX Heatmap | 37 | G10/EM grid, detail panel, charts |
+| 18 — Real Market Data | 21 | Yahoo Finance, CORS proxy, LIVE/AI badge |
+| 19 — Research Hub | 29 | 16 institutions, RSS, house view, articles |
 
 ---
 
@@ -375,10 +458,15 @@ No browser, no Playwright, no Puppeteer — pure Node.js static analysis.
 | HTML / CSS / JS | — | Entire application (single file) |
 | D3.js | v7.9.0 | World map, history chart, sentiment gauge |
 | TopoJSON | v3.0.2 | World geometry (equirectangular projection) |
+| TradingView Lightweight Charts | v4 | Candlestick / line / area charts |
 | Gemini API | 2.5 Flash | Primary AI provider |
 | Claude API | Sonnet 4.6 | Alternative AI provider |
+| Pollinations.ai | — | Free AI backend (no key required) |
+| Yahoo Finance | — | Real OHLCV market data (via CORS proxy) |
 | Firebase Firestore | v10.12.2 | Optional real-time community sync |
 | EmailJS | v4 | Newsletter delivery |
+| Google Identity Services | — | Google sign-in |
+| Apple Sign-In JS | — | Apple sign-in |
 | Google Fonts | — | Rajdhani (display) + JetBrains Mono |
 
 ---

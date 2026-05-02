@@ -1453,13 +1453,18 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 
 #login-box{
   width:380px;
+  max-height:92dvh;
   background:var(--card);
   border:1px solid var(--border2);
   border-radius:6px;
   padding:36px 32px 28px;
   box-shadow:0 0 60px rgba(34,211,238,0.06), 0 0 120px rgba(59,130,246,0.04);
   position:relative;
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+@media(max-width:440px){
+  #login-box{width:94vw;padding:28px 20px 22px;max-height:94dvh;}
 }
 #login-box::before{
   content:'';position:absolute;top:0;left:0;right:0;height:2px;
@@ -1559,6 +1564,53 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 .pw-eye-btn:hover{color:var(--text2);}
 
 /* Topbar user info */
+#apikey-gate-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;
+  display:none;align-items:center;justify-content:center;
+}
+#apikey-gate-overlay.open{display:flex;}
+#apikey-gate-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:4px;
+  padding:28px 28px 22px;width:440px;max-width:calc(100vw - 32px);
+  font-family:var(--font-mono);box-shadow:0 24px 64px rgba(0,0,0,0.6);
+}
+#apikey-gate-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+#apikey-gate-title{font-size:11px;font-weight:700;letter-spacing:0.12em;color:var(--amber);}
+#apikey-gate-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;line-height:1;}
+#apikey-gate-close:hover{color:var(--text);}
+#apikey-gate-desc{font-family:var(--font-display);font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.55;}
+#apikey-gate-field{margin-bottom:10px;}
+#apikey-gate-input-row{display:flex;gap:6px;}
+#apikey-gate-input{
+  flex:1;background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  color:var(--text);font-family:var(--font-mono);font-size:11px;padding:9px 10px;outline:none;
+}
+#apikey-gate-input:focus{border-color:var(--amber);}
+#apikey-gate-eye{
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  cursor:pointer;padding:0 10px;font-size:14px;color:var(--text2);flex-shrink:0;
+}
+#apikey-gate-eye:hover{color:var(--text);}
+#apikey-gate-error{
+  font-size:10px;color:var(--bear,#ef5350);margin-bottom:10px;padding:6px 8px;
+  background:rgba(239,83,80,0.08);border:1px solid rgba(239,83,80,0.2);border-radius:3px;display:none;
+}
+#apikey-gate-actions{display:flex;gap:8px;margin-top:14px;margin-bottom:12px;}
+#apikey-gate-save{
+  background:var(--amber);color:#000;border:none;border-radius:3px;
+  font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:0.08em;
+  padding:9px 18px;cursor:pointer;flex:1;
+}
+#apikey-gate-save:hover{filter:brightness(1.1);}
+#apikey-gate-cancel{
+  background:transparent;border:1px solid var(--border);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;
+  padding:9px 14px;cursor:pointer;
+}
+#apikey-gate-cancel:hover{border-color:var(--text2);color:var(--text);}
+#apikey-gate-links{font-size:9px;color:var(--text3);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+#apikey-gate-links a{color:var(--cyan);text-decoration:none;}
+#apikey-gate-links a:hover{text-decoration:underline;}
 #topbar-user{display:flex;align-items:center;gap:8px;}
 #topbar-username{
   font-family:var(--font-mono);font-size:9px;color:var(--cyan);letter-spacing:0.1em;
@@ -1740,26 +1792,6 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 .nl-send-btn:disabled{opacity:0.4;cursor:not-allowed;}
 
 /* Onboarding banner */
-#onboard-banner{
-  display:none;position:fixed;top:0;left:0;right:0;z-index:4900;
-  background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(245,158,11,0.08));
-  border-bottom:1px solid rgba(245,158,11,0.35);
-  padding:7px 20px;font-family:var(--font-mono);font-size:10px;color:var(--amber);
-  display:none;align-items:center;gap:12px;justify-content:center;
-  letter-spacing:0.05em;
-}
-#onboard-banner.visible{display:flex;}
-#onboard-banner-addkey{
-  font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.1em;
-  background:var(--amber);color:#000;border:none;border-radius:3px;
-  padding:4px 12px;cursor:pointer;white-space:nowrap;
-}
-#onboard-banner-dismiss{
-  font-family:var(--font-mono);font-size:11px;color:rgba(245,158,11,0.5);
-  background:none;border:none;cursor:pointer;margin-left:auto;padding:0 4px;
-}
-#onboard-banner-dismiss:hover{color:var(--amber);}
-
 /* Panel welcome card */
 #panel-welcome{
   display:block;padding:28px 0 12px;text-align:center;
@@ -2379,11 +2411,6 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 
 <div id="app">
 
-<div id="onboard-banner">
-  <span>🔑 Add your API key to unlock AI analysis across the full dashboard</span>
-  <button id="onboard-banner-addkey">ADD KEY →</button>
-  <button id="onboard-banner-dismiss" title="Dismiss">✕</button>
-</div>
 <div id="topbar">
   <div>
     <div class="logo">◈ GLOBAL MACRO INTELLIGENCE</div>
@@ -2768,7 +2795,11 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     <div id="api-widget">
       <div class="aw-label">API KEY — CLAUDE (sk-ant-…) OR GEMINI (AIza…)</div>
       <input type="password" id="api-input" placeholder="sk-ant-… or AIza…">
-      <button id="api-save">SAVE &amp; ACTIVATE</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="api-save" style="flex:1;">SAVE &amp; ACTIVATE</button>
+        <button id="api-clear" title="Remove saved API key" style="background:transparent;border:1px solid var(--border);border-radius:3px;padding:7px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);cursor:pointer;letter-spacing:0.08em;white-space:nowrap;">CLEAR</button>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:5px;">Key is stored on this device only — never sent anywhere except the API provider.</div>
       <div id="api-ok">✓ KEY ACTIVE</div>
       <div id="api-progress" style="display:none;margin-top:6px;font-size:9px;font-family:var(--font-mono);color:var(--accent);">
         <div id="api-progress-bar" style="height:2px;background:var(--accent);width:0%;transition:width 0.3s;margin-bottom:4px;border-radius:1px;"></div>
@@ -2779,6 +2810,12 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
         <input type="text" id="google-client-id-input" placeholder="123456789-abc….apps.googleusercontent.com" style="width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none;margin-bottom:6px;">
         <button id="google-client-id-save" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:rgba(66,133,244,0.1);border:1px solid rgba(66,133,244,0.35);color:#4285F4;border-radius:3px;padding:5px 14px;cursor:pointer;">SAVE CLIENT ID</button>
         <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:6px;line-height:1.6;">Get a free Client ID at <span style="color:var(--accent);">console.cloud.google.com</span> → APIs → Credentials → OAuth 2.0</div>
+      </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div class="aw-label">APPLE SIGN-IN SERVICE ID <span style="font-size:8px;color:var(--text3);font-weight:400;">(optional — enables "Continue with Apple")</span></div>
+        <input type="text" id="apple-service-id-input" placeholder="com.yourcompany.yourapp" style="width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none;margin-bottom:6px;">
+        <button id="apple-service-id-save" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:var(--text);border-radius:3px;padding:5px 14px;cursor:pointer;">SAVE SERVICE ID</button>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:6px;line-height:1.6;">Create a Services ID at <span style="color:var(--accent);">developer.apple.com</span> → Certificates → Identifiers → Sign In with Apple</div>
       </div>
     </div>
     <div id="country-widget">
@@ -3039,6 +3076,35 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
           <div class="comm-set-status" id="comm-clear-status"></div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- API Key required gate modal -->
+<div id="apikey-gate-overlay" onclick="if(event.target===this)closeApiKeyGate()">
+  <div id="apikey-gate-box">
+    <div id="apikey-gate-header">
+      <span id="apikey-gate-title">🔑 API KEY REQUIRED</span>
+      <button id="apikey-gate-close" onclick="closeApiKeyGate()">✕</button>
+    </div>
+    <div id="apikey-gate-desc"></div>
+    <div id="apikey-gate-field">
+      <div class="aw-label" style="margin-bottom:6px;">GEMINI OR CLAUDE API KEY</div>
+      <div id="apikey-gate-input-row">
+        <input type="password" id="apikey-gate-input" placeholder="AIza… (Gemini)  ·  sk-ant-… (Claude)" onkeydown="if(event.key==='Enter')saveApiKeyGate()">
+        <button id="apikey-gate-eye" onclick="toggleApiKeyGateVis()" title="Show/hide key">👁</button>
+      </div>
+    </div>
+    <div id="apikey-gate-error"></div>
+    <div id="apikey-gate-actions">
+      <button id="apikey-gate-save" onclick="saveApiKeyGate()">✓ SAVE &amp; ACTIVATE</button>
+      <button id="apikey-gate-cancel" onclick="closeApiKeyGate()">CANCEL</button>
+    </div>
+    <div id="apikey-gate-links">
+      <span>Free keys:</span>
+      <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio (Gemini)</a>
+      <span>·</span>
+      <a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic Console (Claude)</a>
     </div>
   </div>
 </div>
@@ -3583,8 +3649,7 @@ function selectCountry(d) {
     renderPanel(cache[key]);
   } else {
     setLoading();
-    if (apiKey) fetchSentiment(key, meta);
-    else renderNoKey();
+    fetchSentiment(key, meta);
   }
 }
 
@@ -3610,11 +3675,6 @@ function setLoading() {
   }
 }
 
-function renderNoKey() {
-  _elSentBadge.className = 'neutral';
-  _elSentBadge.innerHTML = '🔑 &nbsp;API KEY REQUIRED';
-  _elRationale.textContent = 'Enter a Claude (sk-ant-…) or Gemini (AIza…) API key in your Profile → ⚙ API & SETTINGS tab to enable sentiment analysis.';
-}
 
 // UNIFIED API LAYER  (Gemini + Claude)
 function detectProvider() {
@@ -3643,9 +3703,96 @@ function friendlyError(status, body) {
 
 // Universal text-only LLM call (no tool use).
 // Returns the response text string, or throws with a friendly message.
+let _apikeyGateCallback = null;
+
+function requireApiKey(callback, featureName) {
+  if (apiKey) { callback(); return; }
+  _apikeyGateCallback = callback;
+  const desc = document.getElementById('apikey-gate-desc');
+  if (desc) desc.textContent = (featureName || 'This feature') + ' requires your own API key. Basic country analysis on the map remains free.';
+  const inp = document.getElementById('apikey-gate-input');
+  if (inp) inp.value = '';
+  const err = document.getElementById('apikey-gate-error');
+  if (err) { err.textContent = ''; err.style.display = 'none'; }
+  document.getElementById('apikey-gate-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('apikey-gate-input')?.focus(), 80);
+}
+
+function closeApiKeyGate() {
+  document.getElementById('apikey-gate-overlay').classList.remove('open');
+  _apikeyGateCallback = null;
+}
+
+function toggleApiKeyGateVis() {
+  const inp = document.getElementById('apikey-gate-input');
+  const btn = document.getElementById('apikey-gate-eye');
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  if (btn) btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function saveApiKeyGate() {
+  const v = (document.getElementById('apikey-gate-input')?.value || '').trim();
+  const err = document.getElementById('apikey-gate-error');
+  const provider = v.startsWith('AIza') ? 'gemini' : (v.startsWith('sk-ant-') || v.startsWith('sk-')) ? 'claude' : null;
+  if (!provider) {
+    if (err) { err.textContent = 'Unrecognised key format — use AIza… (Gemini) or sk-ant-… / sk-… (Claude)'; err.style.display = 'block'; }
+    return;
+  }
+  apiKey = v;
+  storageSet('gmi_api_key', v);
+  const ok = document.getElementById('api-ok');
+  if (ok) { ok.textContent = provider === 'gemini' ? '✓ GEMINI ACTIVE' : '✓ CLAUDE ACTIVE'; ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 4000); }
+  const inp2 = document.getElementById('api-input');
+  if (inp2) inp2.value = v;
+  loadTickers();
+  if (tickerTimer) clearInterval(tickerTimer);
+  tickerTimer = setInterval(loadTickers, 300000);
+  if (!_tickerVisibilityWired) {
+    _tickerVisibilityWired = true;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { clearInterval(tickerTimer); tickerTimer = null; }
+      else { loadTickers(); tickerTimer = setInterval(loadTickers, 300000); }
+    });
+  }
+  document.getElementById('apikey-gate-overlay').classList.remove('open');
+  const cb = _apikeyGateCallback;
+  _apikeyGateCallback = null;
+  if (cb) setTimeout(cb, 180);
+}
+
+// Uses Pollinations.ai — free, CORS-enabled, no-auth LLM endpoint.
+async function callLLMFree(systemPrompt, userPrompt, maxTokens) {
+  const msgs = [];
+  if (systemPrompt) msgs.push({ role: 'system', content: systemPrompt });
+  msgs.push({ role: 'user', content: userPrompt });
+  const controller = new AbortController();
+  const _t = setTimeout(() => controller.abort(), 32000);
+  try {
+    const res = await fetch('https://text.pollinations.ai/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // No seed — each call gets fresh results. private:true avoids public logs.
+      body: JSON.stringify({ model: 'openai', messages: msgs, private: true }),
+      signal: controller.signal
+    });
+    clearTimeout(_t);
+    if (!res.ok) throw new Error('Free AI is temporarily unavailable — add your own API key for reliable access.');
+    let text = (await res.text()).trim();
+    if (!text) throw new Error('Free AI returned an empty response — try again or add your own API key.');
+    // GPT-4o sometimes wraps JSON in ```json code fences — strip them
+    text = text.replace(/^```(?:json|js|javascript)?\s*/i, '').replace(/\s*```\s*$/, '');
+    return text.trim();
+  } catch(e) {
+    clearTimeout(_t);
+    if (e.name === 'AbortError') throw new Error('Free AI request timed out (30 s) — add your own API key for faster responses.');
+    throw e;
+  }
+}
+
 async function callLLM(systemPrompt, userPrompt, maxTokens = 800, temperature = 0) {
   const provider = detectProvider();
-  if (!provider) throw new Error('No API key set');
+  if (!provider) return callLLMFree(systemPrompt, userPrompt, maxTokens);
   if (provider === 'unknown') throw new Error('Unrecognised API key format — expected AIza… (Gemini) or sk-ant-… (Claude)');
 
   if (provider === 'gemini') {
@@ -3905,10 +4052,7 @@ async function loadNews(key) {
   list.innerHTML = '<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);"><span class="spin"></span> &nbsp;Loading headlines...</div>';
   label.textContent = '📰  Loading...';
 
-  if (!apiKey) {
-    list.innerHTML = '<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);">API key required.</div>';
-    return;
-  }
+
 
   const cached = cache[key];
   const meta = cached?._meta;
@@ -3977,6 +4121,7 @@ Make headlines specific to ${countryName} — mention the country's central bank
 function openStocks() {
   if (!currentCountryMeta) return;
   if (!currentCountryMeta.index || currentCountryMeta.index === '—') return;
+  if (!apiKey) { requireApiKey(() => openStocks(), 'Stock Market Analysis'); return; }
 
   const modal = document.getElementById('stocks-modal');
   modal.classList.add('open');
@@ -3998,8 +4143,6 @@ function openStocks() {
     currentStocks = stocksCache[cacheKey].stocks;
     renderIndexStats(stocksCache[cacheKey].indexStats);
     renderStocks();
-  } else if (!apiKey) {
-    showStocksMessage('API key required. Open Profile → ⚙ API &amp; SETTINGS to enter your key.');
   } else {
     fetchStocks(cacheKey);
   }
@@ -4035,7 +4178,7 @@ Output ONLY valid JSON no markdown: {"indexStats":{"level":0,"pct":0,"constituen
 sector options: Financials/Technology/Energy/Healthcare/Consumer/Industrials/Materials/Utilities/Telecom/Real Estate. Use exact local exchange tickers. 30 stocks sorted by market cap descending.`;
 
   try {
-    if (detectProvider() === 'gemini') {
+    if (detectProvider() !== 'claude') {
       let raw = await callLLM('Output only a raw JSON object. No markdown. No code fences. No trailing commas.', geminiPrompt, 4000);
       const result = repairAndParseJSON(raw);
       stocksCache[cacheKey] = result;
@@ -4360,7 +4503,7 @@ document.getElementById('api-save').addEventListener('click', () => {
   }
 
   apiKey = v;
-  hideOnboardBanner();
+  storageSet('gmi_api_key', v);  // persist across sessions
   const ok = document.getElementById('api-ok');
   const label = provider === 'gemini' ? '✓ GEMINI ACTIVE' : '✓ CLAUDE ACTIVE';
   ok.textContent = label;
@@ -4379,6 +4522,19 @@ document.getElementById('api-save').addEventListener('click', () => {
     });
   }
   // Country analysis runs on demand from the 🌍 COUNTRIES tab — no precompute on key save.
+});
+
+// API key CLEAR button
+document.getElementById('api-clear')?.addEventListener('click', () => {
+  apiKey = '';
+  storageRemove('gmi_api_key');
+  const inp = document.getElementById('api-input');
+  if (inp) inp.value = '';
+  const ok = document.getElementById('api-ok');
+  if (ok) { ok.textContent = 'Key cleared — now running in free AI mode'; ok.style.color = 'var(--text2)'; ok.style.display = 'block'; setTimeout(() => { ok.style.display = 'none'; ok.style.color = ''; }, 4000); }
+  if (tickerTimer) { clearInterval(tickerTimer); tickerTimer = null; }
+  tickerTimer = setInterval(loadTickers, 300000);
+  loadTickers();
 });
 
 // COUNTER
@@ -4448,16 +4604,7 @@ function applyTickerData(data) {
 }
 
 async function loadTickers() {
-  // If no API key yet, show a friendly placeholder instead of errors
-  if (!apiKey) {
-    TICKERS.forEach(t => {
-      const el = document.getElementById(t.id);
-      el.textContent = '—';
-      el.className = 'tick-val tick-na';
-      el.title = 'Enter API key to enable live tickers';
-    });
-    return;
-  }
+
 
   // Serve from localStorage cache if < 5 min old
   try {
@@ -4498,7 +4645,8 @@ Use the most recent intraday value available. Output JSON only.`;
 
   try {
     let fullText;
-    if (detectProvider() === 'gemini') {
+    if (detectProvider() !== 'claude') {
+      // Gemini and free mode (Pollinations): use LLM price estimation
       const geminiTickerPrompt = `Based on your most recent training data, estimate current approximate market prices for these five instruments.
 
 Output ONLY a raw JSON object matching this schema (no markdown, no code fences, no trailing commas):
@@ -4588,11 +4736,7 @@ async function loadAuthorityPubs(key) {
   list.innerHTML = '<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);"><span class="spin"></span> &nbsp;Loading publications...</div>';
   label.textContent = '📋  Loading...';
 
-  if (!apiKey) {
-    list.innerHTML = '<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);">API key required.</div>';
-    label.textContent = '📋  Load latest publications';
-    return;
-  }
+
 
   if (authorityCache[key]) {
     renderAuthorityPubs(authorityCache[key], label);
@@ -4684,13 +4828,7 @@ async function toggleLanguage() {
   note.className = 'show';
   note.textContent = `Translating to ${lang}…`;
 
-  if (!apiKey) {
-    note.textContent = `API key required for translation`;
-    langNative = false;
-    btn.className = '';
-    btn.textContent = '🌐 EN';
-    return;
-  }
+
 
   const data = cache[activeId];
   if (!data) {
@@ -4846,7 +4984,7 @@ function restoreEnglish() {
 async function loadExpandDetail(cacheKey, prompt, bodyEl) {
   if (expandCache[cacheKey]) { bodyEl.innerHTML = expandCache[cacheKey]; return; }
   bodyEl.innerHTML = '<span class="expand-loading"><span class="spin"></span> &nbsp;Loading analysis…</span>';
-  if (!apiKey) { bodyEl.innerHTML = '<span style="color:var(--bear)">API key required.</span>'; return; }
+
   try {
     const raw = await callLLM(
       'You are a concise financial analyst. Write 2–3 short paragraphs in plain English. No markdown, no JSON, no bullet lists. Max 150 words.',
@@ -4908,12 +5046,7 @@ async function loadSocialSentiment() {
   errEl.style.display = 'none';
   loading.style.display = 'block';
 
-  if (!apiKey) {
-    loading.style.display = 'none';
-    errEl.style.display = 'block';
-    errEl.textContent = 'Add your API key in Profile → ⚙ API to enable social sentiment.';
-    return;
-  }
+
 
   const filterText = socialFilter.trim() ? ` — focusing on: ${socialFilter.trim()}` : '';
   const target = (socialScope === 'country' && currentCountryMeta
@@ -5133,6 +5266,7 @@ const DEEP_TAB_PROMPTS = {
 
 function openDeepAnalysis() {
   if (!currentCountryMeta) return;
+  if (!apiKey) { requireApiKey(() => openDeepAnalysis(), 'Deep Analysis'); return; }
   const overlay = document.getElementById('deep-overlay');
   overlay.classList.add('open');
   deepOpen = true;
@@ -5168,9 +5302,9 @@ function loadOrRenderDeepTab(tab) {
 }
 
 async function loadDeepSection(tab) {
-  if (!currentCountryMeta || !apiKey) {
+  if (!currentCountryMeta) {
     document.getElementById('deep-body').innerHTML =
-      `<div class="deep-loading"><div style="font-size:13px;color:var(--text2);">${!apiKey ? 'Enter an API key to enable deep analysis.' : 'Select a country first.'}</div></div>`;
+      `<div class="deep-loading"><div style="font-size:13px;color:var(--text2);">Select a country first.</div></div>`;
     return;
   }
   const body = document.getElementById('deep-body');
@@ -5253,10 +5387,7 @@ async function loadHistoryData() {
   const section = document.getElementById('history-section');
   section.innerHTML = '<div style="padding:20px;text-align:center;"><div class="big-spin"></div><div class="sl-text" style="font-size:11px;margin-top:8px;">Loading macro history…</div></div>';
 
-  if (!apiKey) {
-    section.innerHTML = '<div style="padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--text2);">API key required.</div>';
-    return;
-  }
+
   const meta = currentCountryMeta;
   const prompt = `Generate realistic historical macroeconomic data for ${meta.name} covering 12 quarters from Q1 2022 through Q4 2024.
 
@@ -5580,7 +5711,6 @@ async function fetchWatchlistSentiment(item) {
 
 function refreshAllWatchlistItems() {
   watchlistSentCache = {};
-  if (!apiKey) return;
   watchlist.forEach(item => fetchWatchlistSentiment(item));
 }
 
@@ -5716,10 +5846,8 @@ function removeCustomTag(tag) {
 
 async function runCustomAnalysis() {
   if (!customTags.length || caRunning) return;
-  if (!apiKey) {
-    alert('Enter an API key first to run custom analysis.');
-    return;
-  }
+  if (!apiKey) { requireApiKey(() => runCustomAnalysis(), 'Custom Analysis'); return; }
+
 
   caRunning = true;
   const runBtn = document.getElementById('ca-run-btn');
@@ -5930,14 +6058,6 @@ function drawCaGauge(score) {
 
 // EVENT LISTENERS (attached programmatically to avoid scope issues)
 function wireEventListeners() {
-  // Onboarding banner
-  document.getElementById('onboard-banner-addkey')?.addEventListener('click', () => {
-    hideOnboardBanner();
-    showApiSettings();
-    openProfile();
-  });
-  document.getElementById('onboard-banner-dismiss')?.addEventListener('click', hideOnboardBanner);
-
   // Panel close
   const pClose = document.getElementById('p-close');
   if (pClose) pClose.addEventListener('click', closePanel);
@@ -6135,6 +6255,7 @@ function wireEventListeners() {
   // ESC to close overlays in z-index priority order (highest first)
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      if (document.getElementById('apikey-gate-overlay').classList.contains('open')) { closeApiKeyGate(); return; }
       if (chartFsOpen) closeChartFs();
       else if (document.getElementById('stock-detail').classList.contains('open')) closeStockDetail();
       else if (document.getElementById('stocks-modal').classList.contains('open')) closeStocks();
@@ -6424,6 +6545,8 @@ function clearSession() {
 function showLoginOverlay() {
   const el = document.getElementById('login-overlay');
   if (!el) return;
+  // Always reset GitHub panel so main form is visible on every open
+  _setGithubPanelMode(false);
   el.classList.remove('hidden');
   el.classList.add('visible');
   requestAnimationFrame(() => el.classList.add('fade-in'));
@@ -6516,7 +6639,6 @@ function startSession(session) {
   applySession(session);
   hideLoginOverlay();
   setLoginContext('');
-  if (!apiKey) setTimeout(showOnboardBanner, 600);
   // Run any action that was waiting for auth
   if (_pendingAuthCallback) {
     const cb = _pendingAuthCallback;
@@ -6602,6 +6724,20 @@ function wireLoginEvents() {
   if (savedGcid) {
     const inp = document.getElementById('google-client-id-input');
     if (inp) inp.value = savedGcid;
+  }
+
+  // Apple Service ID save
+  document.getElementById('apple-service-id-save')?.addEventListener('click', () => {
+    const val = document.getElementById('apple-service-id-input')?.value.trim() || '';
+    if (val) { storageSet('gmi_apple_service_id', val); showToast('Apple Service ID saved. "Continue with Apple" is now active.', null, 4000); }
+    else { storageRemove('gmi_apple_service_id'); showToast('Apple Service ID cleared.', null, 3000); }
+  });
+
+  // Pre-fill Apple Service ID field if already stored
+  const savedAsid = storageGet('gmi_apple_service_id');
+  if (savedAsid) {
+    const inp = document.getElementById('apple-service-id-input');
+    if (inp) inp.value = savedAsid;
   }
 }
 
@@ -6708,6 +6844,9 @@ function showApiSettings() {
   document.getElementById('profile-body').style.display    = 'none';
   document.getElementById('api-widget').style.display      = 'block';
   document.getElementById('country-widget').style.display  = 'none';
+  // Prefill key if set this session or restored from storage
+  const inp = document.getElementById('api-input');
+  if (inp && !inp.value && apiKey) inp.value = apiKey;
 }
 
 function showCountriesTab() {
@@ -6723,6 +6862,7 @@ async function loadDigestTab(tab, forceRefresh) {
   if (tab === 'countries')  { showCountriesTab(); return; }
   if (tab === 'newsletter') { loadNewsletterTab(); return; }
   if (tab === 'opportunities') { await loadOpportunitiesTab(forceRefresh); return; }
+  if (!apiKey) { requireApiKey(() => loadDigestTab(tab, forceRefresh), tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest'); return; }
   _showProfileBody();
   profileTab = tab;
   document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
@@ -6749,10 +6889,7 @@ async function loadDigestTab(tab, forceRefresh) {
     } catch(_) {}
   }
 
-  if (!apiKey) {
-    body.innerHTML = '<div class="digest-empty" style="cursor:pointer;" onclick="showApiSettings()">🔑 Add your API key in Profile → ⚙ API to load your personalised digest.</div>';
-    return;
-  }
+
 
   body.innerHTML = '<div class="digest-loading"><span class="spin"></span> &nbsp;Generating your personalised ' + (tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest') + '…</div>';
 
@@ -6871,7 +7008,7 @@ function renderDigest(data, tab) {
 async function loadDigestItemDetail(cacheKey, item, bodyEl) {
   if (digestExpandCache[cacheKey]) { bodyEl.innerHTML = digestExpandCache[cacheKey]; return; }
   bodyEl.innerHTML = '<span class="expand-loading"><span class="spin"></span> &nbsp;Loading deep analysis…</span>';
-  if (!apiKey) { bodyEl.innerHTML = '<span style="color:var(--bear)">API key required.</span>'; return; }
+
   try {
     const raw = await callLLM(
       'You are a senior macro analyst. Provide concise, data-driven analytical insight. Plain text only.',
@@ -7077,10 +7214,6 @@ async function sendOrPreviewNewsletter(tab, action) {
   if (!data) {
     try { const s = storageGet(sKey); if (s) data = JSON.parse(s); } catch(_) {}
   }
-  if (!data && !apiKey) {
-    alert('Enter a Gemini API key and load the ' + (tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest') + ' tab first to generate the newsletter.');
-    return;
-  }
   if (!data) {
     const body = document.getElementById('profile-body');
     body.insertAdjacentHTML('beforeend', '<div class="digest-loading" id="nl-gen-msg"><span class="spin"></span> &nbsp;Generating digest…</div>');
@@ -7221,24 +7354,6 @@ function generateNewsletterText(data) {
 
 // Toast helpers
 let _toastTimer = null;
-function showApiKeyToast(hint) {
-  showToast(
-    (hint || 'API key required.') + ' →',
-    () => { showApiSettings(); openProfile(); },
-    5000
-  );
-  // repurpose the send button label
-  const sendBtn = document.getElementById('gmi-toast-send');
-  if (sendBtn) sendBtn.textContent = 'ADD KEY';
-}
-
-function showOnboardBanner() {
-  const b = document.getElementById('onboard-banner');
-  if (b && !apiKey) b.classList.add('visible');
-}
-function hideOnboardBanner() {
-  document.getElementById('onboard-banner')?.classList.remove('visible');
-}
 
 function showToast(msg, onSend, duration) {
   const toast = document.getElementById('gmi-toast');
@@ -7268,7 +7383,7 @@ function checkNewsletterAutoNotify() {
 
   const label = tab === 'daily' ? `Daily Capsule (${today})` : 'Weekly Digest';
 
-  if (ejsConfigured() && apiKey) {
+  if (ejsConfigured()) {
     // Auto-generate + auto-send silently after a short delay
     setTimeout(async () => {
       try {
@@ -7316,6 +7431,7 @@ function oppCacheKey(horizon) {
 }
 
 async function loadOpportunitiesTab(forceRefresh) {
+  if (!apiKey) { requireApiKey(() => loadOpportunitiesTab(forceRefresh), 'Opportunities'); return; }
   _showProfileBody();
   profileTab = 'opportunities';
   document.querySelectorAll('.profile-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'opportunities'));
@@ -7348,11 +7464,7 @@ async function loadOpportunitiesTab(forceRefresh) {
     } catch(_) {}
   }
 
-  if (!apiKey) {
-    body.innerHTML = horizonHtml + '<div class="opp-empty">Enter a Gemini API key to generate opportunities.</div>';
-    wireOppEvents(body, sKey);
-    return;
-  }
+
 
   body.innerHTML = horizonHtml + '<div class="opp-loading"><span class="spin"></span> &nbsp;Analysing markets for ' + oppHorizon.toLowerCase() + ' opportunities…</div>';
   wireOppEvents(body, sKey);
@@ -8059,14 +8171,13 @@ let researchSrc  = null;
 const researchCache = {};
 
 function openResearch() {
-  requireAuth(() => {
-    if (!apiKey) { showApiKeyToast('API key required to open Research Hub'); return; }
-    researchOpen = true;
-    document.getElementById('research-overlay').classList.add('open');
-    if (!researchSrc) researchSrc = 'gs';
-    renderResearchSources();
-    loadResearch(researchSrc);
-  }, 'Sign in to access the Research Hub');
+  if (!loadSession()?.username) { requireAuth(() => openResearch(), 'Sign in to access the Research Hub'); return; }
+  if (!apiKey) { requireApiKey(() => openResearch(), 'Research Hub'); return; }
+  researchOpen = true;
+  document.getElementById('research-overlay').classList.add('open');
+  if (!researchSrc) researchSrc = 'gs';
+  renderResearchSources();
+  loadResearch(researchSrc);
 }
 
 function closeResearch() {
@@ -8363,11 +8474,11 @@ let commodDetailLoading = false;
 let commodDetailCache   = {};
 
 function openCommodities() {
-  requireAuth(() => {
-    commodOpen = true;
-    document.getElementById('commod-overlay').classList.add('open');
-    if (!commodData.length && !commodLoading) loadCommodityHeat();
-  }, 'Sign in to view Commodity Markets');
+  if (!loadSession()?.username) { requireAuth(() => openCommodities(), 'Sign in to view Commodity Markets'); return; }
+  if (!apiKey) { requireApiKey(() => openCommodities(), 'Commodity Markets'); return; }
+  commodOpen = true;
+  document.getElementById('commod-overlay').classList.add('open');
+  if (!commodData.length && !commodLoading) loadCommodityHeat();
 }
 function closeCommodities() {
   commodOpen = false;
@@ -8385,7 +8496,7 @@ function commodPctColor(pct) {
 }
 
 async function loadCommodityHeat() {
-  if (!apiKey) { showApiKeyToast('API key required for Commodities'); return; }
+
   if (commodLoading) return;
   commodLoading = true;
   const grid = document.getElementById('commod-grid');
@@ -8456,7 +8567,7 @@ async function openCommodityDetail(symbol) {
   if (commodDetailLoading) return;
   const base = commodData.find(d => d.symbol === symbol) || COMMOD_DEFS.find(d => d.symbol === symbol) || {};
   det.innerHTML = `<div class="commod-det-loading"><span style="color:var(--amber);">⬡</span> Analysing ${escHtml(base.name || symbol)}…</div>`;
-  if (!apiKey) { det.innerHTML = '<div class="commod-det-loading" style="cursor:pointer;" onclick="showApiSettings();openProfile();">🔑 Add API key in Profile → ⚙ API to enable analysis</div>'; return; }
+
   commodDetailLoading = true;
   const sys = 'You are a commodity market analyst. Output ONLY a valid JSON object. No markdown, no code fences, no prose before or after. Start your response with { and end with }.';
   const usr = `Provide detailed macro analysis for ${base.name || symbol} (${base.unit || ''}).
@@ -8710,12 +8821,11 @@ function fxPctColor(pct) {
 }
 
 function openFx() {
-  requireAuth(() => {
-    if (!apiKey) { showApiKeyToast('API key required for FX Markets'); return; }
-    fxOpen = true;
-    document.getElementById('fx-overlay').classList.add('open');
-    if (!fxData.length && !fxLoading) loadFxHeat();
-  }, 'Sign in to view FX Markets');
+  if (!loadSession()?.username) { requireAuth(() => openFx(), 'Sign in to view FX Markets'); return; }
+  if (!apiKey) { requireApiKey(() => openFx(), 'FX Markets'); return; }
+  fxOpen = true;
+  document.getElementById('fx-overlay').classList.add('open');
+  if (!fxData.length && !fxLoading) loadFxHeat();
 }
 function closeFx() {
   fxOpen = false;
@@ -8723,7 +8833,6 @@ function closeFx() {
 }
 
 async function loadFxHeat() {
-  if (!apiKey) return;
   fxLoading = true;
   const grid = document.getElementById('fx-grid');
   if (grid) grid.innerHTML = '<div class="fx-loading-msg">⟳ Loading FX data via AI…</div>';
@@ -9457,7 +9566,7 @@ let _commPulseRunning = false;
 
 async function analyzeCommunityPulse() {
   if (_commPulseRunning) return;
-  if (!apiKey) { showApiKeyToast('API key required for Community Pulse analysis'); return; }
+
 
   // Collect posts from Firebase or local store
   let posts = [];
@@ -9811,7 +9920,27 @@ loadWatchlistFromStorage();
 wireEventListeners();
 wireChartFsEvents();
 initMap();
-loadTickers();  // shows "—" placeholders until user enters API key
+
+// Restore API key from previous session (persisted on-device)
+(function() {
+  const _k = storageGet('gmi_api_key');
+  if (!_k) return;
+  const _p = _k.startsWith('AIza') ? 'gemini' : (_k.startsWith('sk-ant-') || _k.startsWith('sk-')) ? 'claude' : null;
+  if (!_p) return;
+  apiKey = _k;
+  const ok = document.getElementById('api-ok');
+  if (ok) { ok.textContent = _p === 'gemini' ? '✓ GEMINI RESTORED' : '✓ CLAUDE RESTORED'; ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 3000); }
+  const inp = document.getElementById('api-input');
+  if (inp) inp.value = _k;
+  if (tickerTimer) clearInterval(tickerTimer);
+  tickerTimer = setInterval(loadTickers, 300000);
+})();
+
+loadTickers();
+// Free mode: ticker refresh (key save handler starts it for paid users)
+if (!apiKey && !tickerTimer) {
+  tickerTimer = setInterval(loadTickers, 300000);
+}
 checkNewsletterAutoNotify();
 
 // Register service worker for PWA / offline support

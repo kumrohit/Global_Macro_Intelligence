@@ -154,18 +154,23 @@ Or use [PWABuilder.com](https://www.pwabuilder.com/) — paste your deployed URL
 
 ---
 
-## Mobile UX Features Added
+## Mobile UX Features
 
-The HTML has been enhanced with these mobile-specific improvements:
-
-- **Bottom navigation bar** — tap Social, Watch, Analyse, Community, Profile from anywhere on the map
+- **Bottom navigation bar** — Social, Watchlist, Analyse, Community, Profile — always accessible at the bottom of the screen (phones ≤ 480 px)
 - **Full-width side panels** on phones (< 480 px)
 - **Responsive topbar** — tickers and clock hidden on small screens; bottom nav replaces them
 - **Touch-optimised map** — `touch-action: manipulation` eliminates 300 ms tap delay
 - **Larger tap targets** — close buttons, country paths
-- **API widget** repositioned above bottom nav on phones
 - **Service worker** caches map tiles + app shell for offline use
 - **PWA manifest** enables "Add to Home screen" with app name and theme colour
+
+### Access tiers on mobile
+
+**Free — no API key needed:**
+Country sentiment analysis, news, social posts, authority publications, history chart, language translation, community board, and the live ticker tape all work immediately after signing in — no API key required.
+
+**Advanced — add your own key:**
+Deep Analysis, Research Hub, FX/Commodity heatmaps, Stock Analysis, Custom Analysis, Digest, and Opportunities unlock once you add a Gemini or Claude key. Tap your profile → ⚙ API & SETTINGS to add it. A focused prompt appears automatically the first time you tap a locked feature.
 
 ---
 
@@ -173,8 +178,9 @@ The HTML has been enhanced with these mobile-specific improvements:
 
 - [ ] Open on Android Chrome → tap ⋮ → **Install app** → confirms home screen icon
 - [ ] Launch from home screen → opens in standalone mode (no browser bar)
-- [ ] Tap a country → side panel slides in full width
+- [ ] Register / sign in (or use Google / Apple / GitHub)
+- [ ] Tap a country → free AI analysis loads immediately, side panel slides in full width
 - [ ] Bottom nav tabs all work: Social, Watch, Analyse, Community, Profile
-- [ ] Enter Gemini API key → AI analysis loads
+- [ ] Tap **⊕ DEEP ANALYSIS** → API key prompt appears → add key → analysis loads
 - [ ] Put phone in flight mode → reload → map still renders (service worker)
 - [ ] Rotate to landscape → layout adapts

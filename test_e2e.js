@@ -450,6 +450,38 @@ test('Boot sequence calls loadWatchlistFromStorage', () =>
   js.includes('loadWatchlistFromStorage()'));
 test('Boot sequence calls initMap', () =>
   js.includes('initMap()'));
+test('Free mode: callLLMFree function defined', () => js.includes('async function callLLMFree'));
+test('Free mode: callLLM routes to free when no provider', () => js.includes('if (!provider) return callLLMFree('));
+test('Free mode: requireApiKey gate function defined', () => js.includes('function requireApiKey'));
+test('Free mode: apikey-gate-overlay CSS defined', () => css.includes('#apikey-gate-overlay'));
+test('Free mode: apikey-gate-overlay HTML exists', () => html.includes('id="apikey-gate-overlay"'));
+test('Free mode: Pollinations endpoint used in callLLMFree', () => js.includes('text.pollinations.ai'));
+test('Free mode: no fixed seed in callLLMFree (responses vary)', () => { const fn = js.slice(js.indexOf('async function callLLMFree')); return !fn.slice(0, 500).includes('seed: 42') && !fn.slice(0, 500).includes("seed:42"); });
+test('Free mode: AbortController timeout in callLLMFree', () => { const fn = js.slice(js.indexOf('async function callLLMFree')); return fn.slice(0, 600).includes('AbortController') && fn.slice(0, 600).includes('abort()'); });
+test('Free mode: code fence stripping in callLLMFree', () => { const fn = js.slice(js.indexOf('async function callLLMFree')); return fn.slice(0, 1200).includes('replace') && fn.slice(0, 1200).includes('json'); });
+test('Free mode: loadTickers uses !claude path for free mode', () => js.includes("detectProvider() !== 'claude'"));
+test('Free mode: API key persisted on save', () => { return js.includes("storageSet('gmi_api_key'"); });
+test('Free mode: API key restored at boot', () => { const bootIdx = js.lastIndexOf('// BOOT'); return js.indexOf('gmi_api_key', bootIdx) > bootIdx; });
+test('Free mode: CLEAR button wired to remove stored key', () => js.includes("'api-clear'") && js.includes("storageRemove('gmi_api_key')"));
+test('Free mode: renderNoKey dead code removed', () => !js.includes('function renderNoKey'));
+test('Free mode: showApiKeyToast dead code removed', () => !js.includes('function showApiKeyToast'));
+test('Free mode: onboard-banner HTML removed (dead code)', () => !html.includes('id="onboard-banner"'));
+test('Free mode: onboard-banner CSS removed (dead code)', () => !css.includes('#onboard-banner'));
+test('Free mode: showOnboardBanner removed (dead code)', () => !js.includes('function showOnboardBanner'));
+test('Free mode: hideOnboardBanner removed (dead code)', () => !js.includes('function hideOnboardBanner'));
+test('API gate: openDeepAnalysis gated', () => { const fn = js.slice(js.indexOf('function openDeepAnalysis')); return fn.slice(0,200).includes('requireApiKey'); });
+test('API gate: openResearch gated', () => { const fn = js.slice(js.indexOf('function openResearch')); return fn.slice(0,200).includes('requireApiKey'); });
+test('API gate: openFx gated', () => { const fn = js.slice(js.indexOf('function openFx')); return fn.slice(0,200).includes('requireApiKey'); });
+test('API gate: openCommodities gated', () => { const fn = js.slice(js.indexOf('function openCommodities')); return fn.slice(0,200).includes('requireApiKey'); });
+test('Community Board: no API key gate (free feature)', () => { const fn = js.slice(js.indexOf('async function openCommunity')); return !fn.slice(0,300).includes('requireApiKey'); });
+test('API gate: loadDigestTab gated for daily/weekly', () => { const fn = js.slice(js.indexOf('async function loadDigestTab')); return fn.slice(0,500).includes('requireApiKey'); });
+test('API gate: loadOpportunitiesTab gated', () => { const fn = js.slice(js.indexOf('async function loadOpportunitiesTab')); return fn.slice(0,200).includes('requireApiKey'); });
+test('API gate: runCustomAnalysis gated', () => { const fn = js.slice(js.indexOf('async function runCustomAnalysis')); return fn.slice(0,200).includes('requireApiKey'); });
+test('API gate: saveApiKeyGate persists key', () => js.includes('function saveApiKeyGate') && js.includes("storageSet('gmi_api_key'"));
+test('API gate: saveApiKeyGate fires pending callback', () => { const fn = js.slice(js.indexOf('function saveApiKeyGate')); return fn.slice(0,1600).includes('_apikeyGateCallback'); });
+test('Free mode: loadDeepSection no !apiKey guard', () => !js.includes('!currentCountryMeta || !apiKey'));
+test('Free mode: newsletter alert removed (no !apiKey alert for newsletter)', () => !js.includes('Enter a Gemini API key and load'));
+test('Free mode: country map analysis stays free (callLLMFree reachable without key)', () => js.includes('if (!provider) return callLLMFree('));
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE 13 — Android / Mobile
@@ -571,7 +603,7 @@ test('Macro drivers rendered as chips', () => js.includes('commod-driver-chip'))
 test('Technical levels rendered (support/resistance)', () => js.includes('tl.support') && js.includes('tl.resistance'));
 test('XSS safe: escHtml used in commodity render', () => { const fn = js.slice(js.indexOf('function renderCommodityDetail(')); return fn.slice(0,fn.indexOf('\n}')).includes('escHtml'); });
 test('Commodity detail cache per symbol', () => js.includes('commodDetailCache'));
-test('Guard: no API key shows toast', () => js.includes('loadCommodityHeat') && (js.includes("showApiKeyToast") || js.includes("'Enter your API key")));
+test('Free mode: loadCommodityHeat works without API key guard', () => js.includes('loadCommodityHeat') && js.includes('callLLM') && !js.includes('showApiKeyToast'));
 test('ESC key closes commodity overlay', () => js.includes('commodOpen') && js.includes("'Escape'"));
 test('Commodity CSS: heatmap tile defined', () => css.includes('.commod-tile'));
 test('Commodity CSS: amber color scheme', () => css.includes('commod-topbar-btn') && css.includes('rgba(245,158,11'));
@@ -627,13 +659,13 @@ test('Period filter applied in drawChartFsLine', () => js.includes("chartFsPerio
 test('LightweightCharts CrosshairMode.Normal used', () => js.includes('CrosshairMode.Normal'));
 test('LightweightCharts handleScale and handleScroll enabled', () => js.includes('handleScale') && js.includes('handleScroll'));
 test('TV dark background (#131722)', () => js.includes('#131722'));
-test('ESC closes chartFsOpen first in priority chain', () => {
+test('ESC closes apikey gate modal first (highest z-index)', () => {
   const escIdx = js.indexOf("if (e.key === 'Escape')");
   if (escIdx < 0) return false;
-  const block = js.slice(escIdx, escIdx + 200);
+  const block = js.slice(escIdx, escIdx + 250);
+  const gateIdx = block.indexOf('apikey-gate-overlay');
   const fsIdx = block.indexOf('chartFsOpen');
-  const stockIdx = block.indexOf('closeStockDetail');
-  return fsIdx >= 0 && fsIdx < stockIdx;
+  return gateIdx >= 0 && fsIdx >= 0 && gateIdx < fsIdx;
 });
 test('Fullscreen close button onclick present', () => html.includes('onclick="closeChartFs()"'));
 test('Fullscreen renders chart using LightweightCharts', () => js.includes('drawChartFsLine') && js.includes('LW.createChart') && js.includes('LightweightCharts'));
@@ -705,7 +737,7 @@ test('FX overlay z-index 2080 (above commodity 2075)', () => css.includes('#fx-o
 test('FX tile CSS defined', () => css.includes('.fx-tile'));
 test('FX indigo color scheme in CSS', () => css.includes('6366f1'));
 test('XSS safe: escHtml used in FX render', () => { const fn = js.slice(js.indexOf('function renderFxDetail(')); return fn.slice(0,fn.indexOf('\n}')+2).includes('escHtml'); });
-test('Guard: no API key shows toast in openFx', () => { const fn = js.slice(js.indexOf('function openFx()')); return (fn.slice(0,250).includes("showApiKeyToast") || fn.slice(0,250).includes("showToast")) && fn.slice(0,250).includes('apiKey'); });
+test('Free mode: openFx works without API key (no hard block)', () => { const fn = js.slice(js.indexOf('function openFx()')); return fn.slice(0, 300).includes('fxOpen') && !fn.slice(0,200).includes('showApiKeyToast'); });
 test('FX backdrop click closes overlay', () => js.includes('fxOpen') && js.includes('closeFx'));
 test('FX D3 chart uses CatmullRom curve', () => js.includes('drawFxChart') && js.includes('curveCatmullRom'));
 test('FX carry analysis in detail', () => js.includes('carry') && js.includes('rate_differential'));
@@ -819,9 +851,9 @@ test('XSS safe: escHtml used in renderResearchArticles', () => {
 test('Research CSS: source-btn, article-card, house-card, theme-chip defined', () =>
   css.includes('.research-source-btn') && css.includes('.research-article-card') &&
   css.includes('.research-house-card') && css.includes('.research-theme-chip'));
-test('Guard: API key required to open Research Hub', () => {
+test('Free mode: openResearch works without API key (no hard block)', () => {
   const fn = js.slice(js.indexOf('function openResearch()'));
-  return fn.slice(0, 250).includes('apiKey') && (fn.slice(0, 250).includes('showToast') || fn.slice(0, 250).includes('showApiKeyToast'));
+  return fn.slice(0, 250).includes('researchOpen') && !fn.slice(0, 250).includes('showApiKeyToast');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
