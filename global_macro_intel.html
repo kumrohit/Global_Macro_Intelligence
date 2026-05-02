@@ -1616,6 +1616,175 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   cursor:pointer;letter-spacing:0.08em;transition:color 0.15s,border-color 0.15s,background 0.15s,opacity 0.15s;
 }
 #logout-btn:hover{border-color:var(--bear);color:var(--bear);}
+#about-topbar-btn{
+  font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:0.12em;
+  color:var(--cyan);background:rgba(0,212,255,0.06);
+  border:1px solid rgba(0,212,255,0.25);border-radius:3px;
+  padding:5px 12px;cursor:pointer;white-space:nowrap;
+  transition:color 0.15s,border-color 0.15s,background 0.15s;
+}
+#about-topbar-btn:hover{background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.5);color:#fff;}
+@media(max-width:768px){#about-topbar-btn{font-size:8px;padding:4px 8px;}}
+@media(max-width:480px){#about-topbar-btn{display:none !important;}}
+
+/* ── About / Product Page ── */
+#about-overlay{
+  position:fixed;inset:0;z-index:4500;display:none;overflow-y:auto;
+  background:linear-gradient(180deg,#020c1a 0%,#010810 50%,#020c1a 100%);
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+#about-overlay.open{display:block;animation:aboutFadeIn 0.35s ease;}
+@keyframes aboutFadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+#about-overlay::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,0.025) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+#about-close-btn{
+  position:fixed;top:18px;right:22px;z-index:4502;
+  background:rgba(2,8,22,0.8);border:1px solid var(--border2);border-radius:3px;
+  color:var(--text2);font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;
+  padding:6px 14px;cursor:pointer;backdrop-filter:blur(8px);
+  transition:color 0.15s,border-color 0.15s;
+}
+#about-close-btn:hover{color:#ef4444;border-color:#ef4444;}
+.about-wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:56px 32px 80px;}
+/* Hero */
+.about-hero{text-align:center;padding:48px 0 56px;}
+.about-hero-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:0.22em;color:var(--cyan);
+  border:1px solid rgba(0,212,255,0.25);border-radius:20px;padding:5px 16px;
+  margin-bottom:28px;background:rgba(0,212,255,0.04);
+}
+.about-hero-badge-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 6px var(--cyan);animation:pulse 2s infinite;
+}
+.about-hero-title{
+  font-family:var(--font-display);font-size:46px;font-weight:700;
+  line-height:1.1;margin:0 0 18px;letter-spacing:0.02em;
+  background:linear-gradient(135deg,#e2f4ff 0%,var(--cyan) 45%,#818cf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.about-hero-sub{
+  font-family:var(--font-mono);font-size:12px;color:var(--text2);
+  max-width:580px;margin:0 auto 38px;line-height:1.75;letter-spacing:0.04em;
+}
+.about-hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.about-cta-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--cyan);color:#000;
+  font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:0.15em;
+  padding:11px 30px;border:none;border-radius:3px;cursor:pointer;
+  transition:opacity 0.15s,box-shadow 0.15s;
+  box-shadow:0 0 24px rgba(0,212,255,0.3);
+}
+.about-cta-primary:hover{opacity:0.88;box-shadow:0 0 40px rgba(0,212,255,0.5);}
+.about-cta-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--text2);
+  font-family:var(--font-mono);font-size:10px;letter-spacing:0.15em;
+  padding:11px 30px;border:1px solid var(--border2);border-radius:3px;cursor:pointer;
+  transition:color 0.15s,border-color 0.15s;
+}
+.about-cta-secondary:hover{color:#fff;border-color:var(--text2);}
+/* Stats */
+.about-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;margin:0 0 64px;
+}
+.about-stat{background:#020c1a;padding:26px 16px;text-align:center;}
+.about-stat-num{
+  font-family:var(--font-display);font-size:38px;font-weight:700;
+  color:var(--cyan);line-height:1;margin-bottom:7px;letter-spacing:-0.01em;
+}
+.about-stat-label{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.2em;}
+/* Section headings */
+.about-section-head{
+  display:flex;align-items:center;gap:12px;margin:0 0 22px;
+  font-family:var(--font-mono);font-size:9px;letter-spacing:0.25em;color:var(--text3);
+}
+.about-section-head::after{content:'';flex:1;height:1px;background:var(--border);}
+/* Feature cards */
+.about-features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:60px;}
+.about-feat-card{
+  background:rgba(5,12,28,0.85);border:1px solid var(--border2);border-radius:6px;
+  padding:24px;position:relative;overflow:hidden;cursor:default;
+  transition:transform 0.2s ease,box-shadow 0.2s ease,border-color 0.2s ease;
+}
+.about-feat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--fc,rgba(0,212,255,0.5)),transparent);
+  opacity:0.6;
+}
+.about-feat-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+  border-color:var(--fc,rgba(0,212,255,0.25));
+}
+.about-feat-icon{font-size:20px;margin-bottom:14px;color:var(--fc,var(--cyan));}
+.about-feat-title{
+  font-family:var(--font-display);font-size:13px;font-weight:700;
+  letter-spacing:0.08em;color:#fff;margin-bottom:8px;
+}
+.about-feat-desc{font-family:var(--font-mono);font-size:9px;color:var(--text2);line-height:1.75;letter-spacing:0.03em;}
+.about-feat-tag{
+  display:inline-block;margin-top:14px;
+  font-family:var(--font-mono);font-size:8px;letter-spacing:0.12em;
+  color:var(--fc,var(--cyan));border:1px solid;
+  border-color:var(--fbc,rgba(0,212,255,0.2));
+  background:var(--fac,rgba(0,212,255,0.04));
+  border-radius:2px;padding:2px 8px;
+}
+/* Use cases */
+.about-usecases{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:60px;}
+.about-usecase{
+  background:rgba(5,12,28,0.6);border:1px solid var(--border);border-radius:6px;
+  padding:22px 22px 22px 20px;display:flex;gap:14px;
+  transition:border-color 0.2s;
+}
+.about-usecase:hover{border-color:var(--border2);}
+.about-usecase-sym{font-size:22px;flex-shrink:0;margin-top:2px;line-height:1;}
+.about-usecase-title{
+  font-family:var(--font-display);font-size:12px;font-weight:700;
+  letter-spacing:0.1em;color:#fff;margin-bottom:6px;
+}
+.about-usecase-desc{font-family:var(--font-mono);font-size:9px;color:var(--text2);line-height:1.75;letter-spacing:0.03em;margin-bottom:10px;}
+.about-usecase-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.about-uc-chip{
+  font-family:var(--font-mono);font-size:7px;letter-spacing:0.1em;
+  color:var(--text3);border:1px solid var(--border);border-radius:2px;padding:2px 6px;
+}
+/* Tech */
+.about-tech{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:60px;}
+.about-tech-chip{
+  font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;
+  color:var(--text2);border:1px solid var(--border);border-radius:3px;
+  padding:6px 14px;background:rgba(5,12,28,0.7);
+  transition:color 0.15s,border-color 0.15s,background 0.15s;cursor:default;
+}
+.about-tech-chip:hover{color:var(--cyan);border-color:rgba(0,212,255,0.35);background:rgba(0,212,255,0.04);}
+/* Footer */
+.about-footer{text-align:center;padding:48px 0 16px;border-top:1px solid var(--border);}
+.about-footer-title{font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:0.06em;color:#fff;margin-bottom:10px;}
+.about-footer-sub{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.08em;margin-bottom:26px;}
+/* Responsive */
+@media(max-width:768px){
+  .about-hero-title{font-size:30px;}
+  .about-features{grid-template-columns:repeat(2,1fr);}
+  .about-usecases{grid-template-columns:1fr;}
+  .about-stats{grid-template-columns:repeat(2,1fr);}
+  .about-wrap{padding:48px 18px 60px;}
+}
+@media(max-width:480px){
+  .about-features{grid-template-columns:1fr;}
+  .about-hero-title{font-size:24px;}
+  .about-stat-num{font-size:28px;}
+}
 
 /* ── Profile + Digest overlay ── */
 #profile-overlay{
@@ -2395,6 +2564,168 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   </div>
 </div>
 
+<!-- ══ ABOUT / PRODUCT PAGE ══ -->
+<div id="about-overlay">
+  <button id="about-close-btn" onclick="closeAbout()">✕ CLOSE</button>
+  <div class="about-wrap">
+
+    <!-- Hero -->
+    <div class="about-hero">
+      <div class="about-hero-badge">
+        <div class="about-hero-badge-dot"></div>
+        LIVE · AI-POWERED · GLOBAL
+      </div>
+      <div class="about-hero-title">The Intelligence Layer<br>for Global Markets</div>
+      <div class="about-hero-sub">Real-time macro sentiment, multi-asset heatmaps, institutional research and AI-driven trade ideas — unified in a single terminal for traders, analysts and investors.</div>
+      <div class="about-hero-actions">
+        <button class="about-cta-primary" onclick="handleAboutCta()">ENTER TERMINAL →</button>
+        <button class="about-cta-secondary" onclick="closeAbout()">EXPLORE THE MAP</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="about-stats">
+      <div class="about-stat"><div class="about-stat-num" data-target="195">0</div><div class="about-stat-label">COUNTRIES COVERED</div></div>
+      <div class="about-stat"><div class="about-stat-num" data-target="16">0</div><div class="about-stat-label">TOP INSTITUTIONS</div></div>
+      <div class="about-stat"><div class="about-stat-num" data-target="6" data-suffix="+">0</div><div class="about-stat-label">ASSET CLASSES</div></div>
+      <div class="about-stat"><div class="about-stat-num" data-target="50" data-suffix="+">0</div><div class="about-stat-label">MACRO INDICATORS</div></div>
+    </div>
+
+    <!-- Core Modules -->
+    <div class="about-section-head">CORE MODULES</div>
+    <div class="about-features">
+
+      <div class="about-feat-card" style="--fc:#00d4ff;--fbc:rgba(0,212,255,0.2);--fac:rgba(0,212,255,0.04);">
+        <div class="about-feat-icon">◉</div>
+        <div class="about-feat-title">WORLD SENTIMENT MAP</div>
+        <div class="about-feat-desc">Real-time macro sentiment scored across 195 countries. Click any nation for instant regime identification, risk scoring, central bank policy tracking and AI-generated economic outlook.</div>
+        <div class="about-feat-tag">195 COUNTRIES · LIVE AI</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#818cf8;--fbc:rgba(99,102,241,0.2);--fac:rgba(99,102,241,0.04);">
+        <div class="about-feat-icon">◊</div>
+        <div class="about-feat-title">FX MARKETS</div>
+        <div class="about-feat-desc">G10 and Emerging Market currency heatmap benchmarked against the Dollar. Real OHLCV data via Yahoo Finance with TradingView charts, Bollinger Bands, RSI and AI-driven FX trade signals.</div>
+        <div class="about-feat-tag">G10 + EM · LIVE OHLCV</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#f59e0b;--fbc:rgba(245,158,11,0.2);--fac:rgba(245,158,11,0.04);">
+        <div class="about-feat-icon">◆</div>
+        <div class="about-feat-title">COMMODITIES</div>
+        <div class="about-feat-desc">Cross-commodity heatmap spanning energy, metals, agriculture and softs. Live pricing layered with conviction-scored trade ideas, supply-demand catalysts and sector rotation signals.</div>
+        <div class="about-feat-tag">ENERGY · METALS · AGRI</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#60a5fa;--fbc:rgba(96,165,250,0.2);--fac:rgba(96,165,250,0.04);">
+        <div class="about-feat-icon">◎</div>
+        <div class="about-feat-title">RESEARCH HUB</div>
+        <div class="about-feat-desc">AI-curated macro research from 16 top institutions: Goldman Sachs, JPMorgan, IMF, BIS, World Bank, ECB, Fed and more. House views, key calls and direct article links in one unified feed.</div>
+        <div class="about-feat-tag">16 INSTITUTIONS · AI CURATED</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#a855f7;--fbc:rgba(168,85,247,0.2);--fac:rgba(168,85,247,0.04);">
+        <div class="about-feat-icon">⬡</div>
+        <div class="about-feat-title">COMMUNITY BOARD</div>
+        <div class="about-feat-desc">Real-time trader and investor pulse. AI-powered post sentiment scoring, trend detection, official GMI broadcasts and community macro insights — the market's collective intelligence, structured.</div>
+        <div class="about-feat-tag">LIVE PULSE · AI SENTIMENT</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#34d399;--fbc:rgba(52,211,153,0.2);--fac:rgba(52,211,153,0.04);">
+        <div class="about-feat-icon">⊕</div>
+        <div class="about-feat-title">PERSONAL INTELLIGENCE</div>
+        <div class="about-feat-desc">Personalised daily and weekly macro digests, a horizon-based opportunity scanner, custom multi-theme analysis builder and professional newsletter delivery — all tuned to your watchlist and region.</div>
+        <div class="about-feat-tag">DIGEST · OPPORTUNITIES · WATCHLIST</div>
+      </div>
+
+    </div>
+
+    <!-- Who it's for -->
+    <div class="about-section-head">WHO IT'S FOR</div>
+    <div class="about-usecases">
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">◊</div>
+        <div>
+          <div class="about-usecase-title">MACRO TRADERS</div>
+          <div class="about-usecase-desc">Identify regime shifts, FX momentum and EM risk events before they move markets. Combine country sentiment with real-time FX heatmaps and conviction-ranked trade ideas.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">FX POSITIONING</span>
+            <span class="about-uc-chip">RATES OUTLOOK</span>
+            <span class="about-uc-chip">EM RISK</span>
+            <span class="about-uc-chip">REGIME SHIFTS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">◉</div>
+        <div>
+          <div class="about-usecase-title">PORTFOLIO MANAGERS</div>
+          <div class="about-usecase-desc">Allocate across countries and asset classes with data-driven regime scoring. Monitor drawdown signals, cross-asset correlations and institutional research from a single dashboard.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">COUNTRY ALLOCATION</span>
+            <span class="about-uc-chip">RISK SCORING</span>
+            <span class="about-uc-chip">CORRELATION</span>
+            <span class="about-uc-chip">REBALANCING</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">◎</div>
+        <div>
+          <div class="about-usecase-title">RESEARCH ANALYSTS</div>
+          <div class="about-usecase-desc">Aggregate institutional views from 16 top sources in minutes, not hours. Deep-dive country reports, AI-generated digests and professional newsletter delivery to your inbox.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">INSTITUTIONAL RESEARCH</span>
+            <span class="about-uc-chip">DEEP REPORTS</span>
+            <span class="about-uc-chip">NEWSLETTER</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">⬡</div>
+        <div>
+          <div class="about-usecase-title">LONG-TERM INVESTORS</div>
+          <div class="about-usecase-desc">Scan for structural opportunities across day, week and month horizons. Track themes, build multi-factor custom views and follow official GMI investment outlooks on the community board.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">OPPORTUNITY SCANNER</span>
+            <span class="about-uc-chip">THEMATIC ANALYSIS</span>
+            <span class="about-uc-chip">WATCHLIST</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tech stack -->
+    <div class="about-section-head">POWERED BY</div>
+    <div class="about-tech">
+      <div class="about-tech-chip">Gemini 2.5 Flash</div>
+      <div class="about-tech-chip">Claude AI · Anthropic</div>
+      <div class="about-tech-chip">Pollinations.ai (Free Tier)</div>
+      <div class="about-tech-chip">TradingView Lightweight Charts</div>
+      <div class="about-tech-chip">D3.js v7</div>
+      <div class="about-tech-chip">Yahoo Finance Data</div>
+      <div class="about-tech-chip">TopoJSON World Map</div>
+      <div class="about-tech-chip">Google Identity Services</div>
+      <div class="about-tech-chip">Apple Sign-In SDK</div>
+      <div class="about-tech-chip">Progressive Web App</div>
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="about-footer">
+      <div class="about-footer-title">Ready to see the world differently?</div>
+      <div class="about-footer-sub">Start free — no account required to explore the map. Sign in to unlock full analysis.</div>
+      <div class="about-hero-actions">
+        <button class="about-cta-primary" onclick="handleAboutCta()">ENTER TERMINAL →</button>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /#about-overlay -->
+
 <div id="app">
 
 <div id="topbar">
@@ -2414,6 +2745,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     <button id="research-topbar-btn" title="Research Hub">◎ RESEARCH</button>
   </nav>
   <div class="topbar-right">
+    <button id="about-topbar-btn" onclick="openAbout()" title="About Global Macro Intelligence">◈ ABOUT</button>
     <div id="topbar-user" style="display:none;">
       <span id="topbar-username" title="Open Profile &amp; Digest">—</span>
       <button id="logout-btn">⏻ LOGOUT</button>
@@ -9871,6 +10203,40 @@ function wireCommEvents() {
     });
   }
 }
+
+// ── About / Product Page ──
+function openAbout() {
+  const overlay = document.getElementById('about-overlay');
+  overlay.classList.add('open');
+  overlay.scrollTop = 0;
+  setTimeout(_animateAboutCounters, 350);
+}
+function closeAbout() {
+  document.getElementById('about-overlay').classList.remove('open');
+}
+function handleAboutCta() {
+  closeAbout();
+  if (!currentSession) requireAuth(() => {}, 'Sign in to unlock full analysis');
+}
+function _animateAboutCounters() {
+  document.querySelectorAll('#about-overlay .about-stat-num[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target, 10);
+    const suffix = el.dataset.suffix || '';
+    const dur = 1100;
+    const t0 = Date.now();
+    const step = () => {
+      const p = Math.min((Date.now() - t0) / dur, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(ease * target) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('about-overlay').classList.contains('open')) closeAbout();
+});
+// About button wired via inline onclick="openAbout()" in topbar HTML
 
 // BOOT
 wireLoginEvents();
