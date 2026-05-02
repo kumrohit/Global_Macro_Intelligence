@@ -193,7 +193,7 @@ Content-Security-Policy:
 | Cache is in-memory | Cleared on page refresh; no server-side caching |
 | Historical data is AI-generated | Not sourced from live financial data APIs |
 | Ticker data is placeholder | Requires a separate financial data API to make live |
-| No mobile layout | Optimized for desktop (1280px+ width) |
+| Mobile layout is basic | Responsive down to 360 px; complex chart overlays are desktop-only |
 
 ---
 

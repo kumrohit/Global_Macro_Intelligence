@@ -2,7 +2,7 @@
 
 > AI-powered macro intelligence terminal for analysts, traders, and researchers — delivered as a single self-contained HTML file.
 
-![Tests](https://img.shields.io/badge/tests-482%2F482%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-102%2F102%20passing-brightgreen)
 ![Stack](https://img.shields.io/badge/stack-HTML%20%2F%20CSS%20%2F%20JS-informational)
 ![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash%20%7C%20Claude%20%7C%20Free%20Mode-blue)
 ![Charts](https://img.shields.io/badge/charts-D3.js%20v7%20%7C%20TradingView%20LW-orange)
@@ -15,7 +15,7 @@
 
 Click any country on the world map and instantly get an AI-generated macro brief — sentiment regime, equity bias, rate outlook, FX bias, risk level, rationale, central bank publications, news, social sentiment, and historical charts. No API key needed for country analysis. Advanced features (Deep Analysis, Research Hub, FX/Commodities heatmaps, Digest, Opportunities, Custom Analysis, Stocks) unlock with your own Gemini or Claude API key.
 
-Everything runs in a **single HTML file** with zero dependencies to install.
+Everything runs in a **single HTML file** (~568 KB · ~11 560 lines) with zero dependencies to install.
 
 ---
 
@@ -48,7 +48,7 @@ API keys are stored on-device only — never sent to any server other than the s
 ### Map & Country Analysis (Free)
 - **Interactive world map** — flat equirectangular D3 projection; click any of 195 countries
 - **Country sentiment panel** — sentiment score, regime pill (dovish / hawkish / neutral), key indicator chips (equity, rate, FX, risk, currency, key rate), AI rationale
-- **Historical macro chart** — D3 multi-line chart: GDP, Inflation, Rate, FX over 12 quarters
+- **Historical macro chart** — D3 multi-line chart: GDP, Inflation, Rate, FX over 20 quarters (Q1 2020 – Q4 2024)
 - **Authority publications** — links to 54 central banks and finance ministries
 - **Macro news feed** — AI-generated news with clickable source URLs
 - **Social sentiment panel** — community-style macro posts with hashtag/topic filter
@@ -72,8 +72,8 @@ API keys are stored on-device only — never sent to any server other than the s
 ### FX & Commodity Markets (API Key Required)
 - **FX heatmap** — G10 and EM currencies vs USD; colour-coded sentiment tiles
 - **Commodity heatmap** — energy, metals, agriculture; colour-coded sentiment tiles
-- **Full-screen TradingView charts** — LINE / AREA / CANDLESTICK; real OHLCV from Yahoo Finance with AI simulation fallback
-- MA(5/20), Bollinger Bands (20,2), RSI(14), Volume histogram, LIVE / AI ESTIMATE badge
+- **Full-screen TradingView charts** — LINE / AREA / CANDLESTICK; real 5-year OHLCV from Yahoo Finance (adjusted close, dual-tier: 5Y weekly + 1Y daily) with AI simulation fallback
+- EMA9/21/50/200 overlays, Bollinger Bands (20,2), RSI(14) / MACD(12,26,9) / Stoch(14,3,3) oscillators, volume histogram, AI support/resistance price lines, AI trade signal overlay (direction, conviction %, entry/target/stop), LIVE / AI ESTIMATE badge
 
 ### Community Board (Free)
 - **Feed** — post macro views; bullish / bearish / neutral tagging; like, comment, delete
@@ -87,10 +87,16 @@ API keys are stored on-device only — never sent to any server other than the s
 - **Three-tier storage** — localStorage → sessionStorage → in-memory fallback (private-mode safe)
 - **Session persistence** — reload without re-logging-in
 
+### Trader Productivity
+- **Mini-ticker bar** — fixed bottom bar showing live DXY / GOLD / WTI / VIX / US10Y with colour-coded % change and UTC clock
+- **Economic Calendar** — AI-generated 4-week forward event list (FOMC, ECB, NFP, CPI, PMIs, G7) with category/importance filters; opens via `E` key or toolbar button
+- **Ctrl+K quick search** — instant search across 195 countries, 16 FX pairs, 11 commodities, and all sections; arrow-key navigation
+- **Keyboard shortcuts** — `F`=FX · `X`=Commodities · `R`=Research · `E`=Calendar · `?`=shortcut cheat sheet · `ESC`=close any overlay
+
 ### Mobile & PWA
 - **Progressive Web App** — installable on Android from Chrome; standalone mode, dark theme
 - **Bottom navigation bar** — Social, Watchlist, Analyse, Community, Profile (phones ≤ 480 px)
-- **Fully responsive** — 4 breakpoints (900 px, 768 px, 480 px, 360 px)
+- **Fully responsive** — 5 breakpoints (900 px, 768 px, 480 px, 360 px + mini-ticker mobile handling)
 - **Offline support** — service worker caches app shell and map data
 - **Touch-optimised** — `touch-action: manipulation` on map, 44 px tap targets
 
