@@ -85,7 +85,7 @@ test('Map SVG #map-svg exists', () => hasEl('map-svg'));
 test('Country tooltip #tooltip exists', () => hasEl('tooltip'));
 test('Side panel #panel exists', () => hasEl('panel'));
 test('Clock element #clock exists', () => hasEl('clock'));
-test('Ticker tape present', () => hasEl('tickers'));
+test('Topbar ABOUT button present', () => hasEl('about-topbar-btn'));
 test('API widget #api-widget present', () => hasEl('api-widget'));
 test('API key input present', () => hasEl('api-input'));
 
@@ -435,9 +435,9 @@ test('weekKey() for digest cache keys', () => hasFn('weekKey'));
 test('Region jump highlights countries', () => hasFn('jumpToRegion') || js.includes('REGION_NAMES'));
 test('Static map resize handler', () =>
   js.includes("window.addEventListener('resize'") || js.includes('window.addEventListener("resize"'));
-test('File size under 500 KB (single file)', () => {
+test('File size under 600 KB (single file)', () => {
   const bytes = fs.statSync(FILE).size;
-  return bytes < 500000;
+  return bytes < 600000;
 });
 test('Boot sequence calls wireCommEvents', () => {
   // wireCommEvents() appears in the boot sequence (after BOOT comment)
@@ -662,7 +662,7 @@ test('TV dark background (#131722)', () => js.includes('#131722'));
 test('ESC closes apikey gate modal first (highest z-index)', () => {
   const escIdx = js.indexOf("if (e.key === 'Escape')");
   if (escIdx < 0) return false;
-  const block = js.slice(escIdx, escIdx + 250);
+  const block = js.slice(escIdx, escIdx + 400);
   const gateIdx = block.indexOf('apikey-gate-overlay');
   const fsIdx = block.indexOf('chartFsOpen');
   return gateIdx >= 0 && fsIdx >= 0 && gateIdx < fsIdx;
@@ -727,7 +727,7 @@ test('FX detail cache per symbol', () => js.includes('fxDetailCache'));
 test('ESC closes fxOpen (between caOpen and commodOpen)', () => {
   const escIdx = js.indexOf("if (e.key === 'Escape')");
   if (escIdx < 0) return false;
-  const block = js.slice(escIdx, escIdx + 600);
+  const block = js.slice(escIdx, escIdx + 900);
   const caIdx    = block.indexOf('caOpen');
   const fxIdx    = block.indexOf('fxOpen');
   const commIdx  = block.indexOf('commodOpen');

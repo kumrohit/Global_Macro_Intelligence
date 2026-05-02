@@ -110,6 +110,13 @@ body::after{
   transition:color 0.15s,background 0.15s;border-radius:3px;
 }
 .topbar-nav button:hover{color:#fff;background:rgba(255,255,255,0.05);}
+.topbar-nav button.nav-active{color:#fff !important;background:rgba(255,255,255,0.08) !important;}
+#comm-topbar-btn.nav-active{color:#c084fc !important;background:rgba(168,85,247,0.15) !important;}
+#fx-topbar-btn.nav-active{color:#818cf8 !important;background:rgba(99,102,241,0.12) !important;}
+#commod-topbar-btn.nav-active{color:var(--amber) !important;background:rgba(245,158,11,0.12) !important;}
+#ca-topbar-btn.nav-active{color:var(--cyan) !important;background:rgba(34,211,238,0.12) !important;}
+#research-topbar-btn.nav-active{color:#60a5fa !important;background:rgba(96,165,250,0.12) !important;}
+#about-topbar-btn.nav-active{color:#fff !important;background:rgba(0,212,255,0.18) !important;border-color:var(--cyan) !important;}
 .nav-sep{width:1px;height:16px;background:var(--border);flex-shrink:0;margin:0 2px;}
 .topbar-right{display:flex;align-items:center;gap:12px;justify-content:flex-end;}
 #clock{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.08em;}
@@ -1632,6 +1639,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   position:fixed;inset:0;z-index:4500;display:none;overflow-y:auto;
   background:linear-gradient(180deg,#020c1a 0%,#010810 50%,#020c1a 100%);
   scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+  scrollbar-gutter:stable;
 }
 #about-overlay.open{display:block;animation:aboutFadeIn 0.35s ease;}
 @keyframes aboutFadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
@@ -6124,12 +6132,14 @@ function openCustomAnalysis() {
   requireAuth(() => {
     caOpen = true;
     document.getElementById('ca-overlay').classList.add('open');
+    document.getElementById('ca-topbar-btn')?.classList.add('nav-active');
   }, 'Sign in to use Custom Analysis');
 }
 
 function closeCustomAnalysis() {
   caOpen = false;
   document.getElementById('ca-overlay').classList.remove('open');
+  document.getElementById('ca-topbar-btn')?.classList.remove('nav-active');
 }
 
 function renderCaTags() {
@@ -6575,10 +6585,11 @@ function wireEventListeners() {
   // ESC to close overlays in z-index priority order (highest first)
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if (document.getElementById('apikey-gate-overlay').classList.contains('open')) { closeApiKeyGate(); return; }
+      if (document.getElementById('apikey-gate-overlay')?.classList.contains('open')) { closeApiKeyGate(); return; }
+      if (document.getElementById('about-overlay')?.classList.contains('open')) { closeAbout(); return; }
       if (chartFsOpen) closeChartFs();
-      else if (document.getElementById('stock-detail').classList.contains('open')) closeStockDetail();
-      else if (document.getElementById('stocks-modal').classList.contains('open')) closeStocks();
+      else if (document.getElementById('stock-detail')?.classList.contains('open')) closeStockDetail();
+      else if (document.getElementById('stocks-modal')?.classList.contains('open')) closeStocks();
       else if (profileOpen) closeProfile();
       else if (caOpen) closeCustomAnalysis();
       else if (researchOpen) closeResearch();
@@ -8495,6 +8506,7 @@ function openResearch() {
   if (!apiKey) { requireApiKey(() => openResearch(), 'Research Hub'); return; }
   researchOpen = true;
   document.getElementById('research-overlay').classList.add('open');
+  document.getElementById('research-topbar-btn')?.classList.add('nav-active');
   if (!researchSrc) researchSrc = 'gs';
   renderResearchSources();
   loadResearch(researchSrc);
@@ -8503,6 +8515,7 @@ function openResearch() {
 function closeResearch() {
   researchOpen = false;
   document.getElementById('research-overlay').classList.remove('open');
+  document.getElementById('research-topbar-btn')?.classList.remove('nav-active');
 }
 
 function refreshResearch() {
@@ -8798,11 +8811,13 @@ function openCommodities() {
   if (!apiKey) { requireApiKey(() => openCommodities(), 'Commodity Markets'); return; }
   commodOpen = true;
   document.getElementById('commod-overlay').classList.add('open');
+  document.getElementById('commod-topbar-btn')?.classList.add('nav-active');
   if (!commodData.length && !commodLoading) loadCommodityHeat();
 }
 function closeCommodities() {
   commodOpen = false;
   document.getElementById('commod-overlay').classList.remove('open');
+  document.getElementById('commod-topbar-btn')?.classList.remove('nav-active');
 }
 
 function commodPctColor(pct) {
@@ -9145,11 +9160,13 @@ function openFx() {
   if (!apiKey) { requireApiKey(() => openFx(), 'FX Markets'); return; }
   fxOpen = true;
   document.getElementById('fx-overlay').classList.add('open');
+  document.getElementById('fx-topbar-btn')?.classList.add('nav-active');
   if (!fxData.length && !fxLoading) loadFxHeat();
 }
 function closeFx() {
   fxOpen = false;
   document.getElementById('fx-overlay').classList.remove('open');
+  document.getElementById('fx-topbar-btn')?.classList.remove('nav-active');
 }
 
 async function loadFxHeat() {
@@ -9839,6 +9856,7 @@ async function openCommunity() {
   if (!loadSession()?.username) { requireAuth(() => openCommunity(), 'Sign in to access the Community Board'); return; }
   commOpen = true;
   document.getElementById('comm-overlay').classList.add('open');
+  document.getElementById('comm-topbar-btn')?.classList.add('nav-active');
   const sess = loadSession();
   const avatar = document.getElementById('comm-my-avatar');
   if (avatar) avatar.textContent = (sess?.displayName || sess?.username || '?')[0].toUpperCase();
@@ -9867,6 +9885,7 @@ async function openCommunity() {
 function closeCommunity() {
   commOpen = false;
   document.getElementById('comm-overlay').classList.remove('open');
+  document.getElementById('comm-topbar-btn')?.classList.remove('nav-active');
   if (_commUnsubPosts) { _commUnsubPosts(); _commUnsubPosts = null; }
   if (_commTsInterval) { clearInterval(_commTsInterval); _commTsInterval = null; }
 }
@@ -10207,16 +10226,18 @@ function wireCommEvents() {
 // ── About / Product Page ──
 function openAbout() {
   const overlay = document.getElementById('about-overlay');
-  overlay.classList.add('open');
   overlay.scrollTop = 0;
+  overlay.classList.add('open');
+  document.getElementById('about-topbar-btn')?.classList.add('nav-active');
   setTimeout(_animateAboutCounters, 350);
 }
 function closeAbout() {
   document.getElementById('about-overlay').classList.remove('open');
+  document.getElementById('about-topbar-btn')?.classList.remove('nav-active');
 }
 function handleAboutCta() {
   closeAbout();
-  if (!currentSession) requireAuth(() => {}, 'Sign in to unlock full analysis');
+  if (!loadSession()?.username) requireAuth(() => {}, 'Sign in to unlock full analysis');
 }
 function _animateAboutCounters() {
   document.querySelectorAll('#about-overlay .about-stat-num[data-target]').forEach(el => {
@@ -10233,10 +10254,8 @@ function _animateAboutCounters() {
     requestAnimationFrame(step);
   });
 }
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('about-overlay').classList.contains('open')) closeAbout();
-});
 // About button wired via inline onclick="openAbout()" in topbar HTML
+// ESC closes about-overlay via the main keydown handler in wireEventListeners()
 
 // BOOT
 wireLoginEvents();
