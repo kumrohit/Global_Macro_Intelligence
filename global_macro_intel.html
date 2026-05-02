@@ -85,30 +85,34 @@ body::after{
 
 /* ── Top bar ── */
 #topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;height:44px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  padding:0 24px;height:48px;
   background:var(--surface);
   border-bottom:1px solid var(--border);
   flex-shrink:0;z-index:100;
-  position:relative;
+  position:relative;gap:16px;
 }
 #topbar::after{
   content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,var(--cyan),transparent);
   opacity:0.4;
 }
+.topbar-brand{display:flex;flex-direction:column;justify-content:center;}
 .logo{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:0.2em;color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,0.4);}
 .logo-sub{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.15em;margin-top:1px;}
-
+.topbar-nav{display:flex;align-items:center;gap:0;justify-content:center;}
+.topbar-nav button{
+  font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:0.12em;
+  color:var(--text2);background:transparent;border:none;
+  padding:6px 16px;cursor:pointer;white-space:nowrap;
+  transition:color 0.15s,background 0.15s;border-radius:3px;
+}
+.topbar-nav button:hover{color:#fff;background:rgba(255,255,255,0.05);}
+.nav-sep{width:1px;height:16px;background:var(--border);flex-shrink:0;margin:0 2px;}
+.topbar-right{display:flex;align-items:center;gap:12px;justify-content:flex-end;}
 #clock{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.08em;}
-
-.tickers{display:flex;gap:20px;align-items:center;}
-.tick{display:flex;flex-direction:column;align-items:center;}
-.tick-name{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.12em;}
-.tick-val{font-family:var(--font-mono);font-size:11px;font-weight:500;}
-.tick-up{color:var(--bull);}
-.tick-dn{color:var(--bear);}
-.tick-na{color:var(--text2);}
 
 /* ── Main layout ── */
 #main{display:flex;flex:1;overflow:hidden;position:relative;}
@@ -1012,10 +1016,7 @@ body::after{
 .cfs-bb-btn:hover:not(.active){color:#d1d4dc;}
 
 /* ── FX Heatmap Overlay ── */
-#fx-topbar-btn{background:transparent;border:1px solid var(--border);border-radius:3px;
-  color:var(--text2);font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;
-  padding:4px 10px;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s;}
-#fx-topbar-btn:hover{color:#818cf8;border-color:#818cf8;background:rgba(99,102,241,0.06);}
+#fx-topbar-btn:hover{color:#818cf8;background:rgba(99,102,241,0.08);}
 #fx-overlay{position:fixed;inset:0;z-index:2080;display:none;background:rgba(3,7,18,0.9);
   align-items:center;justify-content:center;}
 #fx-overlay.open{display:flex;}
@@ -1163,6 +1164,7 @@ body::after{
 #wl-add-country-btn:hover{background:rgba(245,158,11,0.16);border-color:var(--amber);}
 
 /* ── Research Hub ── */
+#research-topbar-btn:hover{color:#60a5fa;background:rgba(96,165,250,0.08);}
 #research-overlay{position:fixed;inset:0;z-index:2085;display:none;background:rgba(3,7,18,0.9);backdrop-filter:blur(8px);padding:20px;align-items:flex-start;justify-content:center;}
 #research-overlay.open{display:flex;}
 #research-panel{background:#0c1526;border:1px solid rgba(96,165,250,0.15);border-radius:8px;width:min(1200px,96vw);height:min(860px,90vh);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.6);}
@@ -1219,19 +1221,10 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 @media (max-width:900px){#research-panel{width:min(1200px,99vw);height:min(860px,94vh);}}
 
 /* ── Custom Analysis ── */
-#ca-topbar-btn{
-  background:transparent;border:1px solid var(--border);border-radius:3px;
-  color:var(--text2);font-family:var(--font-mono);font-size:8px;
-  padding:5px 10px;cursor:pointer;letter-spacing:0.1em;transition:color 0.15s,border-color 0.15s,background 0.15s,opacity 0.15s;
-}
-#ca-topbar-btn:hover{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,0.06);}
+#ca-topbar-btn:hover{color:var(--cyan);background:rgba(34,211,238,0.08);}
 
 /* ── Commodity Heatmap ── */
-#commod-topbar-btn{background:transparent;border:1px solid var(--border);border-radius:3px;
-  color:var(--text2);font-family:var(--font-mono);font-size:8px;
-  padding:5px 10px;cursor:pointer;letter-spacing:0.1em;
-  transition:color 0.15s,border-color 0.15s,background 0.15s,opacity 0.15s;}
-#commod-topbar-btn:hover{color:var(--amber);border-color:var(--amber);background:rgba(245,158,11,0.06);}
+#commod-topbar-btn:hover{color:var(--amber);background:rgba(245,158,11,0.08);}
 #commod-overlay{position:fixed;inset:0;z-index:2075;display:none;background:rgba(3,7,18,0.9);
   backdrop-filter:blur(10px);align-items:flex-start;justify-content:center;padding:16px;will-change:opacity;}
 #commod-overlay.open{display:flex;}
@@ -1872,12 +1865,8 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 .opp-loading{display:flex;align-items:center;gap:8px;padding:40px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text2);justify-content:center;}
 
 /* ── Community Board ── */
-#comm-topbar-btn{
-  background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.35);border-radius:3px;
-  color:#A855F7;font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;
-  padding:5px 10px;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s,opacity 0.15s;white-space:nowrap;
-}
-#comm-topbar-btn:hover{background:rgba(168,85,247,0.2);border-color:#A855F7;box-shadow:0 0 10px rgba(168,85,247,0.25);}
+#comm-topbar-btn{color:#A855F7 !important;}
+#comm-topbar-btn:hover{color:#c084fc !important;background:rgba(168,85,247,0.1) !important;}
 
 #comm-overlay{
   position:fixed;inset:0;z-index:2050;display:none;
@@ -2214,21 +2203,19 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 
 /* ── Tablet (≤ 900px) ── */
 @media (max-width:900px){
-  .tickers{gap:12px;}
-  .tick-name{font-size:8px;}
-  .tick-val{font-size:10px;}
+  .topbar-nav button{padding:6px 10px;font-size:8px;}
 }
 
 /* ── Small tablet / large phone (≤ 768px) ── */
 @media (max-width:768px){
-  /* Topbar — hide heavy tickers, keep essentials */
-  .tickers{display:none !important;}
+  /* Topbar — hide non-essential nav items, keep essentials */
   #clock{display:none !important;}
-  #topbar{padding:0 12px;height:48px;}
+  #topbar{padding:0 12px;height:48px;grid-template-columns:auto 1fr auto;}
   .logo{font-size:12px;letter-spacing:0.1em;}
   .logo-sub{display:none;}
-  #comm-topbar-btn{font-size:8px;padding:4px 8px;letter-spacing:0.08em;}
+  .topbar-nav button{font-size:8px;padding:4px 8px;letter-spacing:0.08em;}
   #ca-topbar-btn{display:none !important;}
+  #commod-topbar-btn{display:none !important;}
   #topbar-username{font-size:9px;}
 
   /* Panels — full-width friendly */
@@ -2280,10 +2267,9 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   #watchlist-panel{width:100vw;border-left:none;border-right:none;}
 
   /* Topbar — minimal */
-  #topbar{padding:0 10px;height:44px;gap:6px;}
+  #topbar{padding:0 10px;height:44px;grid-template-columns:auto auto auto;}
   .logo{font-size:11px;}
-  #comm-topbar-btn{display:none !important;}
-  #research-topbar-btn{display:none !important;}
+  .topbar-nav{display:none !important;}
   #topbar-user{gap:6px;}
   #logout-btn{font-size:7px;padding:3px 6px;}
 
@@ -2412,23 +2398,22 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 <div id="app">
 
 <div id="topbar">
-  <div>
+  <div class="topbar-brand">
     <div class="logo">◈ GLOBAL MACRO INTELLIGENCE</div>
     <div class="logo-sub">COUNTRY SENTIMENT TERMINAL</div>
   </div>
-  <div class="tickers" id="tickers">
-    <div class="tick"><div class="tick-name">DXY</div><div class="tick-val tick-na" id="t-dxy">—</div></div>
-    <div class="tick"><div class="tick-name">GOLD</div><div class="tick-val tick-na" id="t-gold">—</div></div>
-    <div class="tick"><div class="tick-name">WTI</div><div class="tick-val tick-na" id="t-wti">—</div></div>
-    <div class="tick"><div class="tick-name">VIX</div><div class="tick-val tick-na" id="t-vix">—</div></div>
-    <div class="tick"><div class="tick-name">US10Y</div><div class="tick-val tick-na" id="t-10y">—</div></div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <button id="comm-topbar-btn" title="Community Board">◈ COMMUNITY</button>
-    <button id="fx-topbar-btn" title="FX Heatmap">⬡ FX MARKETS</button>
-    <button id="commod-topbar-btn" title="Commodity Heatmap">⬡ COMMODITIES</button>
-    <button id="ca-topbar-btn" title="Custom Analysis Builder">⊕ CUSTOM ANALYSIS</button>
-    <button id="research-topbar-btn" title="Research Hub">📄 RESEARCH</button>
+  <nav class="topbar-nav">
+    <button id="comm-topbar-btn" title="Community Board">⬡ COMMUNITY</button>
+    <div class="nav-sep"></div>
+    <button id="fx-topbar-btn" title="FX Heatmap">◊ FX MARKETS</button>
+    <div class="nav-sep"></div>
+    <button id="commod-topbar-btn" title="Commodity Heatmap">◆ COMMODITIES</button>
+    <div class="nav-sep"></div>
+    <button id="ca-topbar-btn" title="Custom Analysis Builder">⊕ ANALYSIS</button>
+    <div class="nav-sep"></div>
+    <button id="research-topbar-btn" title="Research Hub">◎ RESEARCH</button>
+  </nav>
+  <div class="topbar-right">
     <div id="topbar-user" style="display:none;">
       <span id="topbar-username" title="Open Profile &amp; Digest">—</span>
       <button id="logout-btn">⏻ LOGOUT</button>
@@ -4615,9 +4600,10 @@ async function loadTickers() {
     }
   } catch(_) {}
 
-  // Show spinners
+  // Show spinners (if ticker elements still present)
   TICKERS.forEach(t => {
     const el = document.getElementById(t.id);
+    if (!el) return;
     el.innerHTML = '<span class="spin" style="width:8px;height:8px;"></span>';
     el.className = 'tick-val tick-na';
   });
@@ -4673,9 +4659,10 @@ Output only the JSON with your estimates substituted in.`;
     // Persist to localStorage cache (5-min TTL)
     try { storageSet('gmi_ticker_cache', JSON.stringify({ data: quotes, ts: Date.now() })); } catch(_) {}
 
-    // Render each ticker
+    // Render each ticker (no-op if elements were removed)
     TICKERS.forEach(t => {
       const el = document.getElementById(t.id);
+      if (!el) return;
       const q = quotes[t.key];
       if (!q || !isFinite(q.price)) {
         el.textContent = 'N/A';
@@ -4693,6 +4680,7 @@ Output only the JSON with your estimates substituted in.`;
     console.warn('Ticker fetch failed:', e);
     TICKERS.forEach(t => {
       const el = document.getElementById(t.id);
+      if (!el) return;
       el.textContent = 'N/A';
       el.className = 'tick-val tick-na';
       el.title = 'Error: ' + (e.message || e);
