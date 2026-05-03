@@ -1,5 +1,5 @@
-// GMI Service Worker — cache-first with network fallback
-const CACHE = 'gmi-v1';
+// MRX Service Worker — cache-first with network fallback
+const CACHE = 'mrx-v1';
 const PRECACHE = [
   './',
   './index.html',

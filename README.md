@@ -1,4 +1,4 @@
-# Global Macro Intelligence
+# Meridiax
 
 > AI-powered macro intelligence terminal for analysts, traders, and researchers — delivered as a single self-contained HTML file.
 

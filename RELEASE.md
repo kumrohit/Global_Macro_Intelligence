@@ -1,4 +1,4 @@
-# Release Guide — Global Macro Intelligence
+# Release Guide — Meridiax
 
 This document covers everything needed to deploy the app publicly.
 
@@ -14,7 +14,7 @@ Before deploying, verify each item:
 - [ ] Enter a Gemini API key, click a country, and confirm the AI analysis loads
 - [ ] Open the Watchlist panel (★ tab) and add one item
 - [ ] Open Custom Analysis (⊕ button) and add 2–3 tags
-- [ ] Confirm the page title reads "Global Macro Intelligence — Country Sentiment Terminal"
+- [ ] Confirm the page title reads "Meridiax — Country Sentiment Terminal"
 - [ ] Check browser DevTools → Console: no red errors on load (yellow warnings in catch blocks are fine)
 - [ ] Check DevTools → Network: D3 and TopoJSON load from CDN without 404s
 

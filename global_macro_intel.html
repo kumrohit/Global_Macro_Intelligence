@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Macro Intelligence — Country Sentiment Terminal</title>
+<title>Meridiax — Country Sentiment Terminal</title>
 
 <!-- SEO -->
-<meta name="description" content="AI-powered global macro intelligence terminal. Click any country for real-time sentiment analysis, deep economic briefs, watchlists, and cross-asset custom analysis — powered by Gemini.">
+<meta name="description" content="AI-powered macro intelligence terminal by Meridiax. Click any country for real-time sentiment analysis, deep economic briefs, watchlists, and cross-asset custom analysis — powered by Gemini.">
 <meta name="keywords" content="macro intelligence, country sentiment, global macro, forex, emerging markets, central bank, AI analysis, Gemini">
-<meta name="author" content="Global Macro Intelligence">
+<meta name="author" content="Meridiax">
 <meta name="theme-color" content="#050811">
 
 <!-- PWA / Android -->
@@ -16,17 +16,17 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GMI Terminal">
+<meta name="apple-mobile-web-app-title" content="MRX Terminal">
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Global Macro Intelligence — Country Sentiment Terminal">
+<meta property="og:title" content="Meridiax — Country Sentiment Terminal">
 <meta property="og:description" content="AI-powered macro terminal. Click any country for sentiment analysis, deep economic briefs, watchlists, and custom analysis powered by Gemini.">
 <meta property="og:image" content="https://raw.githubusercontent.com/rohitkumawat/global-macro-intelligence/main/preview.png">
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Global Macro Intelligence">
+<meta name="twitter:title" content="Meridiax">
 <meta name="twitter:description" content="AI-powered country sentiment terminal. Click any country, get macro analysis instantly.">
 
 <!-- Favicon (inline SVG → data URI) -->
@@ -99,8 +99,17 @@ body::after{
   background:linear-gradient(90deg,transparent,var(--cyan),transparent);
   opacity:0.4;
 }
-.topbar-brand{display:flex;flex-direction:column;justify-content:center;}
-.logo{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:0.2em;color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,0.4);}
+.topbar-brand{display:flex;align-items:center;}
+.logo{
+  font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:0.32em;
+  background:linear-gradient(90deg,#22d3ee 0%,#a5b4fc 45%,#f0abfc 70%,#22d3ee 100%);
+  background-size:220% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:logoShimmer 6s linear infinite;
+  filter:drop-shadow(0 0 14px rgba(34,211,238,0.5));
+  white-space:nowrap;
+}
+@keyframes logoShimmer{0%{background-position:0% center}100%{background-position:220% center}}
 .logo-sub{font-family:var(--font-mono);font-size:9px;color:var(--text2);letter-spacing:0.15em;margin-top:1px;}
 .topbar-nav{display:flex;align-items:center;gap:0;justify-content:center;}
 .topbar-nav button{
@@ -2225,7 +2234,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 }
 
 /* Toast notification */
-#gmi-toast{
+#mrx-toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
   background:var(--card);border:1px solid var(--cyan);border-radius:6px;
   padding:12px 20px;font-family:var(--font-mono);font-size:10px;color:var(--text);
@@ -2234,8 +2243,8 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.35s;
   opacity:0;pointer-events:none;
 }
-#gmi-toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}
-#gmi-toast-msg{flex:1;}
+#mrx-toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto;}
+#mrx-toast-msg{flex:1;}
 
 /* ── Mini Ticker Bar ── */
 #mini-ticker{position:fixed;bottom:0;left:0;right:0;z-index:200;height:26px;
@@ -2260,9 +2269,9 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   padding:0 14px;height:100%;border-left:1px solid rgba(42,46,57,0.5);
   transition:color 0.15s;}
 #mtb-search-btn:hover{color:#22D3EE;}
-#gmi-toast-send{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;background:var(--cyan);color:#000;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-weight:700;white-space:nowrap;}
-#gmi-toast-dismiss{font-family:var(--font-mono);font-size:9px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0 2px;}
-#gmi-toast-dismiss:hover{color:var(--text);}
+#mrx-toast-send{font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;background:var(--cyan);color:#000;border:none;border-radius:3px;padding:4px 10px;cursor:pointer;font-weight:700;white-space:nowrap;}
+#mrx-toast-dismiss{font-family:var(--font-mono);font-size:9px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0 2px;}
+#mrx-toast-dismiss:hover{color:var(--text);}
 
 #profile-stats-bar{
   display:flex;gap:20px;padding:10px 20px;border-bottom:1px solid var(--border);
@@ -2651,8 +2660,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   /* Topbar — hide non-essential nav items, keep essentials */
   #clock{display:none !important;}
   #topbar{padding:0 12px;height:48px;grid-template-columns:auto 1fr auto;}
-  .logo{font-size:12px;letter-spacing:0.1em;}
-  .logo-sub{display:none;}
+  .logo{font-size:13px;letter-spacing:0.14em;}
   .topbar-nav button{font-size:8px;padding:4px 8px;letter-spacing:0.08em;}
   #ca-topbar-btn{display:none !important;}
   #commod-topbar-btn{display:none !important;}
@@ -2738,7 +2746,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   .country{stroke-width:1px;}
 
   /* Toast — full width */
-  #gmi-toast{left:8px;right:8px;bottom:64px;width:auto;}
+  #mrx-toast{left:8px;right:8px;bottom:64px;width:auto;}
 
   /* Comm overlay full screen */
   #comm-overlay{padding-bottom:0;}
@@ -2789,7 +2797,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   <div id="login-box">
     <button id="login-close-btn" title="Continue as guest — sign in later">✕</button>
     <div id="login-logo">
-      <div class="logo">◈ GLOBAL MACRO INTELLIGENCE</div>
+      <div class="logo">◈ MERIDIAX</div>
       <div class="logo-sub">SIGN IN TO UNLOCK ANALYSIS</div>
     </div>
     <div id="login-context"></div>
@@ -2873,10 +2881,10 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     <div class="about-hero">
       <div class="about-hero-badge">
         <div class="about-hero-badge-dot"></div>
-        LIVE · AI-POWERED · GLOBAL
+        MERIDIAX · AI-POWERED · GLOBAL
       </div>
-      <div class="about-hero-title">The Intelligence Layer<br>for Global Markets</div>
-      <div class="about-hero-sub">Real-time macro sentiment, multi-asset heatmaps, institutional research and AI-driven trade ideas — unified in a single terminal for traders, analysts and investors.</div>
+      <div class="about-hero-title">The Intelligence Terminal<br>for Global Macro Markets</div>
+      <div class="about-hero-sub">Meridiax delivers real-time macro sentiment, multi-asset heatmaps, institutional research and AI-driven trade ideas — unified in a single terminal for traders, analysts and investors worldwide.</div>
       <div class="about-hero-actions">
         <button class="about-cta-primary" onclick="handleAboutCta()">ENTER TERMINAL →</button>
         <button class="about-cta-secondary" onclick="closeAbout()">EXPLORE THE MAP</button>
@@ -2926,7 +2934,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
       <div class="about-feat-card" style="--fc:#a855f7;--fbc:rgba(168,85,247,0.2);--fac:rgba(168,85,247,0.04);">
         <div class="about-feat-icon">⬡</div>
         <div class="about-feat-title">COMMUNITY BOARD</div>
-        <div class="about-feat-desc">Real-time trader and investor pulse. AI-powered post sentiment scoring, trend detection, official GMI broadcasts and community macro insights — the market's collective intelligence, structured.</div>
+        <div class="about-feat-desc">Real-time trader and investor pulse. AI-powered post sentiment scoring, trend detection, official MRX broadcasts and community macro insights — the market's collective intelligence, structured.</div>
         <div class="about-feat-tag">LIVE PULSE · AI SENTIMENT</div>
       </div>
 
@@ -2988,7 +2996,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
         <div class="about-usecase-sym">⬡</div>
         <div>
           <div class="about-usecase-title">LONG-TERM INVESTORS</div>
-          <div class="about-usecase-desc">Scan for structural opportunities across day, week and month horizons. Track themes, build multi-factor custom views and follow official GMI investment outlooks on the community board.</div>
+          <div class="about-usecase-desc">Scan for structural opportunities across day, week and month horizons. Track themes, build multi-factor custom views and follow official MRX investment outlooks on the community board.</div>
           <div class="about-usecase-chips">
             <span class="about-uc-chip">OPPORTUNITY SCANNER</span>
             <span class="about-uc-chip">THEMATIC ANALYSIS</span>
@@ -3016,7 +3024,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 
     <!-- Footer CTA -->
     <div class="about-footer">
-      <div class="about-footer-title">Ready to see the world differently?</div>
+      <div class="about-footer-title">See the World Through Meridiax</div>
       <div class="about-footer-sub">Start free — no account required to explore the map. Sign in to unlock full analysis.</div>
       <div class="about-hero-actions">
         <button class="about-cta-primary" onclick="handleAboutCta()">ENTER TERMINAL →</button>
@@ -3024,7 +3032,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
       </div>
       <div style="margin-top:18px;font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:0.1em;">
         Bugs · Feature requests · Data suggestions · Partnerships →
-        <a href="mailto:contactmacroterminal@gmail.com" style="color:var(--cyan);text-decoration:none;">contactmacroterminal@gmail.com</a>
+        <a href="mailto:connectwithmeridiax@gmail.com" style="color:var(--cyan);text-decoration:none;">connectwithmeridiax@gmail.com</a>
       </div>
     </div>
 
@@ -3039,7 +3047,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     <div class="contact-title">GET IN TOUCH</div>
     <div class="contact-sub">
       We read every message →
-      <a href="mailto:contactmacroterminal@gmail.com">contactmacroterminal@gmail.com</a>
+      <a href="mailto:connectwithmeridiax@gmail.com">connectwithmeridiax@gmail.com</a>
     </div>
 
     <!-- Category selector -->
@@ -3096,7 +3104,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     <!-- Post-submit success note -->
     <div id="contact-sent-note">
       ✓ Your email client should have opened with the message pre-filled — just press Send.
-      If it didn't open, <a href="mailto:contactmacroterminal@gmail.com">click here to compose</a>
+      If it didn't open, <a href="mailto:connectwithmeridiax@gmail.com">click here to compose</a>
       or use ⧉ COPY ADDRESS above.
     </div>
 
@@ -3111,8 +3119,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 
 <div id="topbar">
   <div class="topbar-brand">
-    <div class="logo">◈ GLOBAL MACRO INTELLIGENCE</div>
-    <div class="logo-sub">COUNTRY SENTIMENT TERMINAL</div>
+    <div class="logo">◈ MERIDIAX</div>
   </div>
   <nav class="topbar-nav">
     <button id="comm-topbar-btn" title="Community Board">⬡ COMMUNITY</button>
@@ -3126,7 +3133,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     <button id="research-topbar-btn" title="Research Hub">◎ RESEARCH</button>
   </nav>
   <div class="topbar-right">
-    <button id="about-topbar-btn" onclick="openAbout()" title="About Global Macro Intelligence">◈ ABOUT</button>
+    <button id="about-topbar-btn" onclick="openAbout()" title="About Meridiax">◈ ABOUT</button>
     <button id="contact-topbar-link" onclick="openContact()" title="Contact Us">✉ CONTACT</button>
     <div id="topbar-user" style="display:none;">
       <span id="topbar-username" title="Open Profile &amp; Digest">—</span>
@@ -3678,7 +3685,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
       <span class="comm-h-icon">◈</span>
       <div>
         <div class="comm-h-title">COMMUNITY BOARD</div>
-        <div class="comm-h-sub">MACRO INTELLIGENCE NETWORK · POST · DISCUSS · COLLABORATE</div>
+        <div class="comm-h-sub">MERIDIAX NETWORK · POST · DISCUSS · COLLABORATE</div>
       </div>
       <button id="comm-close-btn">✕ CLOSE</button>
     </div>
@@ -4265,7 +4272,7 @@ function selectCountry(d) {
     return;
   }
 
-  if (meta?.name) document.title = `${meta.name} — Global Macro Intelligence`;
+  if (meta?.name) document.title = `${meta.name} — Meridiax`;
 
   // Attach ISO id to meta so authority lookup can find it
   const isoId = String(d.id).padStart(3, '0');
@@ -8102,8 +8109,8 @@ async function ejsSend(tab, data) {
 
   const isDaily = tab === 'daily';
   const subject = isDaily
-    ? `Global Macro Intelligence — Daily Capsule ${todayKey()}`
-    : `Global Macro Intelligence — Weekly Digest ${weekKey()}`;
+    ? `Meridiax — Daily Capsule ${todayKey()}`
+    : `Meridiax — Weekly Digest ${weekKey()}`;
   const dateStr = isDaily
     ? new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
     : `Week of ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
@@ -8111,7 +8118,7 @@ async function ejsSend(tab, data) {
   await emailjs.send(ejsSID, ejsTID, {
     to_email:     nlEmail,
     to_name:      loadSession()?.displayName || nlEmail,
-    from_name:    'Global Macro Intelligence',
+    from_name:    'Meridiax',
     subject:      subject,
     period_label: isDaily ? 'Daily Capsule' : 'Weekly Digest',
     date_str:     dateStr,
@@ -8260,8 +8267,8 @@ async function sendOrPreviewNewsletter(tab, action) {
     } catch(_) { alert('Copy failed — please use a secure (HTTPS) context or modern browser.'); }
   } else if (action === 'mail') {
     const subject = encodeURIComponent(tab === 'daily'
-      ? `Global Macro Intelligence — Daily Capsule ${todayKey()}`
-      : `Global Macro Intelligence — Weekly Digest ${weekKey()}`);
+      ? `Meridiax — Daily Capsule ${todayKey()}`
+      : `Meridiax — Weekly Digest ${weekKey()}`);
     const textBody = encodeURIComponent(generateNewsletterText(data));
     const to = encodeURIComponent(nlEmail || '');
     window.location.href = `mailto:${to}?subject=${subject}&body=${textBody}`;
@@ -8326,7 +8333,7 @@ function generateNewsletterHTML(tab, data) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GMI — ${label} ${dateStr}</title>
+<title>MRX — ${label} ${dateStr}</title>
 </head>
 <body style="margin:0;padding:0;background:#060d1a;font-family:Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#060d1a;">
@@ -8335,8 +8342,8 @@ function generateNewsletterHTML(tab, data) {
 
   <!-- Header -->
   <tr><td style="background:linear-gradient(135deg,#060d1a 0%,#0d1829 100%);border:1px solid #1e3a5f;border-radius:8px 8px 0 0;padding:28px 32px 24px;">
-    <div style="font-family:monospace;font-size:10px;letter-spacing:0.25em;color:#63b3ed;font-weight:700;">◈ GLOBAL MACRO INTELLIGENCE</div>
-    <div style="font-family:monospace;font-size:8px;letter-spacing:0.18em;color:#2d4a6e;margin-top:3px;">MACRO INTELLIGENCE TERMINAL</div>
+    <div style="font-family:monospace;font-size:10px;letter-spacing:0.25em;color:#63b3ed;font-weight:700;">◈ MERIDIAX</div>
+    <div style="font-family:monospace;font-size:8px;letter-spacing:0.18em;color:#2d4a6e;margin-top:3px;">MERIDIAX TERMINAL</div>
     <div style="font-family:Arial,sans-serif;font-size:24px;font-weight:700;color:#e2e8f0;margin-top:20px;letter-spacing:0.01em;">${label}</div>
     <div style="font-family:monospace;font-size:9px;color:#4a6080;margin-top:6px;letter-spacing:0.06em;">${dateStr}</div>
     <div style="height:1px;background:linear-gradient(90deg,#63b3ed44,transparent);margin-top:20px;"></div>
@@ -8350,7 +8357,7 @@ function generateNewsletterHTML(tab, data) {
   <!-- Footer -->
   <tr><td style="background:#060d1a;border:1px solid #1e3a5f;border-top:none;border-radius:0 0 8px 8px;padding:20px 32px;text-align:center;">
     <div style="font-family:monospace;font-size:8px;color:#2d4a6e;letter-spacing:0.1em;line-height:1.8;">
-      GLOBAL MACRO INTELLIGENCE · AI-POWERED ANALYSIS<br>
+      MERIDIAX · AI-POWERED ANALYSIS<br>
       Content generated by Gemini AI for informational purposes only. Not financial advice.<br>
       <span style="color:#1e3a5f;">─────────────────────────────────────────</span>
     </div>
@@ -8364,7 +8371,7 @@ function generateNewsletterHTML(tab, data) {
 }
 
 function generateNewsletterText(data) {
-  const lines = ['GLOBAL MACRO INTELLIGENCE', '=' .repeat(40), ''];
+  const lines = ['MERIDIAX', '=' .repeat(40), ''];
   (data.items||[]).forEach(item => {
     lines.push(`[${item.rank}] ${item.impact||'LOW'} | ${item.region||''} | ${item.source||''}`);
     lines.push(item.title||'');
@@ -8373,7 +8380,7 @@ function generateNewsletterText(data) {
     lines.push('');
   });
   lines.push('─'.repeat(40));
-  lines.push('Global Macro Intelligence — AI-powered analysis. Not financial advice.');
+  lines.push('Meridiax — AI-powered analysis. Not financial advice.');
   return lines.join('\n');
 }
 
@@ -8381,9 +8388,9 @@ function generateNewsletterText(data) {
 let _toastTimer = null;
 
 function showToast(msg, onSend, duration) {
-  const toast = document.getElementById('gmi-toast');
-  const msgEl = document.getElementById('gmi-toast-msg');
-  const sendBtn = document.getElementById('gmi-toast-send');
+  const toast = document.getElementById('mrx-toast');
+  const msgEl = document.getElementById('mrx-toast-msg');
+  const sendBtn = document.getElementById('mrx-toast-send');
   if (!toast) return;
   msgEl.textContent = msg;
   sendBtn.style.display = onSend ? 'inline-block' : 'none';
@@ -8393,7 +8400,7 @@ function showToast(msg, onSend, duration) {
   _toastTimer = setTimeout(dismissToast, duration || 5000);
 }
 function dismissToast() {
-  const toast = document.getElementById('gmi-toast');
+  const toast = document.getElementById('mrx-toast');
   toast?.classList.remove('show');
   clearTimeout(_toastTimer);
 }
@@ -11329,9 +11336,9 @@ function submitContact() {
 
   const fullSubject = `[${_contactCat}] ${subject}`;
   const replyLine   = reply ? `\n\nReply-To: ${reply}` : '';
-  const body        = `${msg}${replyLine}\n\n---\nSent via GMI Dashboard`;
+  const body        = `${msg}${replyLine}\n\n---\nSent via MRX Dashboard`;
 
-  const mailto = `mailto:contactmacroterminal@gmail.com?subject=${encodeURIComponent(fullSubject)}&body=${encodeURIComponent(body)}`;
+  const mailto = `mailto:connectwithmeridiax@gmail.com?subject=${encodeURIComponent(fullSubject)}&body=${encodeURIComponent(body)}`;
   window.location.href = mailto;
 
   // Show post-submit note
@@ -11340,12 +11347,12 @@ function submitContact() {
 }
 
 function copyContactEmail() {
-  navigator.clipboard?.writeText('contactmacroterminal@gmail.com').then(() => {
+  navigator.clipboard?.writeText('connectwithmeridiax@gmail.com').then(() => {
     const st = document.getElementById('contact-status');
     st.style.display = 'inline';
     setTimeout(() => { st.style.display = 'none'; }, 2500);
   }).catch(() => {
-    prompt('Copy this address:', 'contactmacroterminal@gmail.com');
+    prompt('Copy this address:', 'connectwithmeridiax@gmail.com');
   });
 }
 
@@ -11435,7 +11442,7 @@ if (!apiKey && !tickerTimer) {
 }
 checkNewsletterAutoNotify();
 startMiniClock();
-document.title = 'Global Macro Intelligence';
+document.title = 'Meridiax';
 
 // Register service worker for PWA / offline support
 if ('serviceWorker' in navigator) {
@@ -11481,10 +11488,10 @@ if ('serviceWorker' in navigator) {
 </div>
 
 <!-- Toast notification -->
-<div id="gmi-toast">
-  <span id="gmi-toast-msg">Your daily capsule is ready.</span>
-  <button id="gmi-toast-send" onclick="openProfile();dismissToast();">OPEN NEWSLETTER</button>
-  <button id="gmi-toast-dismiss" onclick="dismissToast();">✕</button>
+<div id="mrx-toast">
+  <span id="mrx-toast-msg">Your daily capsule is ready.</span>
+  <button id="mrx-toast-send" onclick="openProfile();dismissToast();">OPEN NEWSLETTER</button>
+  <button id="mrx-toast-dismiss" onclick="dismissToast();">✕</button>
 </div>
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>

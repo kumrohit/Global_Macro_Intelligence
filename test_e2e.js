@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Global Macro Intelligence — E2E Test Suite (Task 20)
+ * Meridiax — E2E Test Suite (Task 20)
  * Tests all features via static analysis of the HTML source.
  * Run: node test_e2e.js
  */
@@ -67,7 +67,7 @@ console.log('\n── Phase 1: Core Structure ───────────�
 
 test('HTML5 doctype', () => html.startsWith('<!DOCTYPE html>'));
 test('UTF-8 charset', () => has('<meta charset="UTF-8">'));
-test('Page title', () => has('Global Macro Intelligence'));
+test('Page title', () => has('Meridiax'));
 test('D3 v7 CDN loaded', () => has('d3/7.8.5'));
 test('TopoJSON CDN loaded', () => has('topojson/3.0.2'));
 test('EmailJS CDN loaded', () => has('@emailjs/browser'));
@@ -243,7 +243,7 @@ test('loadNewsletterTab() defined', () => hasFn('loadNewsletterTab'));
 test('generateNewsletterHTML() defined', () => hasFn('generateNewsletterHTML'));
 test('generateNewsletterText() defined', () => hasFn('generateNewsletterText'));
 test('sendOrPreviewNewsletter() defined', () => hasFn('sendOrPreviewNewsletter'));
-test('Toast #gmi-toast exists', () => hasEl('gmi-toast'));
+test('Toast #mrx-toast exists', () => hasEl('mrx-toast'));
 test('showToast() defined', () => hasFn('showToast'));
 test('dismissToast() defined', () => hasFn('dismissToast'));
 test('EmailJS ejsSend() defined', () => hasFn('ejsSend'));

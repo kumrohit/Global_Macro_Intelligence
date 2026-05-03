@@ -1,7 +1,7 @@
 {
-  "name": "Global Macro Intelligence",
-  "short_name": "GMI Terminal",
-  "description": "AI-powered global macro intelligence terminal — click any country for real-time sentiment analysis.",
+  "name": "Meridiax",
+  "short_name": "MRX Terminal",
+  "description": "Meridiax — AI-powered macro intelligence terminal. Click any country for real-time sentiment analysis.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

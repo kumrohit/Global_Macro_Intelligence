@@ -1,4 +1,4 @@
-# Global Macro Intelligence — Android & Mobile Deployment
+# Meridiax — Android & Mobile Deployment
 
 The app is a single HTML file enhanced as a **Progressive Web App (PWA)**.  
 No app store, no build tools, no native code required.
@@ -57,7 +57,7 @@ npm init -y
 npm install @capacitor/core @capacitor/android
 
 # Initialise Capacitor — point webDir at this folder
-npx cap init "Global Macro Intelligence" "com.gmi.terminal" --web-dir .
+npx cap init "Meridiax" "com.meridiax.terminal" --web-dir .
 
 # Add Android platform
 npx cap add android
