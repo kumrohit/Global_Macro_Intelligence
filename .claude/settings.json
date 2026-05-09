@@ -17,7 +17,14 @@
       "Bash(awk '{printf \"%.1f KB\\\\n\", $1/1024}')",
       "Bash(awk 'length > 200' /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)",
       "Bash(awk -F: '{print length\\($0\\), $0}')",
-      "Bash(awk '/^\\\\/\\\\/ ═+$/ {print length\\($0\\)}' /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)"
+      "Bash(awk '/^\\\\/\\\\/ ═+$/ {print length\\($0\\)}' /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)",
+      "Bash(python3)",
+      "Bash(grep -n \"^</div>$\" /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/global_macro_intel.html)",
+      "Bash(python3 /tmp/find_callllm.py)",
+      "Bash(awk '/^console\\\\.log.*Phase/{phase=$0; count=0} /^test\\\\\\(/{count++} /^console\\\\.log.*RESULTS/{print count\"\\\\t\"phase}' /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/test_e2e.js)",
+      "Bash(awk 'NR==66,NR==94{if\\(/^test\\\\\\(/\\)c1++} NR==95,NR==131{if\\(/^test\\\\\\(/\\)c2++} NR==132,NR==147{if\\(/^test\\\\\\(/\\)c3++} NR==148,NR==170{if\\(/^test\\\\\\(/\\)c4++} NR==171,NR==187{if\\(/^test\\\\\\(/\\)c5++} NR==188,NR==203{if\\(/^test\\\\\\(/\\)c6++} NR==204,NR==230{if\\(/^test\\\\\\(/\\)c7++} NR==231,NR==263{if\\(/^test\\\\\\(/\\)c8++} NR==264,NR==302{if\\(/^test\\\\\\(/\\)c9++} NR==303,NR==354{if\\(/^test\\\\\\(/\\)c10++} NR==355,NR==387{if\\(/^test\\\\\\(/\\)c11++} NR==388,NR==413{if\\(/^test\\\\\\(/\\)c12++} NR==414,NR==488{if\\(/^test\\\\\\(/\\)c13++} NR==489,NR==538{if\\(/^test\\\\\\(/\\)c14++} NR==539,NR==573{if\\(/^test\\\\\\(/\\)c15++} NR==574,NR==613{if\\(/^test\\\\\\(/\\)c16++} NR==614,NR==693{if\\(/^test\\\\\\(/\\)c17++} NR==694,NR==748{if\\(/^test\\\\\\(/\\)c18++} NR==749,NR==792{if\\(/^test\\\\\\(/\\)c19++} NR==793,NR==9999{if\\(/^test\\\\\\(/\\)c20++} END{print c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20}' /Users/rohitkumawat/Desktop/workspace/global_macro_intelligence/test_e2e.js)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ],
     "additionalDirectories": [
       "/tmp",

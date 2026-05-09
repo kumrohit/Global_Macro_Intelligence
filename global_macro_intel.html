@@ -258,6 +258,13 @@ body::after{
 
 .topbar-right{display:flex;align-items:center;gap:12px;justify-content:flex-end;}
 #clock{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.08em;}
+#topbar-search-btn{
+  display:none;background:transparent;border:none;cursor:pointer;
+  color:var(--text2);font-size:16px;padding:4px 8px;line-height:1;
+  transition:color 0.15s;border-radius:3px;
+}
+#topbar-search-btn:hover{color:var(--cyan);background:rgba(34,211,238,0.08);}
+@media(max-width:768px){#topbar-search-btn{display:flex;align-items:center;}}
 
 /* ── Main layout ── */
 #main{display:flex;flex:1;overflow:hidden;position:relative;padding-bottom:26px;}
@@ -290,6 +297,22 @@ body::after{
 
 #map-svg{position:relative;z-index:1;width:100%;height:100%;cursor:default;}
 #zoom-ctrls{display:none !important;}
+
+/* Map loading overlay */
+#map-loading{
+  position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  background:radial-gradient(ellipse 90% 70% at 50% 45%,#0B1A36 0%,#060E1F 55%,#030712 100%);
+  transition:opacity 0.4s ease;
+}
+#map-loading.hidden{opacity:0;pointer-events:none;}
+.map-load-spin{
+  width:28px;height:28px;border-radius:50%;
+  border:2px solid rgba(34,211,238,0.15);border-top-color:var(--cyan);
+  animation:spin 0.8s linear infinite;
+}
+.map-load-txt{font-family:var(--font-mono);font-size:10px;color:var(--text2);letter-spacing:0.12em;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* Country styles — refined with better colors and smoother transitions */
 .country{
@@ -468,18 +491,19 @@ body::after{
 
 /* ── Side panel ── */
 #panel{
-  width:0;flex-shrink:0;
+  position:fixed;right:0;top:48px;bottom:26px;
+  width:340px;
   background:var(--surface);
   border-left:1px solid var(--border);
   overflow:hidden;
-  transition:width 0.35s cubic-bezier(0.4,0,0.2,1);
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
   display:flex;flex-direction:column;
-  position:relative;
   z-index:50;
-  will-change:width;
+  will-change:transform;
   contain:layout style;
+  transform:translateX(100%);
 }
-#panel.open{width:340px;}
+#panel.open{transform:translateX(0);}
 
 #panel-top{
   padding:18px 20px 14px;
@@ -1061,6 +1085,9 @@ body::after{
   letter-spacing:0.12em;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s,opacity 0.15s;}
 .deep-tab:hover{color:var(--text);border-color:var(--border2);}
 .deep-tab.active{background:rgba(59,130,246,0.15);border-color:var(--accent);color:var(--accent);}
+/* Green dot on tabs whose content is already prefetched and waiting */
+.deep-tab.tab-ready::after{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green);margin-left:5px;vertical-align:middle;opacity:0.8;}
+.deep-tab.active.tab-ready::after{display:none;}
 #deep-body{flex:1;overflow-y:auto;padding:22px 26px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
 #deep-body::-webkit-scrollbar{width:6px;}
 #deep-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -1376,6 +1403,8 @@ body::after{
   color:var(--text2);font-size:10px;padding:4px 8px;cursor:pointer;transition:color 0.15s,border-color 0.15s,background 0.15s,opacity 0.15s;}
 #wl-close-btn:hover{color:var(--bear);border-color:var(--bear);}
 #wl-sub{font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.08em;}
+#wl-progress{font-family:var(--font-mono);font-size:8px;color:var(--amber);letter-spacing:0.08em;margin-top:4px;height:10px;transition:opacity 0.3s;}
+#wl-progress:empty{opacity:0;}
 
 #wl-add-row{display:flex;gap:6px;padding:10px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
 #wl-search-input{flex:1;background:rgba(5,8,17,0.8);border:1px solid var(--border2);border-radius:3px;
@@ -2672,7 +2701,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   #topbar-username{font-size:9px;}
 
   /* Panels — full-width friendly */
-  #panel.open{width:min(340px,92vw);}
+  #panel{width:min(340px,92vw);}
   #social-panel{width:min(340px,100vw);}
   #watchlist-panel{width:min(360px,100vw);}
 
@@ -2714,8 +2743,8 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   #social-tab{display:none !important;}
   #watchlist-tab{display:none !important;}
 
-  /* Panels go full-width */
-  #panel.open{width:100vw;border-left:none;border-right:none;border-radius:0;}
+  /* Panel — full-width overlay, anchored below mobile topbar, above mobile nav */
+  #panel{width:100vw;top:44px;bottom:calc(56px + env(safe-area-inset-bottom));border-left:none;border-right:none;border-radius:0;}
   #social-panel{width:100vw;border-left:none;border-right:none;}
   #watchlist-panel{width:100vw;border-left:none;border-right:none;}
 
@@ -2740,7 +2769,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   #social-header,#wl-header{padding:12px 14px;}
 
   /* Make panel close buttons bigger for touch */
-  #panel-close{width:36px;height:36px;font-size:16px;}
+  #p-close{width:36px;height:36px;font-size:16px;}
   #social-close-btn,#wl-close-btn{min-width:36px;min-height:36px;}
 
   /* Deep/CA full screen padding */
@@ -2750,12 +2779,23 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   /* Bigger tap targets for country interaction */
   .country{stroke-width:1px;}
 
-  /* Toast — full width */
-  #mrx-toast{left:8px;right:8px;bottom:64px;width:auto;}
+  /* Toast — above mobile nav with safe area */
+  #mrx-toast{left:8px;right:8px;bottom:calc(64px + env(safe-area-inset-bottom));width:auto;transform:translateY(80px);}
+  #mrx-toast.show{transform:translateY(0);}
 
   /* Comm overlay full screen */
   #comm-overlay{padding-bottom:0;}
-  #comm-inner{border-radius:0;width:100vw;height:100dvh;max-height:100dvh;}
+  #comm-panel{border-radius:0;width:100vw;height:100dvh;max-height:100dvh;}
+
+  /* Hide mini-ticker under mobile nav — ticker content unreadable at mobile font sizes */
+  #mini-ticker{display:none !important;}
+
+  /* Remove ticker padding now that it's hidden */
+  #main{padding-bottom:0;}
+
+  /* Social + watchlist panel: pad scrollable body above mobile nav */
+  #social-body{padding-bottom:calc(60px + env(safe-area-inset-bottom));}
+  #wl-body{padding-bottom:calc(60px + env(safe-area-inset-bottom));}
 }
 
 /* ── Very small phones (≤ 360px) ── */
@@ -2806,6 +2846,23 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
   }
   #app{padding-bottom:calc(56px + env(safe-area-inset-bottom));}
   #topbar{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));}
+}
+
+/* ── backdrop-filter audit: GPU-expensive blur removed on mobile ──
+   Compensate with more opaque background colours so overlays remain readable. */
+@media (max-width:768px){
+  #contact-overlay{backdrop-filter:none;background:rgba(2,8,22,0.97);}
+  #stocks-backdrop{backdrop-filter:none;background:rgba(3,7,18,0.97);}
+  #deep-overlay{backdrop-filter:none;background:rgba(3,7,18,0.97);}
+  #econ-cal-overlay{backdrop-filter:none;background:rgba(2,6,18,0.97);}
+  #quick-search-overlay{backdrop-filter:none;background:rgba(2,6,18,0.97);}
+  #research-overlay{backdrop-filter:none;background:rgba(3,7,18,0.97);}
+  #commod-overlay{backdrop-filter:none;background:rgba(3,7,18,0.97);}
+  #ca-overlay{backdrop-filter:none;background:rgba(3,7,18,0.97);}
+  #profile-overlay{backdrop-filter:none;background:rgba(3,7,18,0.97);}
+  #comm-overlay{backdrop-filter:none;background:rgba(3,7,18,0.97);}
+  #about-close-btn{backdrop-filter:none;background:rgba(2,8,22,0.95);}
+  #mobile-nav{backdrop-filter:none;background:rgba(8,14,24,1);}
 }
 </style>
 </head>
@@ -3152,6 +3209,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     <button id="research-topbar-btn" title="Research Hub">◎ RESEARCH</button>
   </nav>
   <div class="topbar-right">
+    <button id="topbar-search-btn" onclick="openSearch()" title="Quick Search (/)">⌕</button>
     <button id="about-topbar-btn" onclick="openAbout()" title="About Meridiax">◈ ABOUT</button>
     <button id="contact-topbar-link" onclick="openContact()" title="Contact Us">✉ CONTACT</button>
     <div id="topbar-user" style="display:none;">
@@ -3177,6 +3235,11 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
     </div>
 
     <div id="map-hint">▼ &nbsp;CLICK ANY COUNTRY TO ANALYSE &nbsp;▼</div>
+    <!-- Map loading skeleton — shown while world topojson fetches -->
+    <div id="map-loading">
+      <div class="map-load-spin"></div>
+      <div class="map-load-txt">Loading world map…</div>
+    </div>
 
     <!-- Zoom controls -->
     <div id="zoom-ctrls">
@@ -3463,6 +3526,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
       <button id="wl-close-btn">✕</button>
     </div>
     <div id="wl-sub">Track sentiment for countries, stocks, sectors &amp; themes</div>
+    <div id="wl-progress"></div>
   </div>
   <div id="wl-add-row">
     <input type="text" id="wl-search-input" placeholder="Add country, ticker, sector, theme…">
@@ -3849,6 +3913,22 @@ let stocksCache = {};
 let authorityCache = {};
 let translationCache = {};
 let socialCache = {};
+let newsCache = {};
+
+// TTLs in ms: how long before a cached value is considered stale
+const CACHE_TTL = {
+  sentiment: 3_600_000,  // 1h
+  news:        900_000,  // 15min
+  deep:      3_600_000,  // 1h
+  social:      900_000,  // 15min
+  authority: 7_200_000,  // 2h
+};
+// Timestamps for stale-while-revalidate checks
+const cacheTs      = {};  // sentiment
+const newsCacheTs  = {};
+const deepCacheTs  = {};
+const socialCacheTs = {};
+const authCacheTs  = {};
 let currentCountryMeta = null;
 let currentStocks = [];
 let currentSector = 'all';
@@ -4039,7 +4119,6 @@ const META = {
   "858":  {name:"Uruguay",         region:"South America", currency:"UYU", index:"—",           flag:"🇺🇾"},
   "068":  {name:"Bolivia",         region:"South America", currency:"BOB", index:"BBV",         flag:"🇧🇴"},
   "600":  {name:"Paraguay",        region:"South America", currency:"PYG", index:"—",           flag:"🇵🇾"},
-  "032":  {name:"Argentina",       region:"South America", currency:"ARS", index:"Merval",      flag:"🇦🇷"},
   "384":  {name:"Ivory Coast",     region:"Africa",        currency:"XOF", index:"—",           flag:"🇨🇮"},
   "800":  {name:"Uganda",          region:"Africa",        currency:"UGX", index:"USE",         flag:"🇺🇬"},
   "834":  {name:"Tanzania",        region:"Africa",        currency:"TZS", index:"DSE",         flag:"🇹🇿"},
@@ -4047,13 +4126,11 @@ const META = {
   "508":  {name:"Mozambique",      region:"Africa",        currency:"MZN", index:"—",           flag:"🇲🇿"},
   "716":  {name:"Zimbabwe",        region:"Africa",        currency:"ZWL", index:"ZSE",         flag:"🇿🇼"},
   "180":  {name:"DR Congo",        region:"Africa",        currency:"CDF", index:"—",           flag:"🇨🇩"},
-  "818":  {name:"Egypt",           region:"Africa",        currency:"EGP", index:"EGX 30",      flag:"🇪🇬"},
   "760":  {name:"Syria",           region:"Middle East",   currency:"SYP", index:"—",           flag:"🇸🇾"},
   "368":  {name:"Iraq",            region:"Middle East",   currency:"IQD", index:"ISX",         flag:"🇮🇶"},
   "400":  {name:"Jordan",          region:"Middle East",   currency:"JOD", index:"ASE",         flag:"🇯🇴"},
   "414":  {name:"Kuwait",          region:"Middle East",   currency:"KWD", index:"BK",          flag:"🇰🇼"},
   "634":  {name:"Qatar",           region:"Middle East",   currency:"QAR", index:"QE",          flag:"🇶🇦"},
-  "496":  {name:"Mongolia",        region:"East Asia",     currency:"MNT", index:"MSE",         flag:"🇲🇳"},
   "064":  {name:"Bhutan",          region:"South Asia",    currency:"BTN", index:"—",           flag:"🇧🇹"},
   "524":  {name:"Nepal",           region:"South Asia",    currency:"NPR", index:"NEPSE",       flag:"🇳🇵"},
 };
@@ -4124,6 +4201,13 @@ async function initMap() {
     world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
   }
   worldData = world;
+
+  // Hide loading overlay now that map data is ready
+  const mapLoader = document.getElementById('map-loading');
+  if (mapLoader) {
+    mapLoader.classList.add('hidden');
+    setTimeout(() => mapLoader.remove(), 450);
+  }
 
   const countries = topojson.feature(world, world.objects.countries);
   const borders   = topojson.mesh(world, world.objects.countries, (a,b) => a !== b);
@@ -4382,6 +4466,9 @@ function selectCountry(d) {
 
   if (cache[key]) {
     renderPanel(cache[key]);
+    // Stale-while-revalidate: silently background-refresh if older than TTL
+    const age = Date.now() - (cacheTs[key] || 0);
+    if (age > CACHE_TTL.sentiment && !_sentimentInFlight.has(key)) fetchSentiment(key, meta, true);
   } else {
     setLoading();
     fetchSentiment(key, meta);
@@ -4680,6 +4767,8 @@ function repairAndParseJSON(raw) {
 }
 
 const _sentimentInFlight = new Set(); // in-flight dedup: prevent parallel calls for same country
+const _newsInFlight = new Set();      // dedup for news headlines fetch
+const _authInFlight = new Set();      // dedup for authority publications fetch
 
 async function fetchSentiment(key, meta, silent = false) {
   // Deduplicate: if a fetch is already in-flight for this country, skip
@@ -4712,7 +4801,8 @@ news_topics: array of 3 strings, each a specific ${meta.name} macro topic, max 5
     const result = repairAndParseJSON(raw);
     result._meta = meta;
 
-    cache[key] = result;
+    cache[key]  = result;
+    cacheTs[key] = Date.now();
     updateCount();
 
     // Normalise sentiment before colouring map
@@ -4804,11 +4894,53 @@ function toggleNews() {
   if (newsOpen && list.innerHTML === '' && activeId) loadNews(activeId);
 }
 
+function renderNewsArticles(articles, label, list, key) {
+  const countryName = (cache[key]?._meta?.name) || 'this country';
+  label.textContent = `📰  ${articles.length} headlines`;
+  list.innerHTML = articles.map((a, idx) => `
+    <div class="ni">
+      <div class="ni-top">
+        <span class="ni-imp ${a.impact}">${a.impact}</span>
+        <span class="ni-src">${a.source}</span>
+        <span class="ni-time">${a.time}</span>
+      </div>
+      <div class="ni-title"><a href="${a.url}" target="_blank">${a.title}</a></div>
+      <div class="ni-sum">${a.summary}</div>
+      <button class="expand-btn" data-ni="${idx}">▸ DETAILS</button>
+      <div class="expand-body" id="ni-exp-${idx}"></div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.expand-btn[data-ni]').forEach(btn => {
+    const idx = +btn.dataset.ni;
+    const a   = articles[idx];
+    const bodyEl = document.getElementById(`ni-exp-${idx}`);
+    btn.addEventListener('click', () => {
+      const cKey   = `news|${a.title}`;
+      const prompt = `Analyse the macro market implications of this news headline: "${a.title}". Context: ${a.summary}. Country context: ${countryName}. Discuss: (1) which asset classes or currencies are most affected, (2) short-term market reaction likely, (3) key risk to watch. Be specific and concise.`;
+      toggleExpand(btn, bodyEl, cKey, prompt);
+    });
+  });
+}
+
 async function loadNews(key) {
-  const list = document.getElementById('news-list');
+  if (_newsInFlight.has(key)) return; // already fetching for this country
+
+  const list  = document.getElementById('news-list');
   const label = document.getElementById('news-label');
-  list.innerHTML = '<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);"><span class="spin"></span> &nbsp;Loading headlines...</div>';
-  label.textContent = '📰  Loading...';
+
+  // Serve from cache immediately (stale-while-revalidate)
+  if (newsCache[key]) {
+    renderNewsArticles(newsCache[key], label, list, key);
+    const age = Date.now() - (newsCacheTs[key] || 0);
+    if (age <= CACHE_TTL.news) return; // still fresh — skip network call
+    // stale: fall through to background-refresh below (list already rendered)
+  }
+
+  _newsInFlight.add(key);
+  if (!newsCache[key]) {
+    list.innerHTML = '<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);"><span class="spin"></span> &nbsp;Loading headlines...</div>';
+    label.textContent = '📰  Loading...';
+  }
 
 
 
@@ -4817,17 +4949,10 @@ async function loadNews(key) {
   const topics = cached?.news_topics?.join(', ') || (meta?.name + ' economy');
 
   const countryName = meta?.name || 'this country';
-  const prompt = `Generate 4 realistic, specific financial news headlines for ${countryName} covering these topics: ${topics}.
+  const prompt = `4 specific financial news headlines for ${countryName} on: ${topics}.
 
-Respond with ONLY a JSON array of 4 objects. No markdown, no code fences, no trailing commas. Each object must have exactly these fields:
-title: string, the headline, max 15 words, specific with numbers/institutions where possible
-source: string, a real financial news outlet name
-time: string, one of "1h ago", "2h ago", "3h ago", "6h ago", "12h ago"
-impact: string, must be one of HIGH, MEDIUM, LOW
-summary: string, one sentence about market implications for ${countryName}, max 20 words
-url: string, a plausible real URL to a financial news article on that source's website (e.g. "https://www.reuters.com/markets/..." or "https://www.ft.com/content/...") — use the actual source domain
-
-Make headlines specific to ${countryName} — mention the country's central bank, currency, or specific institutions.`;
+JSON array of 4: [{"title":"≤15 words, cite real institutions/numbers","source":"real outlet","time":"1h ago|2h ago|3h ago|6h ago|12h ago","impact":"HIGH|MEDIUM|LOW","summary":"1 sentence market implication, ≤20 words","url":"plausible source URL"}]
+No markdown. Mention ${countryName}'s central bank or currency in headlines.`;
 
   try {
     let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', prompt, 1200);
@@ -4842,36 +4967,16 @@ Make headlines specific to ${countryName} — mention the country's central bank
     try { articles = JSON.parse(raw); } catch (_) {
       articles = JSON.parse(closeTruncated(raw));
     }
-    label.textContent = `📰  ${articles.length} headlines`;
-
-    list.innerHTML = articles.map((a, idx) => `
-      <div class="ni">
-        <div class="ni-top">
-          <span class="ni-imp ${a.impact}">${a.impact}</span>
-          <span class="ni-src">${a.source}</span>
-          <span class="ni-time">${a.time}</span>
-        </div>
-        <div class="ni-title"><a href="${a.url}" target="_blank">${a.title}</a></div>
-        <div class="ni-sum">${a.summary}</div>
-        <button class="expand-btn" data-ni="${idx}">▸ DETAILS</button>
-        <div class="expand-body" id="ni-exp-${idx}"></div>
-      </div>
-    `).join('');
-
-    // Wire expand buttons
-    list.querySelectorAll('.expand-btn[data-ni]').forEach(btn => {
-      const idx = +btn.dataset.ni;
-      const a = articles[idx];
-      const bodyEl = document.getElementById(`ni-exp-${idx}`);
-      btn.addEventListener('click', () => {
-        const cKey = `news|${a.title}`;
-        const prompt = `Analyse the macro market implications of this news headline: "${a.title}". Context: ${a.summary}. Country context: ${countryName}. Discuss: (1) which asset classes or currencies are most affected, (2) short-term market reaction likely, (3) key risk to watch. Be specific and concise.`;
-        toggleExpand(btn, bodyEl, cKey, prompt);
-      });
-    });
+    newsCache[key]   = articles;
+    newsCacheTs[key] = Date.now();
+    renderNewsArticles(articles, label, list, key);
   } catch(err) {
-    list.innerHTML = `<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
-    label.textContent = '📰  Failed to load';
+    if (!newsCache[key]) {
+      list.innerHTML = `<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
+      label.textContent = '📰  Failed to load';
+    }
+  } finally {
+    _newsInFlight.delete(key);
   }
 }
 
@@ -5319,6 +5424,15 @@ const REGION_NAMES = {
   oceania:  'Oceania',
 };
 
+// Top economically significant countries per region for hover prefetch
+const REGION_TOP = {
+  americas: ['840','076','484','032','124','170','152'],
+  europe:   ['826','276','250','380','724','528','756','616','752'],
+  asia:     ['156','392','356','410','158','360','682','704','764','458'],
+  africa:   ['710','566','818','404','504'],
+  oceania:  ['036','554'],
+};
+
 function jumpTo(region) {
   const match = REGION_NAMES[region];
   if (!match || !worldData) return;
@@ -5385,7 +5499,7 @@ function startMiniClock() {
     if (el) el.textContent = new Date().toUTCString().slice(17, 22) + ' UTC';
   }
   tick();
-  setInterval(tick, 1000);
+  setInterval(tick, 60000); // HH:MM display — minute-level accuracy is sufficient
 }
 
 let _tickerFetching = false; // in-flight guard: only one LLM fetch at a time
@@ -5517,14 +5631,21 @@ function toggleAuthority() {
   const list = document.getElementById('auth-list');
   list.className = authorityOpen ? 'open' : '';
   // Use cache check (not innerHTML) so error states reload on retry
-  if (authorityOpen && activeId && !authorityCache[activeId]) loadAuthorityPubs(activeId);
-  else if (authorityOpen && activeId && authorityCache[activeId]) {
+  if (authorityOpen && activeId) {
     const label = document.getElementById('auth-label');
-    renderAuthorityPubs(authorityCache[activeId], label);
+    if (authorityCache[activeId]) {
+      renderAuthorityPubs(authorityCache[activeId], label);
+      const age = Date.now() - (authCacheTs[activeId] || 0);
+      if (age > CACHE_TTL.authority && !_authInFlight.has(activeId)) loadAuthorityPubs(activeId);
+    } else {
+      loadAuthorityPubs(activeId);
+    }
   }
 }
 
 async function loadAuthorityPubs(key) {
+  if (_authInFlight.has(key)) return; // already fetching
+  _authInFlight.add(key);
   const list = document.getElementById('auth-list');
   const label = document.getElementById('auth-label');
   list.innerHTML = '<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--text2);"><span class="spin"></span> &nbsp;Loading publications...</div>';
@@ -5534,7 +5655,10 @@ async function loadAuthorityPubs(key) {
 
   if (authorityCache[key]) {
     renderAuthorityPubs(authorityCache[key], label);
-    return;
+    const age = Date.now() - (authCacheTs[key] || 0);
+    if (age <= CACHE_TTL.authority) { _authInFlight.delete(key); return; }
+    // stale — fall through to background refresh (list already rendered)
+    list.innerHTML = ''; // clear to avoid flicker on replace
   }
 
   // Always prefer currentCountryMeta which has _id set by selectCountry
@@ -5543,15 +5667,10 @@ async function loadAuthorityPubs(key) {
 
   const authInfo = getAuthorityInfo(meta);
   const baseUrl = AUTHORITY_URLS[meta._id || ''] || '#';
-  const prompt = `You are a financial analyst. Generate 3 realistic recent publications from ${authInfo.authority} (${meta.name}'s financial authorities).
+  const prompt = `3 recent publications from ${authInfo.authority} (${meta.name}).
 
-Respond with ONLY a JSON array of 3 objects. No markdown, no code fences, no trailing commas. Each object must have exactly these fields:
-type: string, one of "Policy Statement", "Economic Report", "Speech", "Press Release", "Regulatory Notice"
-title: string, specific publication title mentioning ${meta.name} context, max 15 words
-date: string, a recent month-year like "April 2025" or "March 2025"
-summary: string, 2-sentence summary of key policy/economic findings, max 40 words
-impact: string, one of HIGH, MEDIUM, LOW
-url: string, use "${baseUrl}" as the base URL — append a plausible path like "/publications/2025/report-name" or just use "${baseUrl}"`;
+JSON array of 3: [{"type":"Policy Statement|Economic Report|Speech|Press Release|Regulatory Notice","title":"≤15 words, ${meta.name}-specific","date":"Month YYYY","summary":"2 sentences, key findings, ≤40 words","impact":"HIGH|MEDIUM|LOW","url":"${baseUrl}/plausible-path"}]
+No markdown.`;
 
   try {
     let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', prompt, 1000);
@@ -5560,11 +5679,14 @@ url: string, use "${baseUrl}" as the base URL — append a plausible path like "
     raw = raw.replace(/,(\s*[\]}])/g, '$1');
     let pubs;
     try { pubs = JSON.parse(raw); } catch (_) { pubs = JSON.parse(closeTruncated(raw)); }
-    authorityCache[key] = { pubs, authority: authInfo.authority, baseUrl };
+    authorityCache[key]  = { pubs, authority: authInfo.authority, baseUrl };
+    authCacheTs[key]     = Date.now();
     renderAuthorityPubs({ pubs, authority: authInfo.authority, baseUrl }, label);
   } catch (err) {
     list.innerHTML = `<div style="padding:10px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
     label.textContent = '📋  Failed to load';
+  } finally {
+    _authInFlight.delete(key);
   }
 }
 
@@ -5851,7 +5973,11 @@ async function loadSocialSentiment() {
   if (socialCache[cacheKey]) {
     loading.style.display = 'none';
     renderSocialSentiment(socialCache[cacheKey]);
-    return;
+    // Stale-while-revalidate: continue to fetch if stale (don't return)
+    const age = Date.now() - (socialCacheTs[cacheKey] || 0);
+    if (age <= CACHE_TTL.social) return;
+    // stale — fall through and silently refresh in background
+    loading.style.display = 'none'; // already rendered, keep it hidden
   }
 
   const prompt = `You are a social media market analyst. Synthesise current investor sentiment about ${target} from Twitter/X, Reddit (r/investing, r/stocks, r/wallstreetbets), StockTwits, and Seeking Alpha forums.${socialFilter.trim() ? ` Pay special attention to discussions tagged with or about: ${socialFilter.trim()}.` : ''}
@@ -5871,7 +5997,8 @@ Make it specific to ${target} with real-sounding tickers and topics.`;
     const raw = await callLLM('You are a market sentiment analyst. Output only a raw JSON object. No markdown.', prompt, 1200);
     const result = repairAndParseJSON(raw);
     result._scope = target; // store for expand prompts
-    socialCache[cacheKey] = result;
+    socialCache[cacheKey]   = result;
+    socialCacheTs[cacheKey] = Date.now();
     loading.style.display = 'none';
     renderSocialSentiment(result);
   } catch (err) {
@@ -6072,6 +6199,11 @@ function openDeepAnalysis() {
   document.querySelectorAll('.deep-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'overview'));
   deepTab = 'overview';
   loadOrRenderDeepTab('overview');
+  // Silently prefetch all other tabs so they're instant on click
+  ['economy','markets','risks','outlook'].forEach(t => {
+    const ck = (currentCountryMeta.name || '') + '|' + t;
+    if (!deepCache[ck] && !_deepInFlight.has(ck)) loadDeepSection(t, true);
+  });
 }
 
 function closeDeepAnalysis() {
@@ -6082,54 +6214,68 @@ function closeDeepAnalysis() {
 function setDeepTab(tab) {
   if (!currentCountryMeta) return;
   deepTab = tab;
-  document.querySelectorAll('.deep-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.deep-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tab);
+    if (t.dataset.tab === tab) t.classList.remove('tab-ready');
+  });
   loadOrRenderDeepTab(tab);
 }
+
+const _deepInFlight = new Set(); // dedup: prevent duplicate LLM calls for same country+tab
 
 function loadOrRenderDeepTab(tab) {
   const cacheKey = (currentCountryMeta?.name || '') + '|' + tab;
   if (deepCache[cacheKey]) {
     renderDeepSection(deepCache[cacheKey], tab);
+    // Stale-while-revalidate: background refresh if older than TTL
+    const age = Date.now() - (deepCacheTs[cacheKey] || 0);
+    if (age > CACHE_TTL.deep && !_deepInFlight.has(cacheKey)) loadDeepSection(tab, true);
   } else {
-    loadDeepSection(tab);
+    loadDeepSection(tab, false);
   }
 }
 
-async function loadDeepSection(tab) {
+// background=true: silently prefetch without touching the DOM
+async function loadDeepSection(tab, background = false) {
   if (!currentCountryMeta) {
-    document.getElementById('deep-body').innerHTML =
+    if (!background) document.getElementById('deep-body').innerHTML =
       `<div class="deep-loading"><div style="font-size:13px;color:var(--text2);">Select a country first.</div></div>`;
     return;
   }
+  const cacheKey = currentCountryMeta.name + '|' + tab;
+  if (_deepInFlight.has(cacheKey)) return; // already in flight
+  _deepInFlight.add(cacheKey);
+
   const body = document.getElementById('deep-body');
   const tabLabels = { overview:'MACROECONOMIC OVERVIEW', economy:'ECONOMIC ANALYSIS', markets:'CAPITAL MARKETS', risks:'RISK ASSESSMENT', outlook:'12-MONTH OUTLOOK' };
-  body.innerHTML = `<div class="deep-loading"><div class="big-spin"></div><div class="sl-text">Loading ${tabLabels[tab] || tab}…</div></div>`;
+  if (!background) body.innerHTML = `<div class="deep-loading"><div class="big-spin"></div><div class="sl-text">Loading ${tabLabels[tab] || tab}…</div></div>`;
 
   const getPrompt = DEEP_TAB_PROMPTS[tab];
-  if (!getPrompt) return;
-  const basePrompt = getPrompt(currentCountryMeta);
+  if (!getPrompt) { _deepInFlight.delete(cacheKey); return; }
 
-  const sysPrompt = 'You are a senior macro strategist at a major investment bank. Respond with a valid JSON object only.';
-  const userPrompt = `${basePrompt}
+  const sysPrompt = 'Senior macro strategist. Respond with JSON only — no markdown, no code fences.';
+  const userPrompt = `${getPrompt(currentCountryMeta)}
 
-Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
-{
-  "title": "section headline string",
-  "keyStats": [
-    {"label": "METRIC NAME", "value": "value string"},
-    ... 5-6 objects total
-  ],
-  "content": "detailed analysis text — use \\n\\n to separate paragraphs. 4-5 paragraphs total."
-}`;
+JSON only: {"title":"string","keyStats":[{"label":"METRIC","value":"string"}],"content":"paragraphs separated by \\n\\n"}
+keyStats: 5-6 items. content: 4-5 paragraphs.`;
 
   try {
     const raw = await callLLM(sysPrompt, userPrompt, 2000);
     const result = repairAndParseJSON(raw);
-    const cacheKey = currentCountryMeta.name + '|' + tab;
-    deepCache[cacheKey] = result;
-    renderDeepSection(result, tab);
+    deepCache[cacheKey]   = result;
+    deepCacheTs[cacheKey] = Date.now();
+    // Only update the DOM if this tab is currently active
+    if (deepTab === tab) renderDeepSection(result, tab);
+    else if (background) {
+      // Tab badge: show ready indicator if overlay still open
+      const tabEl = document.querySelector(`.deep-tab[data-tab="${tab}"]`);
+      if (tabEl && deepOpen) tabEl.classList.add('tab-ready');
+    }
   } catch (err) {
-    body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--bear);font-family:var(--font-display);font-size:13px;">⚠ Error loading analysis: ${err.message}</div>`;
+    if (!background && deepTab === tab)
+      body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--bear);font-family:var(--font-display);font-size:13px;">⚠ Error loading analysis: ${err.message}</div>`;
+  } finally {
+    _deepInFlight.delete(cacheKey);
   }
 }
 
@@ -6477,7 +6623,7 @@ async function addWatchlistItem(rawInput) {
   if (apiKey && item.sentiment === null) fetchWatchlistSentiment(item);
 }
 
-async function fetchWatchlistSentiment(item) {
+async function fetchWatchlistSentiment(item, noRender = false) {
   const prompt = item.type === 'country'
     ? `Assess the current macroeconomic sentiment for ${item.name}. Return ONLY JSON: {"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<one sentence, max 15 words>","regime":"Goldilocks|Reflation|Stagflation|Recession"}`
     : `Assess current financial market sentiment for "${item.name}" (could be a stock ticker, sector, theme, or commodity). Return ONLY JSON: {"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<one sentence key insight, max 15 words>","assetType":"<Stock|Sector|Theme|Commodity|Index>"}`;
@@ -6497,15 +6643,52 @@ async function fetchWatchlistSentiment(item) {
     if (result.regime)    watchlist[idx].regime = result.regime;
     if (result.assetType) watchlist[idx].assetType = result.assetType;
     saveWatchlistToStorage();
-    if (watchlistOpen) renderWatchlist();
+    if (!noRender && watchlistOpen) renderWatchlist();
   } catch(e) {
     console.warn('Watchlist sentiment fetch failed for', item.name, e.message);
   }
 }
 
-function refreshAllWatchlistItems() {
+async function refreshAllWatchlistItems() {
+  if (watchlist.length === 0) return;
   watchlistSentCache = {};
-  watchlist.forEach(item => fetchWatchlistSentiment(item));
+
+  // Clear stale sentiments and show loading state immediately
+  watchlist.forEach(item => { item.sentiment = null; item.score = 0; item.keyNote = ''; });
+  if (watchlistOpen) renderWatchlist();
+
+  const prog  = document.getElementById('wl-progress');
+  const total = watchlist.length;
+  let done    = 0;
+  const updateProg = () => { if (prog) prog.textContent = `⟳ Refreshing ${done}/${total}…`; };
+  updateProg();
+
+  // Concurrency-limited parallel fetch: max 3 simultaneous LLM calls
+  const CONCURRENCY = 3;
+  const queue = [...watchlist];
+  let active  = 0;
+
+  await new Promise(resolve => {
+    let settled = 0;
+    function next() {
+      while (active < CONCURRENCY && queue.length > 0) {
+        const item = queue.shift();
+        active++;
+        fetchWatchlistSentiment(item, true).finally(() => {
+          active--;
+          done++;
+          updateProg();
+          settled++;
+          if (settled === total) resolve();
+          else next();
+        });
+      }
+    }
+    next();
+  });
+
+  if (prog) prog.textContent = '';
+  if (watchlistOpen) renderWatchlist();
 }
 
 function removeWatchlistItem(key) {
@@ -6930,9 +7113,23 @@ function wireEventListeners() {
     });
   });
 
-  // Region jump buttons
+  // Region jump buttons — click to jump, hover to prefetch top countries
   document.querySelectorAll('.rj-btn').forEach(btn => {
     btn.addEventListener('click', () => jumpTo(btn.dataset.region));
+    let _rjPrefetchTimer = null;
+    btn.addEventListener('mouseenter', () => {
+      _rjPrefetchTimer = setTimeout(() => {
+        const isoList = REGION_TOP[btn.dataset.region] || [];
+        isoList.forEach(iso => {
+          const key = 'c' + parseInt(iso, 10);
+          if (!cache[key] && !_sentimentInFlight.has(key)) {
+            const meta = META[iso];
+            if (meta) fetchSentiment(key, meta, true);
+          }
+        });
+      }, 300);
+    });
+    btn.addEventListener('mouseleave', () => clearTimeout(_rjPrefetchTimer));
   });
 
   // Country mode selector buttons

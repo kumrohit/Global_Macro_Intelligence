@@ -269,8 +269,8 @@ test('_clockEl cached', () => hasVar('_clockEl'));
 test('will-change:transform on tooltip', () => css.includes('#tooltip') && css.includes('will-change:transform'));
 test('will-change:transform on #social-panel', () =>
   css.includes('#social-panel') && css.includes('will-change:transform'));
-test('will-change:width on #panel', () =>
-  css.includes('#panel') && css.includes('will-change:width'));
+test('will-change:transform on #panel', () =>
+  css.includes('#panel') && css.includes('will-change:transform'));
 test('contain:layout style on #panel-body', () =>
   css.includes('#panel-body') && css.includes('contain:layout style'));
 test('contain:layout style on #social-body', () =>
