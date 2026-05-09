@@ -191,8 +191,8 @@ global_macro_intel.html
 │
 ├── <style>               (~1900 lines)
 │   ├── CSS custom properties     (:root — palette, fonts)
-│   ├── Layout                    (topbar, map, panels, mobile nav)
-│   ├── Component styles          (chips, pills, badges, cards, gauges)
+│   ├── Layout                    (topbar, map, panels, mobile nav, mini-ticker bar)
+│   ├── Component styles          (chips, pills, badges, cards, gauges, FC ADJ, shift banner)
 │   ├── Overlay styles            (deep, research, FX, commodities, community,
 │   │                              watchlist, custom analysis, profile, API key gate)
 │   └── Mobile responsive         (4 breakpoints, bottom nav, full-width panels)
@@ -206,6 +206,8 @@ global_macro_intel.html
 │   │       ├── #map-wrap         SVG world map (equirectangular D3 projection)
 │   │       ├── #social-panel     Left floating panel — social sentiment
 │   │       ├── #panel            Right sliding panel — country analysis detail
+│   │       │   ├── #data-freshness-badge  📊 ANCHORED: Q1 2025 (shown when _econ_grounded)
+│   │       │   └── #regime-shift-banner   ⚠ SHIFT (shown on sentiment flip or regime change)
 │   │       ├── #deep-overlay     5-tab full-screen deep analysis
 │   │       ├── #research-overlay Research Hub (16 institutions)
 │   │       ├── #fx-overlay       FX heatmap + TradingView charts
@@ -214,6 +216,7 @@ global_macro_intel.html
 │   │       ├── #watchlist-*      Floating tab + sliding watchlist panel
 │   │       ├── #ca-overlay       Custom analysis builder
 │   │       └── #profile-overlay  Profile, Digest, Opportunities, Newsletter, ⚙ API
+│   ├── #mini-ticker-bar          Fixed bottom bar — DXY/GOLD/WTI/VIX/US10Y + UTC clock
 │   └── #mobile-nav               Bottom navigation (phones ≤ 480 px)
 │
 └── <script>              (~8218 lines)
@@ -233,20 +236,23 @@ global_macro_intel.html
     ├── API layer
     │   ├── detectProvider()       Returns 'gemini' | 'claude' | 'unknown' | null
     │   ├── callLLM(sys, usr, tokens, temp)
-    │   │     Routes to Gemini 2.5 Flash, Claude Sonnet, or callLLMFree()
-    │   │     when no API key is set.
+    │   │     Routes to Gemini 2.5 Flash, Claude Sonnet, or callLLMFree().
+    │   │     45-second AbortController timeout on all paths.
     │   ├── callLLMFree(sys, usr, tokens)
     │   │     Pollinations.ai (free, CORS-enabled, no-auth) — GPT-4o backend.
     │   │     32-second AbortController timeout; markdown code-fence stripping.
-    │   │     Used for all free-tier country analysis.
     │   ├── requireApiKey(callback, featureName)
     │   │     Shows #apikey-gate-overlay when no key; fires callback on save.
     │   │     Gated: Deep Analysis, Research Hub, FX, Commodities, Stocks,
     │   │     Custom Analysis, Digest, Opportunities.
     │   ├── repairAndParseJSON(raw)
     │   │     7-step repair pipeline for truncated/malformed LLM JSON.
-    │   └── closeTruncated(s)
-    │         Character-walk state machine — closes open strings/arrays/objects.
+    │   ├── closeTruncated(s)
+    │   │     Character-walk state machine — closes open strings/arrays/objects.
+    │   └── validateSentimentResult(r)
+    │         9-step post-parse validation including factor-composite coherence (Step 9):
+    │         clamp score → clamp factors → set defaults → check fields → fix types
+    │         → validate ranges → derive sentiment label → clamp band → coherence blend
     │
     ├── Map
     │   ├── initMap()              Fetches TopoJSON, renders SVG, wires events
@@ -254,9 +260,7 @@ global_macro_intel.html
     │   ├── renderPanel(data)      Populates all side-panel DOM fields; shows FC ADJ / ⚠ SHIFT / 📊 ANCHORED badges
     │   ├── fetchSentiment(id)     Chain-of-thought prompt with MACRO_CONTEXT; HIGH_STAKES → dual LLM call
     │   │                          with smart voting (pickRegime/pickRisk) + regime shift detection
-    │   └── validateSentimentResult(r)
-    │         9-step post-parse pipeline: clamp score/factors, set defaults, validate types,
-    │         derive sentiment label, clamp confidence band, factor-composite coherence (Step 9)
+    │   └── pickRegime/pickRisk    Score-informed categorical tiebreakers for HIGH_STAKES dual-call averaging
     │
     ├── Free-tier features (no API key needed)
     │   ├── loadAuthorityPubs()    Central bank publications
