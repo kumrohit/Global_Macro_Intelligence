@@ -561,6 +561,10 @@ body::after{
 .conf-badge.High{color:#10B981;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);}
 .conf-badge.Medium{color:#F59E0B;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.25);}
 .conf-badge.Low{color:#EF4444;background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.25);}
+#data-freshness-badge{display:none;margin-top:4px;}
+#data-freshness-badge.visible{display:inline-flex !important;}
+#regime-shift-banner{display:none;}
+#regime-shift-banner.visible{display:flex !important;}
 .factor-section{margin-top:10px;}
 .factor-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin-top:6px;}
 .factor-row{display:flex;align-items:center;gap:6px;}
@@ -3415,7 +3419,9 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
         </div>
         <div class="sbar-labels"><span>BEARISH −1</span><span>0</span><span>+1 BULLISH</span></div>
         <div id="score-text">Score: —</div>
+        <div id="data-freshness-badge" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.08em;padding:2px 5px;border-radius:2px;background:rgba(100,116,139,0.15);color:var(--text3);border:1px solid rgba(100,116,139,0.25);margin-top:4px;align-items:center;gap:4px;">📊 ANCHORED: Q1 2025</div>
       </div>
+      <div id="regime-shift-banner" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;padding:5px 10px;margin:6px 0 2px;border-radius:3px;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.30);color:#F59E0B;align-items:center;gap:4px;flex-wrap:wrap;"></div>
       <div class="slabel">ANALYST RATIONALE</div>
       <div id="rationale">—</div>
       <div class="factor-section" id="factor-section" style="display:none;">
@@ -4030,6 +4036,7 @@ const AUTHORITY_INFO = {
   "458": { authority:"Bank Negara Malaysia & SC Malaysia",            lang:"Bahasa Melayu"     },
   "360": { authority:"Bank Indonesia & OJK",                          lang:"Bahasa Indonesia"  },
   "608": { authority:"Bangko Sentral ng Pilipinas & SEC Philippines", lang:"Filipino"          },
+  "702": { authority:"Monetary Authority of Singapore (MAS)",         lang:"English"           },
   "036": { authority:"Reserve Bank of Australia (RBA) & ASIC",       lang:"English"           },
   "554": { authority:"Reserve Bank of New Zealand & FMA",             lang:"English"           },
   "398": { authority:"National Bank of Kazakhstan & AFSA",            lang:"Қазақша"           },
@@ -4064,7 +4071,8 @@ const AUTHORITY_URLS = {
   "410":"https://www.bok.or.kr",           "158":"https://www.cbc.gov.tw",
   "764":"https://www.bot.or.th",           "704":"https://www.sbv.gov.vn",
   "458":"https://www.bnm.gov.my",          "360":"https://www.bi.go.id",
-  "608":"https://www.bsp.gov.ph",          "036":"https://www.rba.gov.au",
+  "608":"https://www.bsp.gov.ph",          "702":"https://www.mas.gov.sg",
+  "036":"https://www.rba.gov.au",
   "554":"https://www.rbnz.govt.nz",        "398":"https://www.nationalbank.kz",
   "288":"https://www.bog.gov.gh",          "144":"https://www.cbsl.gov.lk",
   "414":"https://www.cbk.gov.kw",          "634":"https://www.qcb.gov.qa",
@@ -4124,6 +4132,7 @@ const META = {
   "458":  {name:"Malaysia",        region:"SE Asia",       currency:"MYR", index:"KLCI",        flag:"🇲🇾"},
   "360":  {name:"Indonesia",       region:"SE Asia",       currency:"IDR", index:"IDX Composite",flag:"🇮🇩"},
   "608":  {name:"Philippines",     region:"SE Asia",       currency:"PHP", index:"PSEi",        flag:"🇵🇭"},
+  "702":  {name:"Singapore",       region:"SE Asia",       currency:"SGD", index:"STI",         flag:"🇸🇬"},
   "036":  {name:"Australia",       region:"Oceania",       currency:"AUD", index:"ASX 200",     flag:"🇦🇺"},
   "554":  {name:"New Zealand",     region:"Oceania",       currency:"NZD", index:"NZX 50",      flag:"🇳🇿"},
   "012":  {name:"Algeria",         region:"Africa",        currency:"DZD", index:"—",           flag:"🇩🇿"},
@@ -4154,30 +4163,37 @@ const META = {
   "524":  {name:"Nepal",           region:"South Asia",    currency:"NPR", index:"NEPSE",       flag:"🇳🇵"},
 };
 
+// DATA_VINTAGE — the snapshot date of MACRO_CONTEXT entries below.
+// Update this string whenever the data is refreshed.
+const DATA_VINTAGE = 'Q1 2025';
+
 // MACRO_CONTEXT — verified economic snapshots (Q1 2025). Used to ground sentiment prompts
 // with real data instead of relying solely on model training memory.
 // Format: { gdp, cpi, rate, unemp, ca (current account % GDP), pmi, note }
+// Key updates vs prior session: US rate cut to 4.25% (Dec 2024 Fed cut); BOJ at 0.50%
+// (Jan 2025 hike); BOC cut to 2.75%; RBA first cut to 4.10%; RBI cut to 6.25%;
+// ECB rate 2.65% across eurozone; BOE at 4.50%; Banxico 8.50%; BCB hiking to 13.25%.
 const MACRO_CONTEXT = {
-  "840": { gdp:"+2.8", cpi:"2.4",  rate:"4.50", unemp:"3.9", ca:"-3.1", pmi:"51.2", note:"Fed on hold; labour market resilient; tariff uncertainty weighing on outlook" },
-  "156": { gdp:"+4.9", cpi:"0.1",  rate:"3.10", unemp:"5.1", ca:"+1.3", pmi:"50.1", note:"PBOC easing; deflation risk; property sector drag; fiscal stimulus announced" },
-  "276": { gdp:"-0.2", cpi:"2.3",  rate:"2.65", unemp:"5.9", ca:"+5.8", pmi:"44.0", note:"Technical recession; ECB cutting; industrial contraction; energy cost headwind" },
-  "392": { gdp:"+0.4", cpi:"2.9",  rate:"0.50", unemp:"2.4", ca:"+3.7", pmi:"48.5", note:"BOJ hiking cautiously; yen undervalued; wage growth rising; export slowdown risk" },
-  "826": { gdp:"+1.1", cpi:"2.8",  rate:"4.50", unemp:"4.4", ca:"-3.5", pmi:"50.8", note:"BOE cutting cautiously; stagflation risk; services inflation sticky" },
-  "250": { gdp:"+1.1", cpi:"1.0",  rate:"2.65", unemp:"7.4", ca:"-1.3", pmi:"44.5", note:"Fiscal deficit concerns; ECB cutting; political uncertainty; manufacturing weak" },
-  "380": { gdp:"+0.7", cpi:"1.5",  rate:"2.65", unemp:"5.7", ca:"+1.8", pmi:"47.3", note:"High debt/GDP but spreads contained; ECB cutting; domestic demand soft" },
-  "124": { gdp:"+1.5", cpi:"2.6",  rate:"2.75", unemp:"6.7", ca:"-1.2", pmi:"49.4", note:"BOC cutting aggressively; tariff risk from US trade policy; housing cool" },
-  "036": { gdp:"+1.0", cpi:"2.4",  rate:"4.10", unemp:"4.1", ca:"-1.1", pmi:"50.3", note:"RBA first cut; China demand key; commodity exports stable" },
-  "076": { gdp:"+3.5", cpi:"5.1",  rate:"13.25",unemp:"6.2", ca:"-1.9", pmi:"52.1", note:"BCB hiking; fiscal concerns; commodity super-cycle exposure" },
-  "356": { gdp:"+6.5", cpi:"4.0",  rate:"6.25", unemp:"7.8", ca:"-1.1", pmi:"57.5", note:"RBI cutting; strong growth; manufacturing FDI boom; capex cycle" },
-  "410": { gdp:"+2.0", cpi:"2.0",  rate:"2.75", unemp:"3.0", ca:"+3.8", pmi:"47.4", note:"Political risk eased; BOK cutting; memory chip exports recovering" },
-  "484": { gdp:"+1.5", cpi:"3.8",  rate:"8.50", unemp:"3.0", ca:"-0.9", pmi:"47.4", note:"Banxico cutting; nearshoring benefit; US tariff risk elevated" },
-  "682": { gdp:"+3.0", cpi:"2.0",  rate:"5.50", unemp:"3.5", ca:"+4.9", pmi:"58.4", note:"OPEC+ cuts; Vision 2030 spending; oil-price sensitive" },
-  "158": { gdp:"+3.8", cpi:"2.2",  rate:"2.00", unemp:"3.3", ca:"+13.8",pmi:"52.0", note:"CBC on hold; TSMC drives AI-chip demand; elevated geopolitical premium" },
-  "702": { gdp:"+3.5", cpi:"1.5",  rate:"3.25", unemp:"1.9", ca:"+18.0",pmi:"51.2", note:"MAS easing NEER slightly; strong financial hub; re-export trade at risk" },
-  "752": { gdp:"+1.0", cpi:"2.5",  rate:"2.25", unemp:"8.6", ca:"+5.2", pmi:"52.1", note:"Riksbank cutting; housing recovery; krona undervalued" },
-  "756": { gdp:"+1.5", cpi:"0.3",  rate:"0.25", unemp:"2.8", ca:"+9.3", pmi:"48.8", note:"SNB near zero; CHF deflationary pressure; safe-haven inflows" },
-  "528": { gdp:"+0.9", cpi:"2.8",  rate:"2.65", unemp:"3.7", ca:"+7.8", pmi:"51.6", note:"ECB cutting; export economy strong; energy transition capex" },
-  "710": { gdp:"+1.5", cpi:"3.2",  rate:"7.50", unemp:"32.1",ca:"-1.3", pmi:"49.5", note:"SARB cutting; load-shedding easing; high unemployment structural" },
+  "840": { gdp:"+2.8", cpi:"2.3",  rate:"4.25", unemp:"4.1", ca:"-3.2", pmi:"52.7", note:"Fed cut 75bp in late 2024, now on hold at 4.25%; labour market softening; tariff uncertainty elevated; services resilient" },
+  "156": { gdp:"+5.0", cpi:"-0.1", rate:"3.05", unemp:"5.2", ca:"+1.2", pmi:"50.1", note:"PBOC easing; confirmed deflation; property sector stabilising with government support; fiscal stimulus ongoing" },
+  "276": { gdp:"-0.2", cpi:"2.3",  rate:"2.65", unemp:"6.0", ca:"+5.6", pmi:"44.1", note:"Consecutive quarters of contraction; ECB cutting; auto sector restructuring; energy transition costs weighing" },
+  "392": { gdp:"+1.2", cpi:"3.4",  rate:"0.50", unemp:"2.4", ca:"+3.5", pmi:"49.0", note:"BOJ raised to 0.50% in Jan 2025; JPY strengthening; wage growth confirmed; yen carry-trade unwinding risk" },
+  "826": { gdp:"+1.2", cpi:"2.5",  rate:"4.50", unemp:"4.4", ca:"-3.3", pmi:"51.2", note:"BOE cut to 4.50%; services inflation still sticky; labour market easing; fiscal headwinds from budget" },
+  "250": { gdp:"+1.2", cpi:"1.0",  rate:"2.65", unemp:"7.3", ca:"-1.2", pmi:"45.3", note:"Fiscal deficit concerns post-election; ECB cutting; political fragmentation; manufacturing contraction deepening" },
+  "380": { gdp:"+0.8", cpi:"1.4",  rate:"2.65", unemp:"5.6", ca:"+1.9", pmi:"47.5", note:"High debt/GDP but ECB backstop intact; domestic demand soft; spread over Bunds contained" },
+  "124": { gdp:"+1.6", cpi:"2.3",  rate:"2.75", unemp:"6.8", ca:"-1.3", pmi:"49.6", note:"BOC cut aggressively to 2.75%; US tariff risk key headwind; housing cooling; immigration-driven demand fading" },
+  "036": { gdp:"+1.1", cpi:"2.4",  rate:"4.10", unemp:"4.0", ca:"-1.0", pmi:"50.5", note:"RBA first cut Feb 2025 to 4.10%; China demand uncertainty; commodity exports stable; housing holding up" },
+  "076": { gdp:"+3.2", cpi:"5.5",  rate:"13.25",unemp:"6.5", ca:"-2.1", pmi:"51.8", note:"BCB hiking cycle to cool inflation; fiscal primary deficit concern; commodity sector supportive" },
+  "356": { gdp:"+6.4", cpi:"4.2",  rate:"6.25", unemp:"7.9", ca:"-1.2", pmi:"57.4", note:"RBI cut to 6.25% in Feb 2025; strong growth momentum; manufacturing FDI inflow; capex supercycle" },
+  "410": { gdp:"+2.1", cpi:"1.9",  rate:"2.75", unemp:"2.9", ca:"+4.0", pmi:"47.9", note:"Political risk easing; BOK cutting; HBM memory chip exports surging; domestic demand cautious" },
+  "484": { gdp:"+1.3", cpi:"3.9",  rate:"8.50", unemp:"3.1", ca:"-1.0", pmi:"47.0", note:"Banxico cutting from peak; US nearshoring momentum; tariff risk from USMCA uncertainty; peso volatile" },
+  "682": { gdp:"+3.1", cpi:"1.8",  rate:"5.50", unemp:"3.4", ca:"+5.2", pmi:"58.6", note:"OPEC+ output discipline; Vision 2030 capex surging; Aramco IPO overhang; oil-price downside risk" },
+  "158": { gdp:"+3.5", cpi:"2.1",  rate:"2.00", unemp:"3.4", ca:"+13.5",pmi:"51.8", note:"CBC on hold; TSMC CoWoS demand driving AI-chip premium; cross-strait tension premium elevated" },
+  "702": { gdp:"+3.6", cpi:"1.4",  rate:"3.25", unemp:"1.9", ca:"+18.5",pmi:"51.5", note:"MAS easing NEER band slightly; wealth management inflows; re-export at risk from US-China tariffs" },
+  "752": { gdp:"+1.2", cpi:"2.2",  rate:"2.25", unemp:"8.4", ca:"+5.4", pmi:"52.3", note:"Riksbank cut to 2.25%; housing market recovering; krona strengthening; export competitiveness improving" },
+  "756": { gdp:"+1.6", cpi:"0.4",  rate:"0.25", unemp:"2.7", ca:"+9.5", pmi:"49.1", note:"SNB cut to 0.25%; CHF strength persistent; safe-haven demand; deflation risk contained" },
+  "528": { gdp:"+1.0", cpi:"2.7",  rate:"2.65", unemp:"3.6", ca:"+8.1", pmi:"51.8", note:"ECB cutting; semiconductor and ASML export demand strong; energy transition investment rising" },
+  "710": { gdp:"+1.6", cpi:"3.0",  rate:"7.50", unemp:"32.0",ca:"-1.2", pmi:"49.8", note:"SARB cut to 7.50%; Eskom load-shedding dramatically eased; structural unemployment persistent" },
   "643": { gdp:"+3.9", cpi:"9.5",  rate:"21.00",unemp:"2.4", ca:"+4.0", pmi:"51.1", note:"War economy; very high rates; sanctions impact; energy exports rerouted" },
   "792": { gdp:"+3.0", cpi:"39.0", rate:"42.50",unemp:"8.5", ca:"-3.5", pmi:"49.9", note:"TCMB cutting from peak; disinflation path; lira stabilising" },
   "360": { gdp:"+5.0", cpi:"2.5",  rate:"5.75", unemp:"4.9", ca:"-1.1", pmi:"53.6", note:"BI pausing; commodity economy; resilient domestic demand" },
@@ -4886,6 +4902,38 @@ function validateSentimentResult(r) {
     });
   }
 
+  // 9. Factor-score coherence check — if all 6 factors are present, compute the
+  //    weighted composite and compare against the reported score. If the deviation
+  //    exceeds tolerance the LLM made an arithmetic error or overrode the formula;
+  //    blend toward the factor-derived value to anchor the score to the evidence.
+  //    Weights: growth×0.25, inflation×0.20, monetary×0.25, fx×0.15, geo×0.10, market×0.05
+  if (r.factors && typeof r.factors === 'object') {
+    const f = r.factors;
+    const keys = ['growth','inflation','monetary','fx','geopolitical','market'];
+    const weights = [0.25, 0.20, 0.25, 0.15, 0.10, 0.05];
+    if (keys.every(k => typeof f[k] === 'number' && !isNaN(f[k]))) {
+      const fc = Math.round(keys.reduce((sum, k, i) => sum + f[k] * weights[i], 0) * 100) / 100;
+      r._factor_composite = fc;
+      const dev = Math.abs(fc - r.score);
+      if (dev >= 0.30) {
+        // Large deviation: strong blend — 50% factor-derived, 50% reported
+        r.score = Math.max(-1, Math.min(1, Math.round((fc * 0.50 + r.score * 0.50) * 100) / 100));
+        r._score_adjusted = true;
+      } else if (dev >= 0.15) {
+        // Moderate deviation: mild blend — 30% factor-derived, 70% reported
+        r.score = Math.max(-1, Math.min(1, Math.round((fc * 0.30 + r.score * 0.70) * 100) / 100));
+        r._score_adjusted = true;
+      }
+      // Re-derive sentiment and bounds from adjusted score
+      if (r._score_adjusted) {
+        const sa = r.score;
+        r.sentiment = sa > 0.10 ? 'bullish' : sa < -0.10 ? 'bearish' : 'neutral';
+        r.score_low  = Math.max(-1, Math.min(sa, r.score_low));
+        r.score_high = Math.min( 1, Math.max(sa, r.score_high));
+      }
+    }
+  }
+
   return r;
 }
 
@@ -4898,14 +4946,18 @@ async function fetchSentiment(key, meta, silent = false) {
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   // ── MACRO_CONTEXT injection ──────────────────────────────────────────────
-  // Use the ISO numeric id to look up hard-coded economic data (e.g. "840" from "c840")
-  const isoId  = key.replace(/^c/, '');
+  // SVG path IDs use raw numeric form (e.g. "c36" for Australia); MACRO_CONTEXT
+  // keys are always 3-digit zero-padded ISO numeric codes (e.g. "036").
+  // Zero-pad to match META lookup convention (see selectCountry line: padStart(3,'0')).
+  const isoId  = key.replace(/^c/, '').padStart(3, '0');
   const econ   = MACRO_CONTEXT[isoId];
   const econBlock = econ
-    ? `\nVERIFIED ECONOMIC DATA (Q1 2025 — use as ground-truth anchors, adjust only if you have more recent data):
+    ? `\nVERIFIED ECONOMIC SNAPSHOT (data vintage: ${DATA_VINTAGE} — today is ${today}):
 GDP Growth: ${econ.gdp}% | CPI: ${econ.cpi}% | Policy Rate: ${econ.rate}% | Unemployment: ${econ.unemp}% | Current Account: ${econ.ca}% GDP | PMI: ${econ.pmi}
-Key context: ${econ.note}\n`
+Key context (as of ${DATA_VINTAGE}): ${econ.note}
+⚑ Apply your current knowledge of developments since ${DATA_VINTAGE} to update these figures (central bank decisions, CPI prints, growth revisions, political events).\n`
     : '';
+  const _hasEconData = !!econ; // track for freshness badge in renderPanel
 
   // ── NEWS CONTEXT injection ────────────────────────────────────────────────
   // If headlines are already cached for this country, inject the top 3 as grounding context
@@ -5035,16 +5087,35 @@ ${jsonSchema}`;
       const a = validateSentimentResult(repairAndParseJSON(rawA));
       const b = validateSentimentResult(repairAndParseJSON(rawB));
       const avgScore = Math.round(((a.score + b.score) / 2) * 100) / 100;
+      // Smart categorical voting: when calls agree, keep the consensus value.
+      // When they disagree, use the averaged score to pick the more consistent option.
+      // Call `a` (temp=0.2, more deterministic) is preferred when score is ambiguous.
+      const pickRegime = (ra, rb, s) => {
+        if (ra === rb) return ra;
+        // Score-informed tie-break
+        if (s <= -0.40) return 'Recession';
+        if (s <= -0.15) return (ra === 'Stagflation' || rb === 'Stagflation') ? 'Stagflation' : ra;
+        if (s >= 0.30)  return (ra === 'Goldilocks'  || rb === 'Goldilocks')  ? 'Goldilocks'  : ra;
+        return ra; // default: keep the lower-temperature result
+      };
+      const pickRisk = (ra, rb) => {
+        if (ra === rb) return ra;
+        // Conservative: pick higher risk level when uncertain
+        const order = ['Low','Medium','High','Very High'];
+        return order.indexOf(ra) >= order.indexOf(rb) ? ra : rb;
+      };
       result = {
         ...a,
-        score:       avgScore,
-        score_low:   Math.round(((a.score_low  + b.score_low)  / 2) * 100) / 100,
-        score_high:  Math.round(((a.score_high + b.score_high) / 2) * 100) / 100,
-        regime:      a.regime === b.regime ? a.regime : a.regime,
+        score:        avgScore,
+        score_low:    Math.round(((a.score_low  + b.score_low)  / 2) * 100) / 100,
+        score_high:   Math.round(((a.score_high + b.score_high) / 2) * 100) / 100,
+        regime:       pickRegime(a.regime, b.regime, avgScore),
         rate_outlook: a.rate_outlook === b.rate_outlook ? a.rate_outlook : a.rate_outlook,
-        fx_bias:     a.fx_bias === b.fx_bias ? a.fx_bias : a.fx_bias,
-        equity_bias: a.equity_bias === b.equity_bias ? a.equity_bias : a.equity_bias,
-        risk_level:  a.risk_level === b.risk_level ? a.risk_level : a.risk_level,
+        fx_bias:      a.fx_bias === b.fx_bias ? a.fx_bias : a.fx_bias,
+        equity_bias:  avgScore > 0.15 && (a.equity_bias !== b.equity_bias) ? 'Overweight'
+                    : avgScore < -0.15 && (a.equity_bias !== b.equity_bias) ? 'Underweight'
+                    : a.equity_bias,
+        risk_level:   pickRisk(a.risk_level, b.risk_level),
       };
       if (a.factors && b.factors) {
         result.factors = {};
@@ -5060,7 +5131,26 @@ ${jsonSchema}`;
       result = validateSentimentResult(repairAndParseJSON(raw));
     }
 
-    result._meta = meta;
+    result._meta         = meta;
+    result._econ_grounded = _hasEconData; // true when MACRO_CONTEXT snapshot was injected
+
+    // ── REGIME SHIFT DETECTION ───────────────────────────────────────────────
+    // Compare new result against any existing cached result for this country.
+    // Flag _regime_shift when: sentiment direction flips (bull↔bear) OR regime
+    // category changes AND score delta is ≥ 0.20 (not just noise).
+    const prev = cache[key];
+    if (prev && typeof prev.score === 'number') {
+      const delta = Math.abs(result.score - prev.score);
+      const sentimentFlip = prev.sentiment !== result.sentiment &&
+        !(prev.sentiment === 'neutral' || result.sentiment === 'neutral');
+      const regimeChange  = prev.regime !== result.regime;
+      if ((sentimentFlip || regimeChange) && delta >= 0.20) {
+        result._regime_shift   = true;
+        result._prev_sentiment = prev.sentiment;
+        result._prev_regime    = prev.regime;
+        result._prev_score     = prev.score;
+      }
+    }
 
     cache[key]  = result;
     cacheTs[key] = Date.now();
@@ -5138,12 +5228,32 @@ function renderPanel(data) {
     rangeEl.style.display = 'none';
   }
 
-  // Score text with confidence badge
+  // Score text with confidence badge + factor-coherence adjustment indicator
   const conf = data.confidence || '';
   const confHtml = conf ? `<span class="conf-badge ${conf}">${conf.toUpperCase()} CONF</span>` : '';
+  const adjHtml  = data._score_adjusted
+    ? `<span style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.08em;padding:1px 4px;border-radius:2px;background:rgba(251,191,36,0.12);color:#FBB724;border:1px solid rgba(251,191,36,0.28);margin-left:5px;vertical-align:middle;" title="Score blended with factor-derived composite to correct LLM arithmetic deviation">FC ADJ</span>`
+    : '';
   const scoreSign = score >= 0 ? '+' : '';
   document.getElementById('score-text').innerHTML =
-    `Score: ${scoreSign}${score.toFixed(2)}${confHtml}`;
+    `Score: ${scoreSign}${score.toFixed(2)}${confHtml}${adjHtml}`;
+
+  // Regime shift banner (Phase 4) — shown when sentiment or regime changed significantly
+  const shiftEl = document.getElementById('regime-shift-banner');
+  if (shiftEl) {
+    if (data._regime_shift) {
+      const arrow = data._prev_sentiment === 'bullish' ? '▼' : data._prev_sentiment === 'bearish' ? '▲' : '◆';
+      const scoreChg = score - (data._prev_score || 0);
+      shiftEl.innerHTML = `<span style="color:#F59E0B;">⚠ SHIFT</span>&nbsp;&nbsp;${(data._prev_regime||'').toUpperCase()} → ${(data.regime||'').toUpperCase()}&nbsp;&nbsp;|&nbsp;&nbsp;${arrow} ${(data._prev_sentiment||'').toUpperCase()} → ${(data.sentiment||'').toUpperCase()}&nbsp;&nbsp;(${scoreChg >= 0 ? '+' : ''}${scoreChg.toFixed(2)})`;
+      shiftEl.classList.add('visible');
+    } else {
+      shiftEl.classList.remove('visible');
+    }
+  }
+
+  // Data freshness badge (Phase 5) — visible when MACRO_CONTEXT snapshot was used
+  const freshEl = document.getElementById('data-freshness-badge');
+  if (freshEl) freshEl.classList.toggle('visible', !!data._econ_grounded);
 
   // Rationale
   _elRationale.textContent = data.rationale || '—';

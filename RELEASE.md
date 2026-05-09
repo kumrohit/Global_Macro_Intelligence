@@ -15,6 +15,10 @@ Before deploying, verify each item:
 - [ ] Open the Watchlist panel (★ tab) and add one item
 - [ ] Open Custom Analysis (⊕ button) and add 2–3 tags
 - [ ] Confirm the page title reads "Meridiax — Country Sentiment Terminal"
+- [ ] Click a HIGH_STAKES country (US, Germany, China, Japan) — analysis loads; confirm **FC ADJ** amber badge appears in score row if factor composite deviates
+- [ ] Confirm **📊 ANCHORED: Q1 2025** badge appears below the score for countries with MACRO_CONTEXT data
+- [ ] Click the same HIGH_STAKES country a second time — no ⚠ SHIFT banner on repeat analysis
+- [ ] Switch to a different country then back — if cached result differs in sentiment or regime, verify ⚠ SHIFT banner renders correctly
 - [ ] Check browser DevTools → Console: no red errors on load (yellow warnings in catch blocks are fine)
 - [ ] Check DevTools → Network: D3 and TopoJSON load from CDN without 404s
 
@@ -192,6 +196,9 @@ Content-Security-Policy:
 | Auth is client-side only | localStorage-based; not production-grade security |
 | Cache is in-memory | Cleared on page refresh; no server-side caching |
 | Historical data is AI-generated | Not sourced from live financial data APIs |
+| MACRO_CONTEXT data is Q1 2025 vintage | LLM is instructed to apply current knowledge since Q1 2025, but base figures may lag the latest releases — update `MACRO_CONTEXT` and `DATA_VINTAGE` each quarter |
+| Factor-score coherence is a heuristic | Weighted blending corrects LLM arithmetic errors but is not a substitute for real-time data feeds |
+| HIGH_STAKES dual-call doubles latency | 20 major economies make two sequential LLM calls; first-load for US/China/Japan etc. takes ~2× longer |
 | Ticker data is placeholder | Requires a separate financial data API to make live |
 | Mobile layout is basic | Responsive down to 360 px; complex chart overlays are desktop-only |
 

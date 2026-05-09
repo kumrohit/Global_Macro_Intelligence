@@ -2,7 +2,7 @@
 
 > AI-powered macro intelligence terminal for analysts, traders, and researchers — delivered as a single self-contained HTML file.
 
-![Tests](https://img.shields.io/badge/tests-102%2F102%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-569%2F569%20passing-brightgreen)
 ![Stack](https://img.shields.io/badge/stack-HTML%20%2F%20CSS%20%2F%20JS-informational)
 ![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash%20%7C%20Claude%20%7C%20Free%20Mode-blue)
 ![Charts](https://img.shields.io/badge/charts-D3.js%20v7%20%7C%20TradingView%20LW-orange)
@@ -15,7 +15,7 @@
 
 Click any country on the world map and instantly get an AI-generated macro brief — sentiment regime, equity bias, rate outlook, FX bias, risk level, rationale, central bank publications, news, social sentiment, and historical charts. No API key needed for country analysis. Advanced features (Deep Analysis, Research Hub, FX/Commodities heatmaps, Digest, Opportunities, Custom Analysis, Stocks) unlock with your own Gemini or Claude API key.
 
-Everything runs in a **single HTML file** (~568 KB · ~11 560 lines) with zero dependencies to install.
+Everything runs in a **single HTML file** (~590 KB · ~8 218 JS lines) with zero dependencies to install.
 
 ---
 
@@ -47,7 +47,9 @@ API keys are stored on-device only — never sent to any server other than the s
 
 ### Map & Country Analysis (Free)
 - **Interactive world map** — flat equirectangular D3 projection; click any of 195 countries
-- **Country sentiment panel** — sentiment score, regime pill (dovish / hawkish / neutral), key indicator chips (equity, rate, FX, risk, currency, key rate), AI rationale
+- **Country sentiment panel** — sentiment score (−1 to +1), regime pill, key indicator chips (equity, rate, FX, risk, currency), AI rationale; **FC ADJ** amber badge when factor-composite blending was applied; **📊 ANCHORED** badge when Q1 2025 MACRO_CONTEXT was injected
+- **Regime shift detection** — compares new analysis against cached previous result; amber ⚠ SHIFT banner when sentiment flips (non-neutral) or regime changes with Δ ≥ 0.20
+- **Factor-score coherence** — 6-factor weighted composite (growth/inflation/monetary/FX/geopolitical/market) cross-checks the LLM's reported score; blended automatically if deviation exceeds 15%
 - **Historical macro chart** — D3 multi-line chart: GDP, Inflation, Rate, FX over 20 quarters (Q1 2020 – Q4 2024)
 - **Authority publications** — links to 54 central banks and finance ministries
 - **Macro news feed** — AI-generated news with clickable source URLs
@@ -124,7 +126,7 @@ No build step. No `npm install`. No server.
 
 ```
 global_macro_intelligence/
-├── global_macro_intel.html   # Entire application (~499 KB · ~10 000 lines)
+├── global_macro_intel.html   # Entire application (~590 KB · ~8 218 JS lines)
 │
 ├── deploy/                   # Production deploy assets
 │   ├── index.html            # Synced copy of the app
@@ -141,8 +143,8 @@ global_macro_intelligence/
 │   ├── sw.js                 # Cache-first service worker
 │   └── README.md             # PWA install · Capacitor APK · Play Store guide
 │
-├── test_e2e.js               # 482-test E2E suite (Node.js, no browser needed)
-├── PROMPTS.md                # Full build log — 42 tasks with specs
+├── test_e2e.js               # 569-test E2E suite (Node.js, no browser needed)
+├── PROMPTS.md                # Full build log — 56 tasks with specs
 └── README.md                 # This file
 ```
 
@@ -214,13 +216,16 @@ global_macro_intel.html
 │   │       └── #profile-overlay  Profile, Digest, Opportunities, Newsletter, ⚙ API
 │   └── #mobile-nav               Bottom navigation (phones ≤ 480 px)
 │
-└── <script>              (~7100 lines)
+└── <script>              (~8218 lines)
     ├── Constants
     │   ├── META{}                195 countries → {name, flag, currency, index, …}
     │   ├── AUTHORITY_INFO{}      54 central banks / finance ministries
     │   ├── RESEARCH_SOURCES[]    16 institution definitions (id, name, color, rss)
     │   ├── DEEP_TAB_PROMPTS{}    Per-tab prompt builders for deep analysis
-    │   └── OPP_HORIZONS[]        Trade-idea time horizons
+    │   ├── OPP_HORIZONS[]        Trade-idea time horizons
+    │   ├── DATA_VINTAGE          'Q1 2025' — snapshot date injected into LLM prompts
+    │   ├── MACRO_CONTEXT{}       40-country Q1 2025 economic snapshots (GDP/CPI/rate/unemp/CA/PMI/note)
+    │   └── HIGH_STAKES           Set of 20 ISO ids → dual-call self-consistency averaging
     │
     ├── Storage layer
     │   └── storageGet/Set/Remove  localStorage → sessionStorage → _memStore fallback
@@ -246,8 +251,12 @@ global_macro_intel.html
     ├── Map
     │   ├── initMap()              Fetches TopoJSON, renders SVG, wires events
     │   ├── selectCountry(d)       Sets active country, triggers panel + fetch
-    │   ├── renderPanel(data)      Populates all side-panel DOM fields from cache
-    │   └── fetchSentiment(id)     LLM → country macro JSON → stored in cache{}
+    │   ├── renderPanel(data)      Populates all side-panel DOM fields; shows FC ADJ / ⚠ SHIFT / 📊 ANCHORED badges
+    │   ├── fetchSentiment(id)     Chain-of-thought prompt with MACRO_CONTEXT; HIGH_STAKES → dual LLM call
+    │   │                          with smart voting (pickRegime/pickRisk) + regime shift detection
+    │   └── validateSentimentResult(r)
+    │         9-step post-parse pipeline: clamp score/factors, set defaults, validate types,
+    │         derive sentiment label, clamp confidence band, factor-composite coherence (Step 9)
     │
     ├── Free-tier features (no API key needed)
     │   ├── loadAuthorityPubs()    Central bank publications
@@ -303,7 +312,8 @@ callLLM(systemPrompt, userPrompt, maxTokens, temperature)
 
 | Function | Max Tokens | Temp | Tier | Purpose |
 |----------|-----------|------|------|---------|
-| `fetchSentiment` | 800 | 0 | Free | Country macro sentiment JSON |
+| `fetchSentiment` (standard) | 800 | 0 | Free | Country macro sentiment JSON; MACRO_CONTEXT Q1 2025 anchor injected |
+| `fetchSentiment` (HIGH_STAKES) | 800 × 2 | 0 × 2 | Free | Dual-call for 20 major economies; scores averaged; `pickRegime`/`pickRisk` smart voting |
 | `loadAuthorityPubs` | 600 | 0 | Free | Central bank publications |
 | `loadNews` | 700 | 0 | Free | Macro news with source URLs |
 | `loadSocialSentiment` | 500 | 1.0 | Free | Social-style macro posts |
@@ -426,11 +436,11 @@ No browser, no Playwright, no Puppeteer — pure Node.js static analysis of the 
 
 ```
 ═════════════════════════════════════════════════════════════════
-  RESULTS   482/482 passing   0 failing   0 warnings
+  RESULTS   569/569 passing   0 failing   0 warnings
 ═════════════════════════════════════════════════════════════════
 ```
 
-**20 test phases:**
+**21 test phases:**
 
 | Phase | Tests | Coverage |
 |-------|-------|----------|
@@ -454,6 +464,7 @@ No browser, no Playwright, no Puppeteer — pure Node.js static analysis of the 
 | 17 — FX Heatmap | 37 | G10/EM grid, detail panel, charts |
 | 18 — Real Market Data | 21 | Yahoo Finance, CORS proxy, LIVE/AI badge |
 | 19 — Research Hub | 29 | 16 institutions, RSS, house view, articles |
+| 20 — Accuracy & Intelligence | 87 | Factor coherence, regime shift, data freshness, DATA_VINTAGE, HIGH_STAKES voting, ISO zero-padding |
 
 ---
 

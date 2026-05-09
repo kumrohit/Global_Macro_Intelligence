@@ -206,6 +206,68 @@
 
 ---
 
+## Phase 7 — Accuracy & Intelligence (Session 5)
+
+### Prompts Delivered
+
+52. **Factor-Score Coherence Enforcement**
+    > "Continue and perform end to end testing after each phase"
+    - Added Step 9 to `validateSentimentResult`: computes weighted factor composite from 6 dimensions
+    - Weights: growth×0.25 · inflation×0.20 · monetary×0.25 · fx×0.15 · geopolitical×0.10 · market×0.05
+    - Deviation ≥ 0.30 from reported score → 50/50 blend, `_score_adjusted = true`
+    - Deviation ≥ 0.15 → 30/70 blend (factor-composite vs reported)
+    - Adjusted results re-derive sentiment label and clamp `score_low`/`score_high`
+    - `_factor_composite` stored for transparency; `_score_adjusted` flag drives amber **FC ADJ** badge in `renderPanel`
+    - E2E: 25/25 Phase 3 tests passing
+
+53. **Smart Categorical Voting for HIGH_STAKES Dual-Call**
+    > "Continue"
+    - Replaced redundant always-first ternaries in HIGH_STAKES averaged results
+    - `pickRegime(ra, rb, score)`: agrees → same; score ≤ −0.40 → Recession; ≥ 0.30 → Goldilocks; Stagflation present at −0.15 threshold; else first call
+    - `pickRisk(ra, rb)`: conservative bias — higher of Low/Medium/High/Very High using ordered index
+    - `equity_bias`: score > 0.15 disagreement → Overweight; < −0.15 → Underweight; else first call
+    - E2E: 18/18 Phase 4 tests passing
+
+54. **Regime Shift Detection**
+    > "Continue"
+    - Before caching each result, compare against previous `cache[key]` entry
+    - `sentimentFlip`: sentiment changed and neither old nor new state is neutral
+    - Shift triggers when (`sentimentFlip` OR `regimeChange`) AND score delta ≥ 0.20
+    - Stores `_regime_shift`, `_prev_sentiment`, `_prev_regime`, `_prev_score` on result
+    - `renderPanel` shows amber `⚠ SHIFT` banner (`#regime-shift-banner.visible`) with before/after comparison
+
+55. **Data Freshness Tracking & Disclosure**
+    > "Continue"
+    - `_hasEconData` flag captured in `fetchSentiment` before building the LLM prompt
+    - `result._econ_grounded = _hasEconData` stored in cache alongside analysis
+    - New `#data-freshness-badge` element: `📊 ANCHORED: Q1 2025` — shown via `.visible` when `_econ_grounded`
+    - **FC ADJ** amber badge injected into `score-text` span when `data._score_adjusted` is true
+    - CSS: both elements default `display:none`; `.visible` → `display:inline-flex !important`
+    - E2E: 22/22 Phase 5 tests passing
+
+56. **DATA_VINTAGE + MACRO_CONTEXT Q1 2025 Refresh**
+    > "Continue"
+    - Added `const DATA_VINTAGE = 'Q1 2025'` — single source of truth for snapshot date
+    - `econBlock` prompt template now states `"data vintage: ${DATA_VINTAGE}"` and instructs LLM to apply current knowledge since that date
+    - Key MACRO_CONTEXT updates:
+      - **US** `"840"`: rate → 4.25% (Dec 2024 Fed cut), CPI → 2.3%, unemp → 4.1%
+      - **China** `"156"`: CPI → −0.1% (deflation), rate → 3.05%
+      - **Japan** `"392"`: GDP → +1.2%, CPI → 3.4% (BOJ hike Jan 2025 to 0.50%)
+      - **UK** `"826"`: CPI → 2.5% (BOE cutting cycle), note updated
+      - **India** `"356"`: rate → 6.25% (RBI Feb 2025 cut), note updated
+    - All 20 HIGH_STAKES country notes revised with Q1 2025 context
+    - E2E: 15/15 Phase 6 tests passing
+
+57. **Phase 7 Regression Testing**
+    > "Continue"
+    - 87/87 regression tests across accuracy pipeline, badge render, DATA_VINTAGE injection, dual-call averaging, and JSON repair
+    - 4 stale test expectations corrected (META country count, `loadDigestTab` function name, `opp-horizon-btn` CSS class, `mrx-toast` ID)
+    - 3 bugs identified and fixed during testing (see Bugs Fixed below)
+    - Final JS syntax check: 8 218 lines, zero parse errors
+    - `deploy/index.html` synced
+
+---
+
 ## Bugs Fixed
 
 | Bug | Root Cause | Fix |
@@ -219,28 +281,33 @@
 | localStorage silent failure (private mode) | Bare `localStorage` calls threw uncaught exceptions | Three-tier storage: localStorage → sessionStorage → `_memStore` |
 | Digest source not visible | Source was `color:var(--text3)` (near-invisible) in dark theme | Promoted to labeled row with cyan `FIND ARTICLE ↗` button |
 | Opportunities had no source | `source`/`catalyst` fields missing from AI prompt and card render | Added both fields to prompt schema and rendered with `RESEARCH ↗` link |
+| `renderPanel` NaN confidence band | `parseFloat(undefined)` → `NaN`; `NaN ?? fallback` passes through because `??` only replaces `null`/`undefined`, not `NaN` | Replaced `??` with `isNaN()` guard: `isNaN(_rawLow) ? (score − 0.15) : _rawLow` |
+| MACRO_CONTEXT ISO zero-padding | SVG path IDs strip leading zeros (`c36` → `"36"`) but MACRO_CONTEXT keys are padded (`"036"`); econ context silently skipped for Australia, Brazil, and others | Added `.padStart(3, '0')` to `isoId` extraction in `fetchSentiment` |
+| Singapore (`702`) absent from META | `c702` present in `HIGH_STAKES` and `MACRO_CONTEXT` but missing from `META`, `AUTHORITY_INFO`, and `AUTHORITY_URLS`; panel crashed on selection | Added Singapore to all three lookup objects |
 
 ---
 
 ## Architecture Reference
 
 ```
-global_macro_intel.html (~5400 lines, single file)
-├── <style>          (~1450 lines)
+global_macro_intel.html (~8 218 JS lines, single file)
+├── <style>          (~1900 lines)
 │   ├── CSS custom properties  (:root — color palette, fonts)
-│   ├── Layout                 (topbar, map, side panels, ticker)
-│   ├── Component styles       (chips, pills, badges, cards, overlays)
+│   ├── Layout                 (topbar, map, side panels, ticker, mini-ticker bar)
+│   ├── Component styles       (chips, pills, badges, cards, overlays, accuracy badges)
 │   ├── Performance hints      (will-change, contain)
-│   └── Feature styles         (digest, opportunities, newsletter, toast)
+│   └── Feature styles         (digest, opportunities, newsletter, toast, FC ADJ, shift banner)
 │
-├── <body>           (~400 lines)
+├── <body>           (~700 lines)
 │   ├── #login-overlay         Full-screen auth gate (z-index 5000)
 │   ├── #app
-│   │   ├── #topbar            Logo · Tickers · Custom Analysis btn · User · Clock
+│   │   ├── #topbar            Logo · Nav · User · Clock
 │   │   └── #main
-│   │       ├── #map-wrap      SVG world map (TopoJSON + D3 NaturalEarth1 fitSize)
+│   │       ├── #map-wrap      SVG world map (TopoJSON + D3 equirectangular fitSize)
 │   │       ├── #social-panel  Left floating — social sentiment feed
-│   │       ├── #side-panel    Right sliding — country analysis detail
+│   │       ├── #panel         Right sliding — country analysis detail
+│   │       │   ├── #data-freshness-badge   📊 ANCHORED: Q1 2025 (econ-grounded results)
+│   │       │   └── #regime-shift-banner    ⚠ SHIFT (sentiment/regime flip detected)
 │   │       ├── #deep-overlay  Full-screen 5-tab country deep dive (z-index 2000)
 │   │       ├── #watchlist-*   Right floating tab + sliding watchlist panel
 │   │       ├── #ca-overlay    Full-screen custom analysis builder (z-index 2100)
@@ -249,10 +316,10 @@ global_macro_intel.html (~5400 lines, single file)
 │   │           ├── Weekly Digest tab
 │   │           ├── Newsletter tab
 │   │           └── Opportunities tab
-│   ├── #api-widget            Bottom-left — API key + country selector
-│   └── #gmi-toast             Bottom-center notification toast
+│   ├── #mini-ticker-bar       Fixed bottom bar (DXY/GOLD/WTI/VIX/US10Y + UTC clock)
+│   └── #mrx-toast             Bottom-center notification toast
 │
-└── <script>         (~4030 lines)
+└── <script>         (~8 218 lines)
     │
     ├── Storage Layer
     │   ├── getStorage()              Test-write to find available storage
@@ -269,7 +336,10 @@ global_macro_intel.html (~5400 lines, single file)
     ├── Constants
     │   ├── META{}              ISO 3-digit → {name, flag, currency, index, region} for 195 countries
     │   ├── AUTHORITY_INFO{}    54 countries → {authority, lang} of central bank / finance ministry
-    │   └── AUTHORITY_URLS{}    54 countries → real institution website URLs
+    │   ├── AUTHORITY_URLS{}    54 countries → real institution website URLs
+    │   ├── DATA_VINTAGE        'Q1 2025' — data snapshot date injected into LLM prompts
+    │   ├── MACRO_CONTEXT{}     40-country Q1 2025 economic snapshots (GDP/CPI/rate/unemp/CA/PMI/note)
+    │   └── HIGH_STAKES         Set of 20 ISO ids that receive dual-call self-consistency averaging
     │
     ├── State
     │   ├── apiKey, provider          User-entered key + model routing
@@ -295,17 +365,23 @@ global_macro_intel.html (~5400 lines, single file)
     ├── API Layer
     │   ├── callLLM(sys, user, maxTokens, temp)
     │   │     Unified Gemini REST caller. thinkingBudget:0 suppresses thinking tokens.
+    │   │     45-second AbortController timeout. Routes to callLLMFree() when no key.
     │   ├── repairAndParseJSON(raw)
     │   │     7-step repair: strip fences → extract block → fix commas → unescape →
     │   │     closeTruncated() → JSON.parse → strip controls → return null
-    │   └── closeTruncated(s)
-    │         Character-walk state machine closes unclosed strings/arrays/objects
+    │   ├── closeTruncated(s)
+    │   │     Character-walk state machine closes unclosed strings/arrays/objects
+    │   └── validateSentimentResult(r)
+    │         9-step post-parse validation: clamp score, clamp factors, set defaults,
+    │         check required fields, fix types, validate ranges, derive sentiment label,
+    │         clamp score band, and (Step 9) factor-composite coherence enforcement
     │
     ├── Map
     │   ├── initMap()            Fetches TopoJSON, renders SVG, caches tooltip refs, wires hover/click
     │   ├── selectCountry(d)     Sets active country, triggers panel + fetchSentiment
-    │   ├── renderPanel(data)    Populates all side-panel fields from cached analysis
-    │   └── fetchSentiment(id)   Calls LLM for country sentiment JSON, stores in cache
+    │   ├── renderPanel(data)    Populates all side-panel fields; shows FC ADJ / SHIFT / ANCHORED badges
+    │   └── fetchSentiment(id)   Chain-of-thought prompt with MACRO_CONTEXT; HIGH_STAKES → dual LLM call
+    │                            with smart voting (pickRegime/pickRisk) + regime shift detection
     │
     ├── Tooltip (performance-optimized)
     │   ├── _tt, _ttFlag, …      DOM refs cached at startup (not in mousemove loop)
@@ -359,7 +435,8 @@ global_macro_intel.html (~5400 lines, single file)
 
 | Function | Max Tokens | Temp | Purpose |
 |----------|-----------|------|---------|
-| `fetchSentiment` | 800 | 0 | Country macro sentiment JSON |
+| `fetchSentiment` (standard) | 800 | 0 | Country macro sentiment JSON with MACRO_CONTEXT anchor |
+| `fetchSentiment` (HIGH_STAKES) | 800 × 2 | 0 × 2 | Dual-call self-consistency; scores averaged; `pickRegime`/`pickRisk` for categorical fields |
 | `loadAuthorityPubs` | 600 | 0 | Central bank publication summaries |
 | `loadNewsFeed` | 700 | 0 | Macro news with source outlets |
 | `loadSocialSentiment` | 500 | 1.0 | Social-style macro posts |
@@ -461,4 +538,14 @@ All calls use `thinkingBudget: 0` to prevent thinking tokens from consuming the 
 
 - [x] ~~Task 51 - Performance audit & 6 lag fixes. Full codebase profiling identified 6 sources of measurable lag. Fixed: (1) `onCountryHover` fired DOM updates on every mouse pixel over a country — added `_tipLastId` guard to skip content rewrites when hovering same country; moved position update to rAF. `onCountryLeave` resets `_tipLastId` so re-entry refreshes content. (2) `fetchSentiment` had no in-flight deduplication — fast double-clicks on same country triggered two parallel LLM calls; added `_sentimentInFlight` Set. Also added stale-result guard: response only calls `renderPanel` if `activeId === key` at time of completion, preventing wrong-country flash on rapid navigation. (3) `fetchYFOHLC` had no in-flight deduplication — two simultaneous opens of the same symbol both issued separate network requests; added `_yfInFlight` promise map to reuse pending fetches. (4) `callLLM` had no AbortController for Gemini or Claude paths (only free Pollinations path had one) — abandoned requests could hang indefinitely; added 45-second AbortController with descriptive timeout error. (5) `loadTickers` had no concurrent-call guard — rapid key-save events could queue multiple simultaneous LLM fetches; added `_tickerFetching` flag with `finally` reset. (6) `chartFsInstance.applyOptions({})` fired on every resize pixel — debounced at 150ms via `_cfsResizeTimer`. 30/30 tests passing.~~
 
-*Last updated: 2026-05-02 · Build version: Phase 19 · 51/51 tasks done · 30/30 perf tests passing*
+- [x] ~~Task 52 - Factor-score coherence enforcement: Step 9 in `validateSentimentResult`; weighted composite from 6 factor dimensions (growth×0.25 / inflation×0.20 / monetary×0.25 / fx×0.15 / geopolitical×0.10 / market×0.05); 50/50 blend on deviation ≥0.30, 30/70 on ≥0.15; `_score_adjusted` flag; amber FC ADJ badge in `renderPanel`. 25/25 tests passing.~~
+
+- [x] ~~Task 53 - Smart categorical voting in HIGH_STAKES dual-call: `pickRegime()` score-informed tiebreak (Recession at ≤−0.40, Goldilocks at ≥0.30, Stagflation presence at −0.15); `pickRisk()` conservative upper-bound bias; `equity_bias` score-routed. Regime shift detection: `sentimentFlip` OR `regimeChange` AND delta≥0.20 → `_regime_shift` flag + ⚠ SHIFT banner in `renderPanel`. 18/18 tests passing.~~
+
+- [x] ~~Task 54 - Data freshness tracking: `_econ_grounded` flag on cached results; `#data-freshness-badge` shows `📊 ANCHORED: Q1 2025` when MACRO_CONTEXT was injected; FC ADJ amber badge in score row when `_score_adjusted`. 22/22 tests passing.~~
+
+- [x] ~~Task 55 - `DATA_VINTAGE = 'Q1 2025'` constant + MACRO_CONTEXT Q1 2025 refresh: updated US/China/Japan/UK/India key economic figures; all 20 HIGH_STAKES country notes revised; `econBlock` prompt now states vintage and instructs LLM to apply current knowledge. 15/15 tests passing.~~
+
+- [x] ~~Task 56 - Phase 7 regression: 87/87 passing. 3 bugs fixed during testing: `renderPanel` NaN confidence band (isNaN guard); MACRO_CONTEXT ISO zero-padding (.padStart(3,'0')); Singapore missing from META/AUTHORITY_INFO/AUTHORITY_URLS. Final JS: 8 218 lines, zero errors. deploy/index.html synced.~~
+
+*Last updated: 2026-05-09 · Build version: Phase 20 · 56/56 tasks done · 569/569 tests passing*
