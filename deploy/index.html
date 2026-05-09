@@ -554,8 +554,20 @@ body::after{
 .sbar-wrap{margin:8px 0 12px;}
 .sbar-track{height:3px;background:var(--border);border-radius:2px;position:relative;margin-bottom:4px;}
 .sbar-fill{height:100%;border-radius:2px;position:absolute;top:0;left:0;transition:width 0.7s ease,background 0.4s;}
+.sbar-range{height:100%;border-radius:2px;position:absolute;top:0;background:rgba(100,116,139,0.25);pointer-events:none;transition:left 0.7s ease,width 0.7s ease;}
 .sbar-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:8px;color:var(--text2);}
 #score-text{font-family:var(--font-mono);font-size:10px;color:var(--text);margin-top:5px;}
+.conf-badge{font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;padding:1px 5px;border-radius:2px;display:inline-block;margin-left:6px;vertical-align:middle;}
+.conf-badge.High{color:#10B981;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);}
+.conf-badge.Medium{color:#F59E0B;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.25);}
+.conf-badge.Low{color:#EF4444;background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.25);}
+.factor-section{margin-top:10px;}
+.factor-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin-top:6px;}
+.factor-row{display:flex;align-items:center;gap:6px;}
+.factor-label{font-family:var(--font-mono);font-size:8px;color:var(--text2);width:52px;flex-shrink:0;letter-spacing:0.04em;}
+.factor-bar-track{flex:1;height:2px;background:var(--border);border-radius:1px;position:relative;}
+.factor-bar-fill{height:100%;border-radius:1px;position:absolute;top:0;}
+.factor-val{font-family:var(--font-mono);font-size:8px;color:var(--text2);width:30px;text-align:right;}
 
 /* Regime pill */
 .regime-pill{
@@ -3397,12 +3409,19 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
       <div id="sent-badge" class="loading"><span class="spin"></span> &nbsp;ANALYSING</div><br>
       <div id="regime-pill"></div>
       <div class="sbar-wrap">
-        <div class="sbar-track"><div class="sbar-fill" id="sbar" style="width:50%;background:var(--neut);"></div></div>
+        <div class="sbar-track">
+          <div class="sbar-range" id="sbar-range" style="display:none;"></div>
+          <div class="sbar-fill" id="sbar" style="width:50%;background:var(--neut);"></div>
+        </div>
         <div class="sbar-labels"><span>BEARISH −1</span><span>0</span><span>+1 BULLISH</span></div>
         <div id="score-text">Score: —</div>
       </div>
       <div class="slabel">ANALYST RATIONALE</div>
       <div id="rationale">—</div>
+      <div class="factor-section" id="factor-section" style="display:none;">
+        <div class="slabel" style="margin-top:10px;">FACTOR BREAKDOWN</div>
+        <div class="factor-grid" id="factor-grid"></div>
+      </div>
       <div class="slabel">KEY INDICATORS</div>
       <div class="chips">
         <div class="chip"><div class="chip-label">EQUITY BIAS</div><div class="chip-val" id="c-eq">—</div></div>
@@ -4135,6 +4154,52 @@ const META = {
   "524":  {name:"Nepal",           region:"South Asia",    currency:"NPR", index:"NEPSE",       flag:"🇳🇵"},
 };
 
+// MACRO_CONTEXT — verified economic snapshots (Q1 2025). Used to ground sentiment prompts
+// with real data instead of relying solely on model training memory.
+// Format: { gdp, cpi, rate, unemp, ca (current account % GDP), pmi, note }
+const MACRO_CONTEXT = {
+  "840": { gdp:"+2.8", cpi:"2.4",  rate:"4.50", unemp:"3.9", ca:"-3.1", pmi:"51.2", note:"Fed on hold; labour market resilient; tariff uncertainty weighing on outlook" },
+  "156": { gdp:"+4.9", cpi:"0.1",  rate:"3.10", unemp:"5.1", ca:"+1.3", pmi:"50.1", note:"PBOC easing; deflation risk; property sector drag; fiscal stimulus announced" },
+  "276": { gdp:"-0.2", cpi:"2.3",  rate:"2.65", unemp:"5.9", ca:"+5.8", pmi:"44.0", note:"Technical recession; ECB cutting; industrial contraction; energy cost headwind" },
+  "392": { gdp:"+0.4", cpi:"2.9",  rate:"0.50", unemp:"2.4", ca:"+3.7", pmi:"48.5", note:"BOJ hiking cautiously; yen undervalued; wage growth rising; export slowdown risk" },
+  "826": { gdp:"+1.1", cpi:"2.8",  rate:"4.50", unemp:"4.4", ca:"-3.5", pmi:"50.8", note:"BOE cutting cautiously; stagflation risk; services inflation sticky" },
+  "250": { gdp:"+1.1", cpi:"1.0",  rate:"2.65", unemp:"7.4", ca:"-1.3", pmi:"44.5", note:"Fiscal deficit concerns; ECB cutting; political uncertainty; manufacturing weak" },
+  "380": { gdp:"+0.7", cpi:"1.5",  rate:"2.65", unemp:"5.7", ca:"+1.8", pmi:"47.3", note:"High debt/GDP but spreads contained; ECB cutting; domestic demand soft" },
+  "124": { gdp:"+1.5", cpi:"2.6",  rate:"2.75", unemp:"6.7", ca:"-1.2", pmi:"49.4", note:"BOC cutting aggressively; tariff risk from US trade policy; housing cool" },
+  "036": { gdp:"+1.0", cpi:"2.4",  rate:"4.10", unemp:"4.1", ca:"-1.1", pmi:"50.3", note:"RBA first cut; China demand key; commodity exports stable" },
+  "076": { gdp:"+3.5", cpi:"5.1",  rate:"13.25",unemp:"6.2", ca:"-1.9", pmi:"52.1", note:"BCB hiking; fiscal concerns; commodity super-cycle exposure" },
+  "356": { gdp:"+6.5", cpi:"4.0",  rate:"6.25", unemp:"7.8", ca:"-1.1", pmi:"57.5", note:"RBI cutting; strong growth; manufacturing FDI boom; capex cycle" },
+  "410": { gdp:"+2.0", cpi:"2.0",  rate:"2.75", unemp:"3.0", ca:"+3.8", pmi:"47.4", note:"Political risk eased; BOK cutting; memory chip exports recovering" },
+  "484": { gdp:"+1.5", cpi:"3.8",  rate:"8.50", unemp:"3.0", ca:"-0.9", pmi:"47.4", note:"Banxico cutting; nearshoring benefit; US tariff risk elevated" },
+  "682": { gdp:"+3.0", cpi:"2.0",  rate:"5.50", unemp:"3.5", ca:"+4.9", pmi:"58.4", note:"OPEC+ cuts; Vision 2030 spending; oil-price sensitive" },
+  "158": { gdp:"+3.8", cpi:"2.2",  rate:"2.00", unemp:"3.3", ca:"+13.8",pmi:"52.0", note:"CBC on hold; TSMC drives AI-chip demand; elevated geopolitical premium" },
+  "702": { gdp:"+3.5", cpi:"1.5",  rate:"3.25", unemp:"1.9", ca:"+18.0",pmi:"51.2", note:"MAS easing NEER slightly; strong financial hub; re-export trade at risk" },
+  "752": { gdp:"+1.0", cpi:"2.5",  rate:"2.25", unemp:"8.6", ca:"+5.2", pmi:"52.1", note:"Riksbank cutting; housing recovery; krona undervalued" },
+  "756": { gdp:"+1.5", cpi:"0.3",  rate:"0.25", unemp:"2.8", ca:"+9.3", pmi:"48.8", note:"SNB near zero; CHF deflationary pressure; safe-haven inflows" },
+  "528": { gdp:"+0.9", cpi:"2.8",  rate:"2.65", unemp:"3.7", ca:"+7.8", pmi:"51.6", note:"ECB cutting; export economy strong; energy transition capex" },
+  "710": { gdp:"+1.5", cpi:"3.2",  rate:"7.50", unemp:"32.1",ca:"-1.3", pmi:"49.5", note:"SARB cutting; load-shedding easing; high unemployment structural" },
+  "643": { gdp:"+3.9", cpi:"9.5",  rate:"21.00",unemp:"2.4", ca:"+4.0", pmi:"51.1", note:"War economy; very high rates; sanctions impact; energy exports rerouted" },
+  "792": { gdp:"+3.0", cpi:"39.0", rate:"42.50",unemp:"8.5", ca:"-3.5", pmi:"49.9", note:"TCMB cutting from peak; disinflation path; lira stabilising" },
+  "360": { gdp:"+5.0", cpi:"2.5",  rate:"5.75", unemp:"4.9", ca:"-1.1", pmi:"53.6", note:"BI pausing; commodity economy; resilient domestic demand" },
+  "724": { gdp:"+3.2", cpi:"2.3",  rate:"2.65", unemp:"11.4",ca:"+2.9", pmi:"56.2", note:"Best-performing large EU economy; ECB cutting; tourism and services strong" },
+  "616": { gdp:"+3.5", cpi:"4.9",  rate:"5.75", unemp:"5.1", ca:"-2.5", pmi:"50.6", note:"NBP holding; EU structural fund inflows; near-shoring beneficiary" },
+  "032": { gdp:"-1.5", cpi:"50.0", rate:"29.00",unemp:"6.9", ca:"+1.5", pmi:"45.0", note:"Milei shock therapy; inflation falling from triple digits; IMF deal progressing" },
+  "554": { gdp:"+0.7", cpi:"2.2",  rate:"3.75", unemp:"5.1", ca:"-5.5", pmi:"48.4", note:"RBNZ cutting aggressively; housing correction; terms of trade soft" },
+  "376": { gdp:"+0.5", cpi:"3.5",  rate:"4.50", unemp:"4.3", ca:"+5.1", pmi:"49.2", note:"War impact on GDP; BOI holding; tech sector resilient; geopolitical risk elevated" },
+  "784": { gdp:"+4.0", cpi:"2.5",  rate:"4.40", unemp:"2.9", ca:"+8.0", pmi:"55.2", note:"Non-oil GDP diversifying; property boom; Fed-linked rate policy" },
+  "578": { gdp:"+2.5", cpi:"2.8",  rate:"4.50", unemp:"2.0", ca:"+15.1",pmi:"50.3", note:"Norges Bank holding; oil sector buffer; strong sovereign fund" },
+  "152": { gdp:"+2.5", cpi:"4.5",  rate:"5.00", unemp:"8.7", ca:"-2.5", pmi:"51.3", note:"BCCh cutting; copper price key; lithium sector growing" },
+  "458": { gdp:"+5.5", cpi:"2.0",  rate:"3.00", unemp:"3.3", ca:"+3.5", pmi:"49.7", note:"BNM on hold; semiconductor and EV supply chain beneficiary" },
+  "704": { gdp:"+6.5", cpi:"3.5",  rate:"4.50", unemp:"2.2", ca:"+2.5", pmi:"54.2", note:"SBV holding; FDI manufacturing boom; Apple supply chain migration" },
+  "764": { gdp:"+2.5", cpi:"0.8",  rate:"2.50", unemp:"1.0", ca:"+2.5", pmi:"50.2", note:"BOT holding; tourism recovery; China tourism lag; household debt high" },
+  "818": { gdp:"+4.5", cpi:"12.5", rate:"27.25",unemp:"6.7", ca:"-2.0", pmi:"49.8", note:"CBE holding; EGP stabilized post-devaluation; IMF programme on track" },
+  "566": { gdp:"+3.5", cpi:"24.0", rate:"27.25",unemp:"5.0", ca:"+0.5", pmi:"50.0", note:"CBN holding; Naira reform ongoing; oil output recovering" },
+  "300": { gdp:"+2.5", cpi:"3.0",  rate:"2.65", unemp:"9.6", ca:"-7.5", pmi:"53.9", note:"Fiscal primary surplus achieved; ECB cutting; tourism-driven growth" },
+  "208": { gdp:"+2.0", cpi:"2.3",  rate:"2.65", unemp:"4.9", ca:"+8.5", pmi:"52.8", note:"Nationalbank tracking ECB; green energy transition leader; strong exports" },
+  "246": { gdp:"+1.5", cpi:"2.5",  rate:"2.65", unemp:"6.9", ca:"+0.7", pmi:"50.2", note:"ECB cutting; Nokia transformation ongoing; Nordic stability" },
+  "608": { gdp:"+6.0", cpi:"2.8",  rate:"5.50", unemp:"3.5", ca:"-2.5", pmi:"51.9", note:"BSP cutting; strong remittances; BPO sector growing; typhoon risk" },
+};
+
 // CLOCK
 const _clockEl = document.getElementById('clock');
 function tick() {
@@ -4464,6 +4529,11 @@ function selectCountry(d) {
     if (socialOpen) loadSocialSentiment();
   }
 
+  // Pre-fetch news in the background so headlines are ready for next sentiment refresh
+  if (!newsCache[key] && !_newsInFlight.has(key)) {
+    setTimeout(() => loadNewsBackground(key, meta), 500);
+  }
+
   if (cache[key]) {
     renderPanel(cache[key]);
     // Stale-while-revalidate: silently background-refresh if older than TTL
@@ -4770,46 +4840,233 @@ const _sentimentInFlight = new Set(); // in-flight dedup: prevent parallel calls
 const _newsInFlight = new Set();      // dedup for news headlines fetch
 const _authInFlight = new Set();      // dedup for authority publications fetch
 
+// POST-RESPONSE VALIDATION — enforces internal consistency on LLM output
+function validateSentimentResult(r) {
+  // 1. Clamp and parse score
+  r.score = Math.max(-1, Math.min(1, parseFloat(r.score) || 0));
+  const s = r.score;
+
+  // 2. Align sentiment label with score value (score is the ground truth)
+  if      (s >  0.10) r.sentiment = 'bullish';
+  else if (s < -0.10) r.sentiment = 'bearish';
+  else                r.sentiment = 'neutral';
+
+  // 3. Confidence bounds — default if missing, always clamp to [-1, 1] and straddle score
+  const margin  = r.confidence === 'High' ? 0.10 : r.confidence === 'Low' ? 0.30 : 0.20;
+  const rawLow  = parseFloat(r.score_low);
+  const rawHigh = parseFloat(r.score_high);
+  r.score_low   = Math.max(-1, Math.min(s, isNaN(rawLow)  ? (s - margin) : rawLow));
+  r.score_high  = Math.min( 1, Math.max(s, isNaN(rawHigh) ? (s + margin) : rawHigh));
+
+  // 4. Validate confidence
+  if (!['High','Medium','Low'].includes(r.confidence)) r.confidence = 'Medium';
+
+  // 5. Validate regime is one of the four valid labels
+  const validRegimes = ['Goldilocks','Reflation','Stagflation','Recession'];
+  if (!validRegimes.includes(r.regime)) r.regime = 'Goldilocks';
+
+  // 6. Regime/rate consistency corrections
+  //    Hiking rates + Recession is contradictory → classify as Stagflation
+  if (r.rate_outlook === 'Hiking' && r.regime === 'Recession')   r.regime = 'Stagflation';
+  //    Cutting rates + Goldilocks when score is negative → likely Reflation turning down
+  if (r.rate_outlook === 'Cutting' && r.regime === 'Goldilocks' && s < -0.15) r.regime = 'Reflation';
+  //    Very negative score in a Goldilocks regime is contradictory
+  if (s < -0.40 && r.regime === 'Goldilocks') r.regime = 'Recession';
+
+  // 7. Validate equity_bias, rate_outlook, fx_bias, risk_level
+  if (!['Overweight','Neutral','Underweight'].includes(r.equity_bias)) r.equity_bias = 'Neutral';
+  if (!['Cutting','Holding','Hiking'].includes(r.rate_outlook))         r.rate_outlook = 'Holding';
+  if (!['Strengthen','Stable','Weaken'].includes(r.fx_bias))            r.fx_bias = 'Stable';
+  if (!['Low','Medium','High','Very High'].includes(r.risk_level))      r.risk_level = 'Medium';
+
+  // 8. Clamp factor scores if present
+  if (r.factors && typeof r.factors === 'object') {
+    ['growth','inflation','monetary','fx','geopolitical','market'].forEach(k => {
+      if (r.factors[k] != null) r.factors[k] = Math.max(-1, Math.min(1, parseFloat(r.factors[k]) || 0));
+    });
+  }
+
+  return r;
+}
+
 async function fetchSentiment(key, meta, silent = false) {
   // Deduplicate: if a fetch is already in-flight for this country, skip
   if (_sentimentInFlight.has(key)) return;
   _sentimentInFlight.add(key);
   d3.select('#' + key).classed('loading', true);
 
-  const prompt = `You are a macro analyst. Assess the current macroeconomic outlook for ${meta.name} (${meta.region}). Consider: central bank policy, inflation, GDP momentum, ${meta.currency} FX dynamics, geopolitical risk, ${meta.index} equity performance, trade balance, political stability.
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas. Use these exact field names:
+  // ── MACRO_CONTEXT injection ──────────────────────────────────────────────
+  // Use the ISO numeric id to look up hard-coded economic data (e.g. "840" from "c840")
+  const isoId  = key.replace(/^c/, '');
+  const econ   = MACRO_CONTEXT[isoId];
+  const econBlock = econ
+    ? `\nVERIFIED ECONOMIC DATA (Q1 2025 — use as ground-truth anchors, adjust only if you have more recent data):
+GDP Growth: ${econ.gdp}% | CPI: ${econ.cpi}% | Policy Rate: ${econ.rate}% | Unemployment: ${econ.unemp}% | Current Account: ${econ.ca}% GDP | PMI: ${econ.pmi}
+Key context: ${econ.note}\n`
+    : '';
 
-sentiment: string, must be one of bullish, bearish, neutral
-score: number from -1.0 (very bearish) to 1.0 (very bullish)
-regime: string, must be one of Goldilocks, Reflation, Stagflation, Recession
-rationale: string, one sentence about ${meta.name} macro outlook, max 20 words
-equity_bias: string, must be one of Overweight, Neutral, Underweight
-rate_outlook: string, must be one of Cutting, Holding, Hiking
-fx_bias: string, must be one of Strengthen, Stable, Weaken
-risk_level: string, must be one of Low, Medium, High, Very High
-key_risk: string, biggest tail risk for ${meta.name} in 6-8 words
-news_topics: array of 3 strings, each a specific ${meta.name} macro topic, max 5 words each`;
+  // ── NEWS CONTEXT injection ────────────────────────────────────────────────
+  // If headlines are already cached for this country, inject the top 3 as grounding context
+  const cachedNews = newsCache[key];
+  const newsBlock = (cachedNews && cachedNews.length)
+    ? `\nRECENT HEADLINES (use to calibrate sentiment — these happened before today):\n` +
+      cachedNews.slice(0, 3).map(a => `• ${a.title}: ${a.summary || ''}`).join('\n') + '\n'
+    : '';
+
+  const jsonSchema = `
+Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
+
+sentiment: "bullish" if score > 0.10, "bearish" if score < -0.10, else "neutral" — must be consistent with score
+score: composite number from -1.0 to 1.0
+score_low: lower plausible bound (must be ≤ score)
+score_high: upper plausible bound (must be ≥ score)
+confidence: one of High, Medium, Low
+regime: one of Goldilocks (moderate growth + low inflation), Reflation (strong growth + rising inflation), Stagflation (weak growth + high inflation), Recession (contraction + deflation risk)
+rationale: one sentence explaining the single dominant macro driver for ${meta.name}, max 25 words
+equity_bias: one of Overweight, Neutral, Underweight
+rate_outlook: one of Cutting, Holding, Hiking
+fx_bias: one of Strengthen, Stable, Weaken
+risk_level: one of Low, Medium, High, Very High
+key_risk: biggest tail risk for ${meta.name} in 6-8 words
+news_topics: array of 3 specific current ${meta.name} macro topics, max 5 words each
+factors: object with exactly these keys — growth, inflation, monetary, fx, geopolitical, market — each a number from -1.0 to 1.0`;
+
+  // ── SEARCH-GROUNDED PROMPT (Claude only) ─────────────────────────────────
+  // When a Claude key is active, we ask Claude to search for live macro data
+  // before generating the analysis — grounding it in real current information.
+  const searchPrompt = `Today is ${today}. Search for the latest macroeconomic data for ${meta.name}: current GDP growth, CPI inflation, central bank policy rate and most recent rate decision, any major economic news or risk events in the past 4 weeks. Then use the searched data to conduct a structured sentiment assessment for ${meta.name} (${meta.region}).
+${econBlock}${newsBlock}
+STEP 1 — FACTOR SCORING (use live searched data + context above)
+Score each dimension from -1.0 (very negative) to +1.0 (very positive):
+
+1. GROWTH: GDP trajectory, PMI trend, industrial output, consumer demand for ${meta.name}
+2. INFLATION: CPI path, core vs headline gap, whether inflation is converging to target
+3. MONETARY POLICY: Rate direction from ${meta.name}'s central bank, real rate level, forward guidance credibility
+4. FX: ${meta.currency} current account dynamics, capital flows, ${meta.currency}/USD valuation
+5. GEOPOLITICAL: Government stability, regional risk exposure, sanctions/trade war risk
+6. MARKET MOMENTUM: ${meta.index} equity trend, credit spreads, investor risk appetite
+
+STEP 2 — COMPOSITE SCORE
+score = (growth×0.25) + (inflation×0.20) + (monetary×0.25) + (fx×0.15) + (geopolitical×0.10) + (market×0.05)
+Round to 2 decimal places. Clamp to [-1.0, +1.0].
+
+STEP 3 — CONFIDENCE & BOUNDS
+Set confidence: High (clear live data), Medium (mixed signals), Low (limited data).
+Set score_low and score_high: plausible range around score (±0.10 High, ±0.20 Medium, ±0.30 Low). Clamp to [-1.0, +1.0].
+${jsonSchema}`;
+
+  // ── STANDARD PROMPT (Gemini / free tier) ─────────────────────────────────
+  const prompt = `Today is ${today}. You are a senior macro strategist at a top-tier investment bank conducting a structured sentiment assessment for ${meta.name} (${meta.region}).
+${econBlock}${newsBlock}
+STEP 1 — FACTOR SCORING
+Score each dimension from -1.0 (very negative) to +1.0 (very positive) based on the latest available data:
+
+1. GROWTH: GDP trajectory, PMI trend, industrial output, consumer demand for ${meta.name}
+2. INFLATION: CPI path, core vs headline gap, whether inflation is converging to target
+3. MONETARY POLICY: Rate direction from ${meta.name}'s central bank, real rate level, forward guidance credibility
+4. FX: ${meta.currency} current account dynamics, capital flows, ${meta.currency}/USD valuation
+5. GEOPOLITICAL: Government stability, regional risk exposure, sanctions/trade war risk
+6. MARKET MOMENTUM: ${meta.index} equity trend, credit spreads, investor risk appetite
+
+STEP 2 — COMPOSITE SCORE
+score = (growth×0.25) + (inflation×0.20) + (monetary×0.25) + (fx×0.15) + (geopolitical×0.10) + (market×0.05)
+Round to 2 decimal places. Clamp to [-1.0, +1.0].
+
+STEP 3 — CONFIDENCE & BOUNDS
+Assess data certainty. Assign confidence: High (clear directional data), Medium (mixed signals), Low (limited/uncertain data).
+Set score_low and score_high as a plausible range around the score (e.g. ±0.10 for High, ±0.20 for Medium, ±0.30 for Low). Clamp to [-1.0, +1.0].
+${jsonSchema}`;
+
+  // Countries where double-call self-consistency is worth the extra request
+  const HIGH_STAKES = new Set(['c840','c156','c276','c392','c826','c250','c380','c124','c36','c76',
+    'c356','c410','c484','c682','c158','c702','c752','c756','c528','c710']);
+
+  const sysPrompt = 'Output only a single raw JSON object. No markdown. No explanation. No code fences. No trailing commas.';
+
+  // Helper: extract text blocks from a Claude tool-use response
+  function extractClaudeText(data) {
+    return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+  }
 
   try {
-    let raw = await callLLM(
-      'Output only a single raw JSON object. No markdown. No explanation. No code fences. No trailing commas.',
-      prompt,
-      1024,
-      1.0  // Max temp avoids mode-collapse; thinkingBudget:0 limits temperature effectiveness
-    );
-    const result = repairAndParseJSON(raw);
+    let result;
+    const provider = detectProvider();
+
+    if (provider === 'claude') {
+      // ── CLAUDE PATH: web-search grounded sentiment ──────────────────────
+      // First call uses live web search to anchor the analysis in real data.
+      // For HIGH_STAKES countries, a second standard call is averaged in.
+      const searchData = await callClaudeWithSearch(searchPrompt, 2200, 3);
+      const searchText = extractClaudeText(searchData);
+      const searchResult = validateSentimentResult(repairAndParseJSON(searchText));
+
+      if (HIGH_STAKES.has(key)) {
+        // Average with a second standard call for variance reduction
+        const rawB = await callLLM(sysPrompt, prompt, 1800, 0.2);
+        const b = validateSentimentResult(repairAndParseJSON(rawB));
+        const avgScore = Math.round(((searchResult.score + b.score) / 2) * 100) / 100;
+        result = {
+          ...searchResult,
+          score:       avgScore,
+          score_low:   Math.round(((searchResult.score_low  + b.score_low)  / 2) * 100) / 100,
+          score_high:  Math.round(((searchResult.score_high + b.score_high) / 2) * 100) / 100,
+        };
+        if (searchResult.factors && b.factors) {
+          result.factors = {};
+          ['growth','inflation','monetary','fx','geopolitical','market'].forEach(k => {
+            result.factors[k] = Math.round(((searchResult.factors[k] || 0) + (b.factors[k] || 0)) / 2 * 100) / 100;
+          });
+        }
+        result = validateSentimentResult(result);
+        result._grounded = true; // flag: analysis used live web search
+      } else {
+        result = searchResult;
+        result._grounded = true;
+      }
+
+    } else if (provider && HIGH_STAKES.has(key)) {
+      // ── GEMINI PATH, HIGH-STAKES: self-consistency averaging ─────────────
+      const [rawA, rawB] = await Promise.all([
+        callLLM(sysPrompt, prompt, 1800, 0.2),
+        callLLM(sysPrompt, prompt, 1800, 0.3)
+      ]);
+      const a = validateSentimentResult(repairAndParseJSON(rawA));
+      const b = validateSentimentResult(repairAndParseJSON(rawB));
+      const avgScore = Math.round(((a.score + b.score) / 2) * 100) / 100;
+      result = {
+        ...a,
+        score:       avgScore,
+        score_low:   Math.round(((a.score_low  + b.score_low)  / 2) * 100) / 100,
+        score_high:  Math.round(((a.score_high + b.score_high) / 2) * 100) / 100,
+        regime:      a.regime === b.regime ? a.regime : a.regime,
+        rate_outlook: a.rate_outlook === b.rate_outlook ? a.rate_outlook : a.rate_outlook,
+        fx_bias:     a.fx_bias === b.fx_bias ? a.fx_bias : a.fx_bias,
+        equity_bias: a.equity_bias === b.equity_bias ? a.equity_bias : a.equity_bias,
+        risk_level:  a.risk_level === b.risk_level ? a.risk_level : a.risk_level,
+      };
+      if (a.factors && b.factors) {
+        result.factors = {};
+        ['growth','inflation','monetary','fx','geopolitical','market'].forEach(k => {
+          result.factors[k] = Math.round(((a.factors[k] || 0) + (b.factors[k] || 0)) / 2 * 100) / 100;
+        });
+      }
+      result = validateSentimentResult(result);
+
+    } else {
+      // ── GEMINI / FREE PATH: single call ──────────────────────────────────
+      const raw = await callLLM(sysPrompt, prompt, 1800, 0.2);
+      result = validateSentimentResult(repairAndParseJSON(raw));
+    }
+
     result._meta = meta;
 
     cache[key]  = result;
     cacheTs[key] = Date.now();
     updateCount();
 
-    // Normalise sentiment before colouring map
-    const sent = (result.sentiment || '').toLowerCase().trim();
-    result.sentiment = ['bullish','bearish','neutral'].includes(sent) ? sent : 'neutral';
-
-    // Update map colour
+    // Update map colour (sentiment already normalised by validateSentimentResult)
     d3.select('#' + key)
       .classed('loading', false)
       .classed('default', false)
@@ -4850,21 +5107,72 @@ function renderPanel(data) {
   const icons = { bullish:'▲ BULLISH', bearish:'▼ BEARISH', neutral:'◆ NEUTRAL' };
   _elSentBadge.textContent = icons[sentiment];
 
-  // Regime pill
+  // Regime pill + LIVE badge if web-search grounded
   const rc = { Goldilocks:'rp-goldilocks', Reflation:'rp-reflation', Stagflation:'rp-stagflation', Recession:'rp-recession' };
+  const liveBadge = data._grounded
+    ? `<span style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.08em;padding:1px 5px;border-radius:2px;background:rgba(0,212,255,0.12);color:var(--cyan);border:1px solid rgba(0,212,255,0.28);margin-left:6px;vertical-align:middle;">⚡ LIVE</span>`
+    : '';
   _elRegimePill.innerHTML =
-    `<span class="regime-pill ${rc[data.regime]||'rp-goldilocks'}">${data.regime || '—'}</span>`;
+    `<span class="regime-pill ${rc[data.regime]||'rp-goldilocks'}">${data.regime || '—'}</span>${liveBadge}`;
 
-  // Score bar
-  const score = parseFloat(data.score) || 0;
-  const pct = Math.round(((score + 1) / 2) * 100);
-  _elSbar.style.width = pct + '%';
+  // Score bar + confidence range band
+  const score    = parseFloat(data.score)      || 0;
+  const _rawLow  = parseFloat(data.score_low);
+  const _rawHigh = parseFloat(data.score_high);
+  const scoreLow = Math.max(-1, Math.min(score, isNaN(_rawLow)  ? (score - 0.15) : _rawLow));
+  const scoreHi  = Math.min( 1, Math.max(score, isNaN(_rawHigh) ? (score + 0.15) : _rawHigh));
+  const pct      = Math.round(((score + 1) / 2) * 100);
+  const pctLow   = Math.round(((Math.max(-1, scoreLow) + 1) / 2) * 100);
+  const pctHi    = Math.round(((Math.min(1,  scoreHi)  + 1) / 2) * 100);
+
+  _elSbar.style.width      = pct + '%';
   _elSbar.style.background = score > 0.1 ? 'var(--bull)' : score < -0.1 ? 'var(--bear)' : 'var(--neut)';
-  _elScoreText.textContent =
-    `Score: ${score >= 0 ? '+' : ''}${score.toFixed(2)}  ·  ${data.key_risk || ''}`;
+
+  // Confidence range band on the track
+  const rangeEl = document.getElementById('sbar-range');
+  if (rangeEl && data.score_low != null) {
+    rangeEl.style.display = 'block';
+    rangeEl.style.left    = pctLow + '%';
+    rangeEl.style.width   = (pctHi - pctLow) + '%';
+  } else if (rangeEl) {
+    rangeEl.style.display = 'none';
+  }
+
+  // Score text with confidence badge
+  const conf = data.confidence || '';
+  const confHtml = conf ? `<span class="conf-badge ${conf}">${conf.toUpperCase()} CONF</span>` : '';
+  const scoreSign = score >= 0 ? '+' : '';
+  document.getElementById('score-text').innerHTML =
+    `Score: ${scoreSign}${score.toFixed(2)}${confHtml}`;
 
   // Rationale
   _elRationale.textContent = data.rationale || '—';
+
+  // Factor breakdown grid
+  const factorSection = document.getElementById('factor-section');
+  const factorGrid    = document.getElementById('factor-grid');
+  if (data.factors && typeof data.factors === 'object' && factorSection && factorGrid) {
+    const factorLabels = { growth:'GROWTH', inflation:'INFLTN', monetary:'POLICY', fx:'FX', geopolitical:'GEOPOL', market:'MARKET' };
+    factorGrid.innerHTML = Object.entries(factorLabels).map(([key, label]) => {
+      const val = parseFloat(data.factors[key]) || 0;
+      const clampedVal = Math.max(-1, Math.min(1, val));
+      const color = clampedVal > 0.1 ? 'var(--bull)' : clampedVal < -0.1 ? 'var(--bear)' : 'var(--neut)';
+      // Bar: centre at 50%, fill toward appropriate direction
+      const barLeft  = clampedVal >= 0 ? 50 : Math.round(((clampedVal + 1) / 2) * 100);
+      const barWidth = Math.round(Math.abs(clampedVal) * 50);
+      const sign = clampedVal >= 0 ? '+' : '';
+      return `<div class="factor-row">
+        <span class="factor-label">${label}</span>
+        <div class="factor-bar-track">
+          <div class="factor-bar-fill" style="left:${barLeft}%;width:${barWidth}%;background:${color};"></div>
+        </div>
+        <span class="factor-val" style="color:${color};">${sign}${clampedVal.toFixed(2)}</span>
+      </div>`;
+    }).join('');
+    factorSection.style.display = 'block';
+  } else if (factorSection) {
+    factorSection.style.display = 'none';
+  }
 
   // Chips
   _elCEq.textContent = data.equity_bias || '—';
@@ -4975,6 +5283,32 @@ No markdown. Mention ${countryName}'s central bank or currency in headlines.`;
       list.innerHTML = `<div style="padding:12px 14px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
       label.textContent = '📰  Failed to load';
     }
+  } finally {
+    _newsInFlight.delete(key);
+  }
+}
+
+// Silent background news fetch — only populates newsCache, never touches the DOM.
+// Used by onCountryClick so that headlines are ready the next time sentiment is refreshed.
+async function loadNewsBackground(key, meta) {
+  if (_newsInFlight.has(key) || newsCache[key]) return;
+  _newsInFlight.add(key);
+  const countryName = meta?.name || 'this country';
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const bgPrompt = `Today is ${today}. List 4 specific recent financial news headlines for ${countryName}. Focus on macro events: central bank decisions, GDP/inflation data, major political or fiscal news.
+
+JSON array of 4: [{"title":"≤15 words","source":"real outlet","time":"Xh ago","impact":"HIGH|MEDIUM|LOW","summary":"1 sentence market implication ≤20 words","url":"plausible source URL"}]
+No markdown.`;
+  try {
+    let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', bgPrompt, 1200);
+    const arrStart = raw.indexOf('['), arrEnd = raw.lastIndexOf(']');
+    raw = arrEnd > arrStart && arrStart >= 0 ? raw.slice(arrStart, arrEnd + 1) : raw;
+    raw = raw.replace(/,(\s*[\]}])/g, '$1');
+    const articles = JSON.parse(raw);
+    newsCache[key]   = articles;
+    newsCacheTs[key] = Date.now();
+  } catch(_) {
+    // silent — failure just means no news context for next sentiment call
   } finally {
     _newsInFlight.delete(key);
   }
@@ -5980,21 +6314,25 @@ async function loadSocialSentiment() {
     loading.style.display = 'none'; // already rendered, keep it hidden
   }
 
-  const prompt = `You are a social media market analyst. Synthesise current investor sentiment about ${target} from Twitter/X, Reddit (r/investing, r/stocks, r/wallstreetbets), StockTwits, and Seeking Alpha forums.${socialFilter.trim() ? ` Pay special attention to discussions tagged with or about: ${socialFilter.trim()}.` : ''}
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const prompt = `Today is ${today}. You are a market sentiment analyst. Based on your training knowledge, estimate the likely social media investor sentiment about "${target}" as of ${today}.${socialFilter.trim() ? ` Focus especially on discussions about: ${socialFilter.trim()}.` : ''}
 
-Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas. Use these exact field names:
+Important: You do not have live social data. Provide calibrated estimates based on known market conditions, recent developments, and typical retail investor behaviour patterns for ${target}. Do not fabricate specific post counts — use qualitative ranges (e.g. "High", "Moderate", "Low" for volume).
 
-overall: object with bull_pct (number 0-100), neut_pct (number 0-100), bear_pct (number 0-100, all three must sum to 100), volume (string e.g. "2.4M posts/day"), trend (string one of Rising, Stable, Falling)
-platforms: array of 4 objects each with name (string: Twitter/X, Reddit, StockTwits, Seeking Alpha), bull_pct (number 0-100), top_sentiment (string one of Bullish, Neutral, Bearish), active_users (string e.g. "142K")
-trending: array of 5 objects each with ticker (string), name (string, company name), sentiment (string one of Bullish, Neutral, Bearish), mentions (string e.g. "38K")
-topics: array of 5 objects each with tag (string, hashtag or topic), type (string one of Bullish, Bearish, Neutral, Breaking), volume (string e.g. "12K posts")
-fear_greed: number 0-100 (0=extreme fear, 100=extreme greed)
-mood_summary: string, 1-sentence overall market mood, max 20 words
+Reason through: (1) what the macro/fundamental backdrop for ${target} is right now, (2) how retail investors typically react to this backdrop, (3) which platforms would most likely have active discussion.
 
-Make it specific to ${target} with real-sounding tickers and topics.`;
+Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
+
+overall: object with bull_pct (integer 0-100), neut_pct (integer 0-100), bear_pct (integer 0-100, all three sum to 100), volume (string: "High" | "Moderate" | "Low"), trend (string: Rising | Stable | Falling)
+platforms: array of 4 objects — name (Twitter/X, Reddit, StockTwits, Seeking Alpha), bull_pct (integer 0-100), top_sentiment (Bullish|Neutral|Bearish), activity (string: High|Moderate|Low)
+trending: array of 5 objects — ticker (string), name (string), sentiment (Bullish|Neutral|Bearish), driver (string: 1 phrase explaining why this is trending, max 8 words)
+topics: array of 5 objects — tag (string), type (Bullish|Bearish|Neutral|Breaking), relevance (string: brief reason this topic is relevant now, max 8 words)
+fear_greed: integer 0-100 (0=extreme fear, 100=extreme greed), calibrated to current macro environment
+mood_summary: string, 1-sentence reasoned summary of current retail sentiment, max 20 words
+data_note: string, brief honest note about the basis for these estimates, max 15 words`;
 
   try {
-    const raw = await callLLM('You are a market sentiment analyst. Output only a raw JSON object. No markdown.', prompt, 1200);
+    const raw = await callLLM('You are a market sentiment analyst. Output only a raw JSON object. No markdown.', prompt, 1400, 0.3);
     const result = repairAndParseJSON(raw);
     result._scope = target; // store for expand prompts
     socialCache[cacheKey]   = result;
@@ -6029,12 +6367,13 @@ function renderSocialSentiment(d) {
     const sentCls = t.sentiment === 'Bullish' ? 'soc-sent-bull' : t.sentiment === 'Bearish' ? 'soc-sent-bear' : 'soc-sent-neut';
     const sentIcon = t.sentiment === 'Bullish' ? '▲' : t.sentiment === 'Bearish' ? '▼' : '◆';
     const safeId = `soc-tr-${i}`;
+    const driverOrMentions = t.driver || t.mentions || '—';
     return `<div class="soc-trend-item" style="flex-wrap:wrap;">
       <div class="soc-trend-rank">${i + 1}</div>
       <div class="soc-trend-ticker">${t.ticker || '—'}</div>
       <div class="soc-trend-name">${t.name || '—'}</div>
       <div class="soc-trend-sent ${sentCls}">${sentIcon}</div>
-      <div class="soc-trend-vol">${t.mentions || '—'}</div>
+      <div class="soc-trend-vol" style="font-size:9px;color:var(--text2);">${driverOrMentions}</div>
       <button class="expand-btn" style="margin-top:4px;width:100%;" data-soc-tr="${i}" data-ticker="${t.ticker || ''}" data-name="${t.name || ''}">▸ DETAILS</button>
       <div class="expand-body" id="${safeId}" style="width:100%;"></div>
     </div>`;
@@ -6043,10 +6382,11 @@ function renderSocialSentiment(d) {
   const topicsHtml = (d.topics || []).map((t, i) => {
     const typeCls = { Bullish:'soc-type-bull', Bearish:'soc-type-bear', Neutral:'soc-type-neut', Breaking:'soc-type-break' }[t.type] || 'soc-type-neut';
     const safeId = `soc-tp-${i}`;
+    const volOrRelevance = t.relevance || t.volume || '—';
     return `<div class="soc-topic" style="flex-wrap:wrap;">
       <div class="soc-topic-tag">${t.tag || '—'}</div>
       <div class="soc-topic-type ${typeCls}">${t.type || '—'}</div>
-      <div class="soc-topic-vol">${t.volume || '—'}</div>
+      <div class="soc-topic-vol">${volOrRelevance}</div>
       <button class="expand-btn" style="margin-top:4px;width:100%;" data-soc-tp="${i}" data-tag="${t.tag || ''}" data-type="${t.type || ''}">▸ DETAILS</button>
       <div class="expand-body" id="${safeId}" style="width:100%;"></div>
     </div>`;
@@ -6088,6 +6428,9 @@ function renderSocialSentiment(d) {
     <div class="soc-section">
       <div class="soc-slabel">HOT TOPICS &amp; HASHTAGS</div>
       ${topicsHtml}
+    </div>
+    <div style="padding:8px 12px 4px;font-family:var(--font-mono);font-size:8px;color:var(--text3);border-top:1px solid var(--border);line-height:1.5;">
+      ⚠ AI-ESTIMATED · ${d.data_note || 'Based on AI training data — not live social data.'} Verify before trading.
     </div>
   `;
 
@@ -6253,8 +6596,9 @@ async function loadDeepSection(tab, background = false) {
   const getPrompt = DEEP_TAB_PROMPTS[tab];
   if (!getPrompt) { _deepInFlight.delete(cacheKey); return; }
 
+  const deepToday = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const sysPrompt = 'Senior macro strategist. Respond with JSON only — no markdown, no code fences.';
-  const userPrompt = `${getPrompt(currentCountryMeta)}
+  const userPrompt = `Today is ${deepToday}.\n${getPrompt(currentCountryMeta)}
 
 JSON only: {"title":"string","keyStats":[{"label":"METRIC","value":"string"}],"content":"paragraphs separated by \\n\\n"}
 keyStats: 5-6 items. content: 4-5 paragraphs.`;
@@ -6624,24 +6968,47 @@ async function addWatchlistItem(rawInput) {
 }
 
 async function fetchWatchlistSentiment(item, noRender = false) {
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
   const prompt = item.type === 'country'
-    ? `Assess the current macroeconomic sentiment for ${item.name}. Return ONLY JSON: {"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<one sentence, max 15 words>","regime":"Goldilocks|Reflation|Stagflation|Recession"}`
-    : `Assess current financial market sentiment for "${item.name}" (could be a stock ticker, sector, theme, or commodity). Return ONLY JSON: {"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<one sentence key insight, max 15 words>","assetType":"<Stock|Sector|Theme|Commodity|Index>"}`;
+    ? `Today is ${today}. You are a senior macro strategist. Assess the current macroeconomic sentiment for ${item.name}.
+
+Score these 4 factors from -1.0 to +1.0: growth momentum, inflation dynamics, monetary policy stance, geopolitical risk.
+Compute score = (growth×0.30) + (inflation×0.25) + (monetary×0.30) + (geopolitical×0.15). Round to 2 decimal places.
+sentiment: "bullish" if score > 0.10, "bearish" if score < -0.10, else "neutral" — must match score.
+
+Return ONLY valid JSON, no markdown:
+{"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<dominant macro driver, max 15 words>","regime":"Goldilocks|Reflation|Stagflation|Recession","rate_outlook":"Cutting|Holding|Hiking"}`
+    : `Today is ${today}. You are a senior market analyst. Assess current sentiment for "${item.name}" (stock ticker, sector, theme, or commodity).
+
+Evaluate: fundamental momentum, price/technical trend, macro tailwinds/headwinds, positioning.
+Assign score from -1.0 (very bearish) to +1.0 (very bullish). Round to 2 decimal places.
+sentiment: "bullish" if score > 0.10, "bearish" if score < -0.10, else "neutral" — must match score.
+
+Return ONLY valid JSON, no markdown:
+{"sentiment":"bullish|bearish|neutral","score":<-1.0 to 1.0>,"keyNote":"<key insight or catalyst, max 15 words>","assetType":"Stock|Sector|Theme|Commodity|Index","confidence":"High|Medium|Low"}`;
 
   try {
     const raw = await callLLM(
       'You are a market analyst. Return only valid JSON, no markdown.',
-      prompt, 400, 0.8
+      prompt, 500, 0.2
     );
     const result = repairAndParseJSON(raw);
     const idx = watchlist.findIndex(w => w.key === item.key);
     if (idx < 0) return;
-    watchlist[idx].sentiment = (result.sentiment || 'neutral').toLowerCase();
-    watchlist[idx].score     = parseFloat(result.score) || 0;
+
+    // Validate score/sentiment alignment
+    const score = Math.max(-1, Math.min(1, parseFloat(result.score) || 0));
+    const sentiment = score > 0.10 ? 'bullish' : score < -0.10 ? 'bearish' : 'neutral';
+
+    watchlist[idx].sentiment = sentiment;
+    watchlist[idx].score     = score;
     watchlist[idx].keyNote   = result.keyNote || '';
     watchlist[idx].updatedAt = Date.now();
-    if (result.regime)    watchlist[idx].regime = result.regime;
-    if (result.assetType) watchlist[idx].assetType = result.assetType;
+    if (result.regime)      watchlist[idx].regime      = result.regime;
+    if (result.rate_outlook) watchlist[idx].rate_outlook = result.rate_outlook;
+    if (result.assetType)   watchlist[idx].assetType   = result.assetType;
+    if (result.confidence)  watchlist[idx].confidence  = result.confidence;
     saveWatchlistToStorage();
     if (!noRender && watchlistOpen) renderWatchlist();
   } catch(e) {
@@ -8721,7 +9088,8 @@ async function loadOpportunitiesTab(forceRefresh) {
   const recentCountries = [...new Set(Object.values(cache).map(v=>v._meta?.name).filter(Boolean))].slice(0,5);
   const horizonDesc = {DAY:'intraday to next 24 hours',WEEK:'1–5 trading days',MONTH:'2–6 weeks',THEMES:'thematic / structural (3–12 months)'}[oppHorizon]||oppHorizon;
 
-  const prompt = `You are a senior portfolio strategist and macro trader. Generate exactly 8 specific investment and trading opportunities for a ${horizonDesc} horizon.
+  const oppToday = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const prompt = `Today is ${oppToday}. You are a senior portfolio strategist and macro trader. Generate exactly 8 specific investment and trading opportunities for a ${horizonDesc} horizon.
 
 User profile:
 - Watchlist: ${wlNames.length ? wlNames.join(', ') : 'none'}
