@@ -548,4 +548,4 @@ All calls use `thinkingBudget: 0` to prevent thinking tokens from consuming the 
 
 - [x] ~~Task 56 - Phase 7 regression: 87/87 passing. 3 bugs fixed during testing: `renderPanel` NaN confidence band (isNaN guard); MACRO_CONTEXT ISO zero-padding (.padStart(3,'0')); Singapore missing from META/AUTHORITY_INFO/AUTHORITY_URLS. Final JS: 8 218 lines, zero errors. deploy/index.html synced.~~
 
-*Last updated: 2026-05-09 · Build version: Phase 20 · 56/56 tasks done · 569/569 tests passing*
+*Last updated: 2026-05-09 · Build version: Phase 20 · 56/56 tasks done · 510/510 tests passing · 612 KB*

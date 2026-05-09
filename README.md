@@ -2,7 +2,7 @@
 
 > AI-powered macro intelligence terminal for analysts, traders, and researchers — delivered as a single self-contained HTML file.
 
-![Tests](https://img.shields.io/badge/tests-569%2F569%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-510%2F510%20passing-brightgreen)
 ![Stack](https://img.shields.io/badge/stack-HTML%20%2F%20CSS%20%2F%20JS-informational)
 ![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash%20%7C%20Claude%20%7C%20Free%20Mode-blue)
 ![Charts](https://img.shields.io/badge/charts-D3.js%20v7%20%7C%20TradingView%20LW-orange)
@@ -15,7 +15,7 @@
 
 Click any country on the world map and instantly get an AI-generated macro brief — sentiment regime, equity bias, rate outlook, FX bias, risk level, rationale, central bank publications, news, social sentiment, and historical charts. No API key needed for country analysis. Advanced features (Deep Analysis, Research Hub, FX/Commodities heatmaps, Digest, Opportunities, Custom Analysis, Stocks) unlock with your own Gemini or Claude API key.
 
-Everything runs in a **single HTML file** (~590 KB · ~8 218 JS lines) with zero dependencies to install.
+Everything runs in a **single HTML file** (~612 KB · ~8 218 JS lines) with zero dependencies to install.
 
 ---
 
@@ -126,7 +126,7 @@ No build step. No `npm install`. No server.
 
 ```
 global_macro_intelligence/
-├── global_macro_intel.html   # Entire application (~590 KB · ~8 218 JS lines)
+├── global_macro_intel.html   # Entire application (~612 KB · ~8 218 JS lines)
 │
 ├── deploy/                   # Production deploy assets
 │   ├── index.html            # Synced copy of the app
@@ -143,7 +143,7 @@ global_macro_intelligence/
 │   ├── sw.js                 # Cache-first service worker
 │   └── README.md             # PWA install · Capacitor APK · Play Store guide
 │
-├── test_e2e.js               # 569-test E2E suite (Node.js, no browser needed)
+├── test_e2e.js               # 510-test E2E suite (Node.js, no browser needed)
 ├── PROMPTS.md                # Full build log — 56 tasks with specs
 └── README.md                 # This file
 ```
@@ -440,7 +440,7 @@ No browser, no Playwright, no Puppeteer — pure Node.js static analysis of the 
 
 ```
 ═════════════════════════════════════════════════════════════════
-  RESULTS   569/569 passing   0 failing   0 warnings
+  RESULTS   510/510 passing   0 failing   0 warnings
 ═════════════════════════════════════════════════════════════════
 ```
 
@@ -468,7 +468,7 @@ No browser, no Playwright, no Puppeteer — pure Node.js static analysis of the 
 | 17 — FX Heatmap | 37 | G10/EM grid, detail panel, charts |
 | 18 — Real Market Data | 21 | Yahoo Finance, CORS proxy, LIVE/AI badge |
 | 19 — Research Hub | 29 | 16 institutions, RSS, house view, articles |
-| 20 — Accuracy & Intelligence | 87 | Factor coherence, regime shift, data freshness, DATA_VINTAGE, HIGH_STAKES voting, ISO zero-padding |
+| 20 — Accuracy & Intelligence | 28 | Factor coherence, regime shift, data freshness, DATA_VINTAGE, HIGH_STAKES voting, ISO zero-padding, Singapore META |
 
 ---
 

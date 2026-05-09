@@ -2,7 +2,7 @@
 
 > AI-powered macro intelligence terminal for analysts, traders, and researchers — delivered as a single self-contained HTML file.
 
-![Tests](https://img.shields.io/badge/tests-569%2F569%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-510%2F510%20passing-brightgreen)
 ![Stack](https://img.shields.io/badge/stack-HTML%20%2F%20CSS%20%2F%20JS-informational)
 ![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash%20%7C%20Claude%20%7C%20Free%20Mode-blue)
 ![Charts](https://img.shields.io/badge/charts-D3.js%20v7%20%7C%20TradingView%20LW-orange)
@@ -118,7 +118,7 @@ No build step. No `npm install`. No server.
 
 ```
 global_macro_intelligence/
-├── global_macro_intel.html   # Entire application (~590 KB · ~8 218 JS lines)
+├── global_macro_intel.html   # Entire application (~612 KB · ~8 218 JS lines)
 │
 ├── deploy/                   # Production deploy assets
 │   ├── index.html            # Synced copy of the app
@@ -135,7 +135,7 @@ global_macro_intelligence/
 │   ├── sw.js                 # Cache-first service worker
 │   └── README.md             # PWA install · Capacitor APK · Play Store guide
 │
-├── test_e2e.js               # 569-test E2E suite (Node.js, no browser needed)
+├── test_e2e.js               # 510-test E2E suite (Node.js, no browser needed)
 ├── PROMPTS.md                # Full build log — 56 tasks with specs
 └── README.md                 # This file
 ```

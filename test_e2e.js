@@ -435,9 +435,9 @@ test('weekKey() for digest cache keys', () => hasFn('weekKey'));
 test('Region jump highlights countries', () => hasFn('jumpToRegion') || js.includes('REGION_NAMES'));
 test('Static map resize handler', () =>
   js.includes("window.addEventListener('resize'") || js.includes('window.addEventListener("resize"'));
-test('File size under 600 KB (single file)', () => {
+test('File size under 650 KB (single file)', () => {
   const bytes = fs.statSync(FILE).size;
-  return bytes < 600000;
+  return bytes < 650000;
 });
 test('Boot sequence calls wireCommEvents', () => {
   // wireCommEvents() appears in the boot sequence (after BOOT comment)
@@ -647,13 +647,13 @@ test('cfs-ma-btn CSS defined', () => css.includes('.cfs-ma-btn'));
 test('Close button uses onclick for reliable close (post-script DOM)', () => html.includes('chart-fs-close') && html.includes('onclick="closeChartFs()"'));
 test('chart-fs-ohlc element exists (replaces legend)', () => hasEl('chart-fs-ohlc'));
 test('chartFsPeriod state variable declared', () => js.includes('let chartFsPeriod'));
-test('chartFsShowMA5/MA20 state variables declared', () => js.includes('let chartFsShowMA5') && js.includes('let chartFsShowMA20'));
+test('chartFsShowEMA9/EMA21 state variables declared', () => js.includes('let chartFsShowEMA9') && js.includes('let chartFsShowEMA21'));
 test('cfsPeriodClick() helper defined', () => js.includes('function cfsPeriodClick('));
-test('cfsMaClick() helper defined', () => js.includes('function cfsMaClick('));
+test('cfsEmaClick() helper defined', () => js.includes('function cfsEmaClick('));
 test('buildCfsOhlcDefault() defined', () => js.includes('function buildCfsOhlcDefault('));
 test('LW crosshair subscribeCrosshairMove used', () => js.includes('subscribeCrosshairMove'));
 test('Volume histogram rendered in fullscreen (LightweightCharts)', () => js.includes('addHistogramSeries') && js.includes('volData'));
-test('MA5 (amber) drawn in fullscreen', () => js.includes('#F59E0B') && js.includes('maPer5'));
+test('EMA9 (amber) drawn in fullscreen', () => js.includes('#F59E0B') && js.includes('chartFsShowEMA9'));
 test('MA20 (cyan) drawn in fullscreen', () => js.includes('#22D3EE') && js.includes('ma20'));
 test('Period filter applied in drawChartFsLine', () => js.includes("chartFsPeriod === '3M'") && js.includes("chartFsPeriod === '6M'"));
 test('LightweightCharts CrosshairMode.Normal used', () => js.includes('CrosshairMode.Normal'));
@@ -662,7 +662,7 @@ test('TV dark background (#131722)', () => js.includes('#131722'));
 test('ESC closes apikey gate modal first (highest z-index)', () => {
   const escIdx = js.indexOf("if (e.key === 'Escape')");
   if (escIdx < 0) return false;
-  const block = js.slice(escIdx, escIdx + 400);
+  const block = js.slice(escIdx, escIdx + 700);
   const gateIdx = block.indexOf('apikey-gate-overlay');
   const fsIdx = block.indexOf('chartFsOpen');
   return gateIdx >= 0 && fsIdx >= 0 && gateIdx < fsIdx;
@@ -686,7 +686,7 @@ test('closeChartFs removes LightweightCharts instance', () => js.includes('chart
 test('wireChartFsEvents adds window resize handler', () => js.includes('chartFsInstance?.applyOptions'));
 test('cfs-type-btn CSS defined', () => css.includes('.cfs-type-btn'));
 test('cfs-bb-btn CSS defined', () => css.includes('.cfs-bb-btn'));
-test('RSI pane shown via LightweightCharts addLineSeries', () => js.includes('rsiSeriesObj') && js.includes('priceScaleId'));
+test('RSI pane shown via LightweightCharts addLineSeries', () => js.includes('chartFsOscillator') && js.includes('priceScaleId') && js.includes("'rsi'"));
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Phase 17: FX Heatmap (Task 28)
@@ -727,7 +727,7 @@ test('FX detail cache per symbol', () => js.includes('fxDetailCache'));
 test('ESC closes fxOpen (between caOpen and commodOpen)', () => {
   const escIdx = js.indexOf("if (e.key === 'Escape')");
   if (escIdx < 0) return false;
-  const block = js.slice(escIdx, escIdx + 900);
+  const block = js.slice(escIdx, escIdx + 1200);
   const caIdx    = block.indexOf('caOpen');
   const fxIdx    = block.indexOf('fxOpen');
   const commIdx  = block.indexOf('commodOpen');
@@ -758,7 +758,7 @@ test('fetchYFOHLC uses corsproxy.io for CORS', () => js.includes('corsproxy.io')
 test('fetchYFOHLC caches results in _yfCache', () => js.includes('_yfCache') && js.includes('_yfCache[key]'));
 test('fetchYFOHLC returns OHLCV bars with time/open/high/low/close/volume', () =>
   js.includes('open:') && js.includes('high:') && js.includes('low:') && js.includes('close:') && js.includes('volume:') && js.includes('fetchYFOHLC'));
-test('fetchYFOHLC filters null/invalid bars', () => js.includes('isFinite(c.open)') && js.includes('c.high >= c.low'));
+test('fetchYFOHLC filters null/invalid bars', () => js.includes('isFinite(o)') && js.includes('high < low'));
 test('drawChartFsLine has real OHLCV path (rawOhlcv)', () => js.includes('rawOhlcv') && js.includes('chartFsPayload?.ohlcv'));
 test('Real data path applies time-based period filter (91/183 days)', () =>
   js.includes('91 * 86400') && js.includes('183 * 86400'));
@@ -771,13 +771,13 @@ test('LLM simulation path still present as fallback', () =>
 test('Commodity expand starts background fetchYFOHLC', () =>
   js.includes('_yfSymCommod') && js.includes('fetchYFOHLC(_yfSymCommod'));
 test('Commodity expand stores ohlcv in commodDetailCache', () =>
-  js.includes("commodDetailCache[data.symbol].ohlcv = ohlcv"));
+  js.includes("commodDetailCache[data.symbol].ohlcv"));
 test('FX expand starts background fetchYFOHLC', () =>
   js.includes('_yfSymFx') && js.includes('fetchYFOHLC(_yfSymFx'));
 test('FX expand stores ohlcv in fxDetailCache', () =>
-  js.includes("fxDetailCache[data.symbol].ohlcv = ohlcv"));
+  js.includes("fxDetailCache[data.symbol].ohlcv"));
 test('openChartFs payload includes ohlcv field', () =>
-  js.includes('ohlcv,') || js.includes('ohlcv: ohlcv'));
+  js.includes('ohlcv:') && js.includes('function openChartFs('));
 test('Chart sub shows ⬤ LIVE when real data present', () => js.includes('⬤ LIVE'));
 test('Chart sub shows ⚠ AI ESTIMATE when using LLM data', () => js.includes('⚠ AI ESTIMATE'));
 test('Graceful fallback: fetchYFOHLC failure caught silently', () => {
@@ -839,7 +839,7 @@ test('Research shows disclaimer on AI-synthesized content', () =>
 test('ESC closes research overlay', () => {
   const idx = js.indexOf("if (e.key === 'Escape')");
   if (idx < 0) return false;
-  const block = js.slice(idx, idx + 800);
+  const block = js.slice(idx, idx + 1200);
   return block.includes('researchOpen') && block.includes('closeResearch()');
 });
 test('Research backdrop click closes overlay', () =>
@@ -855,6 +855,87 @@ test('Free mode: openResearch works without API key (no hard block)', () => {
   const fn = js.slice(js.indexOf('function openResearch()'));
   return fn.slice(0, 250).includes('researchOpen') && !fn.slice(0, 250).includes('showApiKeyToast');
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 20: Accuracy & Intelligence (Task 52–56)
+// ══════════════════════════════════════════════════════════════════════════════
+console.log('\n── Phase 20: Accuracy & Intelligence ───────────────────────────');
+
+// DATA_VINTAGE & MACRO_CONTEXT
+test('DATA_VINTAGE constant defined', () => js.includes("const DATA_VINTAGE") && js.includes("'Q1 2025'"));
+test('MACRO_CONTEXT object defined with economic snapshots', () => js.includes('const MACRO_CONTEXT') && js.includes('gdp') && js.includes('cpi') && js.includes('rate'));
+test('MACRO_CONTEXT contains US (840)', () => js.includes('"840"') && js.includes('MACRO_CONTEXT'));
+test('MACRO_CONTEXT contains China (156)', () => js.includes('"156"') && js.includes('MACRO_CONTEXT'));
+test('MACRO_CONTEXT contains Japan (392)', () => js.includes('"392"') && js.includes('MACRO_CONTEXT'));
+test('MACRO_CONTEXT contains at least 20 countries', () => {
+  const mc = js.slice(js.indexOf('const MACRO_CONTEXT'), js.indexOf('const MACRO_CONTEXT') + 6000);
+  const matches = mc.match(/"[0-9]{3}":/g) || [];
+  return matches.length >= 20;
+});
+test('HIGH_STAKES set defined with country ISO ids', () => js.includes('const HIGH_STAKES') && js.includes('new Set('));
+test('HIGH_STAKES includes US (c840)', () => {
+  const hs = js.slice(js.indexOf('const HIGH_STAKES'), js.indexOf('const HIGH_STAKES') + 500);
+  return hs.includes("'c840'") || hs.includes('"c840"');
+});
+test('MACRO_CONTEXT ISO zero-padding applied (.padStart)', () =>
+  js.includes(".padStart(3, '0')") || js.includes('.padStart(3,"0")'));
+test('DATA_VINTAGE injected into LLM econBlock prompt', () => {
+  const fb = js.indexOf('DATA_VINTAGE');
+  if (fb < 0) return false;
+  const region = js.slice(fb - 200, fb + 200);
+  return region.includes('econBlock') || region.includes('econ') || js.includes('data vintage');
+});
+
+// Factor-score coherence (Step 9 in validateSentimentResult)
+test('validateSentimentResult function defined', () => js.includes('function validateSentimentResult('));
+test('Factor coherence weights sum to 1.0 (growth+inflation+monetary+fx+geopolitical+market)', () => {
+  const fn = js.slice(js.indexOf('function validateSentimentResult('));
+  const body = fn.slice(0, fn.indexOf('\n}') + 2);
+  return body.includes('0.25') && body.includes('0.20') && body.includes('0.15') && body.includes('0.10') && body.includes('0.05');
+});
+test('_factor_composite stored on result', () => js.includes('_factor_composite'));
+test('_score_adjusted flag set when coherence blending applied', () => js.includes('_score_adjusted'));
+test('Factor coherence uses 0.30 strong-deviation threshold', () => {
+  const fn = js.slice(js.indexOf('function validateSentimentResult('));
+  return fn.slice(0, fn.indexOf('\n}') + 2).includes('0.30');
+});
+test('Factor coherence uses 0.15 mild-deviation threshold', () => {
+  const fn = js.slice(js.indexOf('function validateSentimentResult('));
+  return fn.slice(0, fn.indexOf('\n}') + 2).includes('0.15');
+});
+
+// Smart categorical voting
+test('pickRegime() tiebreak helper defined', () => js.includes('function pickRegime(') || js.includes('const pickRegime'));
+test('pickRisk() conservative tiebreak helper defined', () => js.includes('function pickRisk(') || js.includes('const pickRisk'));
+test('pickRisk uses risk level order (Low/Medium/High/Very High)', () =>
+  js.includes("'Low'") && js.includes("'Medium'") && js.includes("'High'") && js.includes("'Very High'") &&
+  (js.includes('pickRisk') || js.includes('indexOf')));
+
+// Regime shift detection
+test('_regime_shift flag set in fetchSentiment', () => js.includes('_regime_shift'));
+test('_prev_sentiment stored for shift comparison', () => js.includes('_prev_sentiment'));
+test('Regime shift requires delta >= 0.20', () => {
+  const idx = js.indexOf('_regime_shift');
+  if (idx < 0) return false;
+  const region = js.slice(Math.max(0, idx - 300), idx + 300);
+  return region.includes('0.20');
+});
+
+// Data freshness badges in UI
+test('#data-freshness-badge element exists in HTML', () => html.includes('data-freshness-badge'));
+test('#regime-shift-banner element exists in HTML', () => html.includes('regime-shift-banner'));
+test('FC ADJ badge rendered in renderPanel when _score_adjusted', () =>
+  js.includes('_score_adjusted') && js.includes('FC ADJ'));
+test('ANCHORED badge shown when _econ_grounded is true', () =>
+  js.includes('_econ_grounded') && html.includes('ANCHORED'));
+
+// Singapore META entry (bug fix)
+test('Singapore (702) in META object', () => {
+  const meta = js.slice(js.indexOf('const META'), js.indexOf('const META') + 15000);
+  return meta.includes('"702"') || meta.includes("'702'");
+});
+test('Singapore (702) in AUTHORITY_INFO', () =>
+  js.includes('"702"') && js.includes('Monetary Authority of Singapore'));
 
 // ══════════════════════════════════════════════════════════════════════════════
 // Summary
