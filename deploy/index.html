@@ -3925,6 +3925,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
 
 <script>
 // STATE
+const devMode = typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost';
 let apiKey = '';
 let activeId = null;
 let newsOpen = false;
@@ -4874,6 +4875,19 @@ function validateSentimentResult(r) {
   r.score_low   = Math.max(-1, Math.min(s, isNaN(rawLow)  ? (s - margin) : rawLow));
   r.score_high  = Math.min( 1, Math.max(s, isNaN(rawHigh) ? (s + margin) : rawHigh));
 
+  // 3b. Anti-circularity guard: detect when the model used the circular formula
+  //     (score ± constant). If the band is suspiciously symmetric, override with
+  //     a directionally-asymmetric band that encodes genuine data uncertainty.
+  //     Bullish scores → more upside uncertainty; bearish → more downside uncertainty.
+  const modelSpread    = r.score_high - r.score_low;
+  const expectedSpread = margin * 2;
+  if (Math.abs(modelSpread - expectedSpread) < 0.02) {
+    const biasDown = s > 0 ? margin * 0.80 : margin * 1.20;
+    const biasUp   = s > 0 ? margin * 1.20 : margin * 0.80;
+    r.score_low  = Math.max(-1, Math.round((s - biasDown) * 100) / 100);
+    r.score_high = Math.min( 1, Math.round((s + biasUp)   * 100) / 100);
+  }
+
   // 4. Validate confidence
   if (!['High','Medium','Low'].includes(r.confidence)) r.confidence = 'Medium';
 
@@ -4900,6 +4914,15 @@ function validateSentimentResult(r) {
     ['growth','inflation','monetary','fx','geopolitical','market'].forEach(k => {
       if (r.factors[k] != null) r.factors[k] = Math.max(-1, Math.min(1, parseFloat(r.factors[k]) || 0));
     });
+  }
+
+  // 8b. Inflation directionality guard: high inflation factor is internally
+  //     contradictory when the regime is Stagflation or Recession (bad-growth
+  //     regimes cannot coexist with a positive inflation score, because elevated
+  //     inflation is what makes Stagflation adverse). Cap at +0.10 in these regimes.
+  if (r.factors && r.factors.inflation > 0.30 && ['Stagflation','Recession'].includes(r.regime)) {
+    r.factors.inflation = Math.min(0.10, r.factors.inflation);
+    r._inflation_clamped = true;
   }
 
   // 9. Factor-score coherence check — if all 6 factors are present, compute the
@@ -4932,6 +4955,18 @@ function validateSentimentResult(r) {
         r.score_high = Math.min( 1, Math.max(sa, r.score_high));
       }
     }
+  }
+
+  // Phase 4 consistency: log compound corrections in dev mode for observability
+  if (devMode && r._score_adjusted && r._inflation_clamped) {
+    console.warn('[GMI Accuracy] Compound correction applied:', {
+      country: r._meta?.name || '?',
+      score: r.score,
+      factor_composite: r._factor_composite,
+      inflation_clamped: r._inflation_clamped,
+      score_adjusted: r._score_adjusted,
+      regime: r.regime
+    });
   }
 
   return r;
@@ -4975,7 +5010,12 @@ score: composite number from -1.0 to 1.0
 score_low: lower plausible bound (must be ≤ score)
 score_high: upper plausible bound (must be ≥ score)
 confidence: one of High, Medium, Low
-regime: one of Goldilocks (moderate growth + low inflation), Reflation (strong growth + rising inflation), Stagflation (weak growth + high inflation), Recession (contraction + deflation risk)
+regime: derive from your factor scores using these exact rules —
+  Goldilocks  = growth factor ≥ 0 AND inflation factor ≥ -0.15 (on-trend growth, inflation contained)
+  Reflation   = growth factor ≥ 0 AND inflation factor < -0.15  (growth with inflation above target)
+  Stagflation = growth factor < 0 AND inflation factor < -0.15  (contraction + elevated inflation)
+  Recession   = growth factor < 0 AND inflation factor ≥ -0.15  (contraction + low/falling inflation)
+  Note: if inflation factor < -0.40 choose Stagflation regardless of growth
 rationale: one sentence explaining the single dominant macro driver for ${meta.name}, max 25 words
 equity_bias: one of Overweight, Neutral, Underweight
 rate_outlook: one of Cutting, Holding, Hiking
@@ -4988,13 +5028,29 @@ factors: object with exactly these keys — growth, inflation, monetary, fx, geo
   // ── SEARCH-GROUNDED PROMPT (Claude only) ─────────────────────────────────
   // When a Claude key is active, we ask Claude to search for live macro data
   // before generating the analysis — grounding it in real current information.
-  const searchPrompt = `Today is ${today}. Search for the latest macroeconomic data for ${meta.name}: current GDP growth, CPI inflation, central bank policy rate and most recent rate decision, any major economic news or risk events in the past 4 weeks. Then use the searched data to conduct a structured sentiment assessment for ${meta.name} (${meta.region}).
+  const searchPrompt = `Today is ${today}. Search for the latest macroeconomic data for ${meta.name}: current GDP growth, CPI inflation, central bank policy rate and most recent rate decision, any major economic news or risk events in the past 4 weeks. Then use the searched data plus the context below to conduct a structured sentiment assessment for ${meta.name} (${meta.region}).
 ${econBlock}${newsBlock}
-STEP 1 — FACTOR SCORING (use live searched data + context above)
-Score each dimension from -1.0 (very negative) to +1.0 (very positive):
+STEP 0 — DATA REVIEW (internal scratchpad — do NOT include this in your JSON output)
+Before scoring, identify the single most important data point for each factor from the live search results and/or context above. State each as one short phrase. Do not assign scores yet.
+• Growth evidence: [one key fact about GDP, PMI, or output]
+• Inflation evidence: [one key fact about CPI, core inflation, or price pressures]
+• Monetary evidence: [one key fact about rate decisions or central bank guidance]
+• FX evidence: [one key fact about currency, current account, or capital flows]
+• Geopolitical evidence: [one key fact about political or trade risk]
+• Market evidence: [one key fact about equity trend or credit spreads]
+
+STEP 1 — FACTOR SCORING (use ONLY evidence from STEP 0)
+Score each dimension from -1.0 (very negative) to +1.0 (very positive).
+Calibration anchors — use these reference points to anchor your scores:
+  GROWTH:      +1.0 = GDP >4% & PMI >55 | 0.0 = GDP ~0–1% & PMI ~50 | -1.0 = GDP contraction & PMI <45
+  INFLATION:   +1.0 = CPI at/converging to target | 0.0 = CPI 50–100bp from target | -1.0 = EITHER hyperinflation (>15%) OR deflation (<-0.5%) — both extremes are negative for markets
+  MONETARY:    +1.0 = easing into positive real rates | 0.0 = holding with stable real rates | -1.0 = tightening into recession OR deeply negative real rates
+  FX:          +1.0 = large CA surplus + inflows + undervalued | 0.0 = balanced | -1.0 = CA deficit + outflows + overvalued
+  GEOPOLITICAL:+1.0 = stable government, no sanctions, low risk | 0.0 = moderate uncertainty | -1.0 = active conflict, sanctions, or credible political crisis
+  MARKET:      +1.0 = ${meta.index} bull trend, tight credit, strong inflows | 0.0 = sideways, neutral | -1.0 = bear market, widening spreads, outflows
 
 1. GROWTH: GDP trajectory, PMI trend, industrial output, consumer demand for ${meta.name}
-2. INFLATION: CPI path, core vs headline gap, whether inflation is converging to target
+2. INFLATION: CPI path, core vs headline gap — note: deflation AND hyperinflation both score negatively for different reasons
 3. MONETARY POLICY: Rate direction from ${meta.name}'s central bank, real rate level, forward guidance credibility
 4. FX: ${meta.currency} current account dynamics, capital flows, ${meta.currency}/USD valuation
 5. GEOPOLITICAL: Government stability, regional risk exposure, sanctions/trade war risk
@@ -5004,19 +5060,42 @@ STEP 2 — COMPOSITE SCORE
 score = (growth×0.25) + (inflation×0.20) + (monetary×0.25) + (fx×0.15) + (geopolitical×0.10) + (market×0.05)
 Round to 2 decimal places. Clamp to [-1.0, +1.0].
 
-STEP 3 — CONFIDENCE & BOUNDS
-Set confidence: High (clear live data), Medium (mixed signals), Low (limited data).
-Set score_low and score_high: plausible range around score (±0.10 High, ±0.20 Medium, ±0.30 Low). Clamp to [-1.0, +1.0].
+STEP 3 — CONFIDENCE (reflects DATA CERTAINTY, not score certainty)
+  High   = live searched data available AND no major data gaps across factors
+  Medium = partial data or mixed signals making some factors hard to pin down
+  Low    = significant data gaps, contradictory signals, or country with limited public data
+Set score_low and score_high to reflect data uncertainty:
+  High: ±0.10 | Medium: ±0.20 | Low: ±0.30. Clamp to [-1.0, +1.0].
+
+STEP 4 — ARITHMETIC VERIFICATION (before writing JSON)
+Recompute: (growth×0.25)+(inflation×0.20)+(monetary×0.25)+(fx×0.15)+(geopolitical×0.10)+(market×0.05).
+If this differs from your intended score by more than ±0.02, correct the score field to match the factor-derived value. The factors are the primary evidence; the score must be mathematically consistent with them.
 ${jsonSchema}`;
 
   // ── STANDARD PROMPT (Gemini / free tier) ─────────────────────────────────
   const prompt = `Today is ${today}. You are a senior macro strategist at a top-tier investment bank conducting a structured sentiment assessment for ${meta.name} (${meta.region}).
 ${econBlock}${newsBlock}
-STEP 1 — FACTOR SCORING
-Score each dimension from -1.0 (very negative) to +1.0 (very positive) based on the latest available data:
+STEP 0 — DATA REVIEW (internal scratchpad — do NOT include this in your JSON output)
+Before scoring, identify the single most important data point for each factor from the snapshot and headlines above, plus your training knowledge of recent developments. State each as one short phrase. Do not assign scores yet.
+• Growth evidence: [one key fact about GDP, PMI, or output]
+• Inflation evidence: [one key fact about CPI, core inflation, or price pressures]
+• Monetary evidence: [one key fact about rate decisions or central bank guidance]
+• FX evidence: [one key fact about currency, current account, or capital flows]
+• Geopolitical evidence: [one key fact about political or trade risk]
+• Market evidence: [one key fact about equity trend or credit spreads]
+
+STEP 1 — FACTOR SCORING (use ONLY evidence from STEP 0)
+Score each dimension from -1.0 (very negative) to +1.0 (very positive).
+Calibration anchors — use these reference points to anchor your scores:
+  GROWTH:      +1.0 = GDP >4% & PMI >55 | 0.0 = GDP ~0–1% & PMI ~50 | -1.0 = GDP contraction & PMI <45
+  INFLATION:   +1.0 = CPI at/converging to target | 0.0 = CPI 50–100bp from target | -1.0 = EITHER hyperinflation (>15%) OR deflation (<-0.5%) — both extremes are negative for markets
+  MONETARY:    +1.0 = easing into positive real rates | 0.0 = holding with stable real rates | -1.0 = tightening into recession OR deeply negative real rates
+  FX:          +1.0 = large CA surplus + inflows + undervalued | 0.0 = balanced | -1.0 = CA deficit + outflows + overvalued
+  GEOPOLITICAL:+1.0 = stable government, no sanctions, low risk | 0.0 = moderate uncertainty | -1.0 = active conflict, sanctions, or credible political crisis
+  MARKET:      +1.0 = ${meta.index} bull trend, tight credit, strong inflows | 0.0 = sideways, neutral | -1.0 = bear market, widening spreads, outflows
 
 1. GROWTH: GDP trajectory, PMI trend, industrial output, consumer demand for ${meta.name}
-2. INFLATION: CPI path, core vs headline gap, whether inflation is converging to target
+2. INFLATION: CPI path, core vs headline gap — note: deflation AND hyperinflation both score negatively for different reasons
 3. MONETARY POLICY: Rate direction from ${meta.name}'s central bank, real rate level, forward guidance credibility
 4. FX: ${meta.currency} current account dynamics, capital flows, ${meta.currency}/USD valuation
 5. GEOPOLITICAL: Government stability, regional risk exposure, sanctions/trade war risk
@@ -5026,9 +5105,62 @@ STEP 2 — COMPOSITE SCORE
 score = (growth×0.25) + (inflation×0.20) + (monetary×0.25) + (fx×0.15) + (geopolitical×0.10) + (market×0.05)
 Round to 2 decimal places. Clamp to [-1.0, +1.0].
 
-STEP 3 — CONFIDENCE & BOUNDS
-Assess data certainty. Assign confidence: High (clear directional data), Medium (mixed signals), Low (limited/uncertain data).
-Set score_low and score_high as a plausible range around the score (e.g. ±0.10 for High, ±0.20 for Medium, ±0.30 for Low). Clamp to [-1.0, +1.0].
+STEP 3 — CONFIDENCE (reflects DATA CERTAINTY, not score certainty)
+  High   = verified economic snapshot present AND no major data gaps across factors
+  Medium = partial data or mixed signals making some factors hard to pin down
+  Low    = no snapshot injected OR significant data gaps / contradictory signals
+Set score_low and score_high to reflect data uncertainty:
+  High: ±0.10 | Medium: ±0.20 | Low: ±0.30. Clamp to [-1.0, +1.0].
+
+STEP 4 — ARITHMETIC VERIFICATION (before writing JSON)
+Recompute: (growth×0.25)+(inflation×0.20)+(monetary×0.25)+(fx×0.15)+(geopolitical×0.10)+(market×0.05).
+If this differs from your intended score by more than ±0.02, correct the score field to match the factor-derived value. The factors are the primary evidence; the score must be mathematically consistent with them.
+${jsonSchema}`;
+
+  // ── CALL-B PROMPT: contrarian stress-test framing for HIGH_STAKES diversity ─
+  // Same data context and factor framework as `prompt`, but reframed to actively
+  // surface downside risks the consensus view may have discounted. Averaging a
+  // neutral/bullish assessment (Call A) with a stress-tested one (Call B) produces
+  // genuine cross-perspective variance rather than just temperature noise.
+  const promptB = `Today is ${today}. You are a risk analyst stress-testing the macro outlook for ${meta.name} (${meta.region}). Your task: assume the current market consensus may be too complacent and identify where it could be wrong.
+${econBlock}${newsBlock}
+STEP 0 — DOWNSIDE DATA REVIEW (internal scratchpad — do NOT include in JSON)
+For each factor, identify the most concerning data point or risk that the consensus may be underweighting. Be rigorous, not gratuitously bearish — only flag genuine risks supported by evidence.
+• Growth concern: [lagging indicator, revision risk, or structural drag]
+• Inflation concern: [stickiness, second-round effect, or deflation trap]
+• Monetary concern: [policy mistake risk, credibility gap, or tightening lag]
+• FX concern: [external vulnerability, currency risk, or capital flight risk]
+• Geopolitical concern: [tail risk, escalation potential, or contagion]
+• Market concern: [valuation stretch, liquidity risk, or sentiment reversal]
+
+STEP 1 — FACTOR SCORING (use evidence from STEP 0; apply downside scrutiny)
+Score each factor from -1.0 (very negative) to +1.0 (very positive) using the same calibration anchors:
+  GROWTH:      +1.0 = GDP >4% & PMI >55 | 0.0 = GDP ~0–1% & PMI ~50 | -1.0 = contraction & PMI <45
+  INFLATION:   +1.0 = converging to target | 0.0 = 50–100bp from target | -1.0 = hyperinflation OR deflation
+  MONETARY:    +1.0 = easing into positive real rates | 0.0 = stable real rates | -1.0 = tightening into recession
+  FX:          +1.0 = CA surplus + inflows | 0.0 = balanced | -1.0 = CA deficit + outflows + overvalued
+  GEOPOLITICAL:+1.0 = stable, no sanctions | 0.0 = moderate uncertainty | -1.0 = conflict or credible crisis
+  MARKET:      +1.0 = bull trend, tight credit | 0.0 = sideways | -1.0 = bear market, widening spreads
+
+1. GROWTH: GDP trajectory, PMI trend, industrial output, consumer demand
+2. INFLATION: CPI path — deflation AND hyperinflation both score negatively
+3. MONETARY POLICY: Rate direction, real rate level, forward guidance credibility
+4. FX: ${meta.currency} current account, capital flows, ${meta.currency}/USD valuation
+5. GEOPOLITICAL: Government stability, regional risk, sanctions/trade war risk
+6. MARKET MOMENTUM: ${meta.index} trend, credit spreads, investor risk appetite
+
+STEP 2 — COMPOSITE SCORE
+score = (growth×0.25) + (inflation×0.20) + (monetary×0.25) + (fx×0.15) + (geopolitical×0.10) + (market×0.05)
+Round to 2 decimal places. Clamp to [-1.0, +1.0].
+
+STEP 3 — CONFIDENCE (reflects DATA CERTAINTY)
+  High = verified snapshot present AND factors are clearly directional
+  Medium = partial data or genuine ambiguity in at least 2 factors
+  Low = significant data gaps or highly contradictory signals
+Set score_low and score_high: High ±0.10 | Medium ±0.20 | Low ±0.30. Clamp to [-1.0, +1.0].
+
+STEP 4 — ARITHMETIC VERIFICATION
+Recompute (growth×0.25)+(inflation×0.20)+(monetary×0.25)+(fx×0.15)+(geopolitical×0.10)+(market×0.05). Correct score if it differs from factor-derived value by more than ±0.02.
 ${jsonSchema}`;
 
   // Countries where double-call self-consistency is worth the extra request
@@ -5055,8 +5187,8 @@ ${jsonSchema}`;
       const searchResult = validateSentimentResult(repairAndParseJSON(searchText));
 
       if (HIGH_STAKES.has(key)) {
-        // Average with a second standard call for variance reduction
-        const rawB = await callLLM(sysPrompt, prompt, 1800, 0.2);
+        // Average with a contrarian stress-test call (promptB) for genuine variance
+        const rawB = await callLLM(sysPrompt, promptB, 1800, 0.35);
         const b = validateSentimentResult(repairAndParseJSON(rawB));
         const avgScore = Math.round(((searchResult.score + b.score) / 2) * 100) / 100;
         result = {
@@ -5079,10 +5211,13 @@ ${jsonSchema}`;
       }
 
     } else if (provider && HIGH_STAKES.has(key)) {
-      // ── GEMINI PATH, HIGH-STAKES: self-consistency averaging ─────────────
+      // ── GEMINI PATH, HIGH-STAKES: consensus + contrarian averaging ────────
+      // Call A (temp=0.2) uses the standard neutral-framing prompt.
+      // Call B (temp=0.35) uses promptB — the contrarian stress-test framing.
+      // Averaging these produces genuine perspective variance, not just noise.
       const [rawA, rawB] = await Promise.all([
         callLLM(sysPrompt, prompt, 1800, 0.2),
-        callLLM(sysPrompt, prompt, 1800, 0.3)
+        callLLM(sysPrompt, promptB, 1800, 0.35)
       ]);
       const a = validateSentimentResult(repairAndParseJSON(rawA));
       const b = validateSentimentResult(repairAndParseJSON(rawB));
@@ -5322,7 +5457,7 @@ function renderNewsArticles(articles, label, list, key) {
         <span class="ni-src">${a.source}</span>
         <span class="ni-time">${a.time}</span>
       </div>
-      <div class="ni-title"><a href="${a.url}" target="_blank">${a.title}</a></div>
+      <div class="ni-title"><a href="https://www.google.com/search?q=${encodeURIComponent(a.title + ' ' + (a.source || ''))}" target="_blank" rel="noopener">${a.title}</a></div>
       <div class="ni-sum">${a.summary}</div>
       <button class="expand-btn" data-ni="${idx}">▸ DETAILS</button>
       <div class="expand-body" id="ni-exp-${idx}"></div>
@@ -5334,7 +5469,7 @@ function renderNewsArticles(articles, label, list, key) {
     const bodyEl = document.getElementById(`ni-exp-${idx}`);
     btn.addEventListener('click', () => {
       const cKey   = `news|${a.title}`;
-      const prompt = `Analyse the macro market implications of this news headline: "${a.title}". Context: ${a.summary}. Country context: ${countryName}. Discuss: (1) which asset classes or currencies are most affected, (2) short-term market reaction likely, (3) key risk to watch. Be specific and concise.`;
+      const prompt = `You are a macro trader at a global macro hedge fund. Headline just crossed: "${a.title}". Context: ${a.summary}. Country: ${countryName}. Analyse market implications in 4 points: (1) IMMEDIATE IMPACT: which specific assets move first (equities, bonds, currency, credit spreads) and direction — give approximate magnitude; (2) 48-HOUR POSITIONING: how will institutional desks reposition — crowded trades unwound, what gets added; (3) CROSS-ASSET CONTAGION: secondary effects on correlated markets (regional peers, risk-on/off, commodities, USD); (4) KEY LEVEL TO WATCH: one specific technical or fundamental level whose breach confirms or invalidates the thesis. Use price/yield/spread terms. Avoid vague phrases. Max 180 words.`;
       toggleExpand(btn, bodyEl, cKey, prompt);
     });
   });
@@ -5367,10 +5502,9 @@ async function loadNews(key) {
   const topics = cached?.news_topics?.join(', ') || (meta?.name + ' economy');
 
   const countryName = meta?.name || 'this country';
-  const prompt = `4 specific financial news headlines for ${countryName} on: ${topics}.
-
-JSON array of 4: [{"title":"≤15 words, cite real institutions/numbers","source":"real outlet","time":"1h ago|2h ago|3h ago|6h ago|12h ago","impact":"HIGH|MEDIUM|LOW","summary":"1 sentence market implication, ≤20 words","url":"plausible source URL"}]
-No markdown. Mention ${countryName}'s central bank or currency in headlines.`;
+  const prompt = `Today is ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}. Generate 4 market-moving financial news headlines for ${countryName} covering: ${topics}. Each must include a specific number or institution. Prioritise: CB rate decisions (exact bps), CPI/GDP vs consensus, fiscal/political risk, trade/sanctions.
+JSON array of 4: [{"title":"≤18 words with specific figure or institution","source":"real outlet (Reuters, Bloomberg, FT, WSJ, Nikkei, Caixin)","time":"1h ago|2h ago|3h ago|6h ago|12h ago","impact":"HIGH|MEDIUM|LOW","summary":"affected asset and direction, ≤25 words","asset_impact":"primary instrument e.g. EUR/USD, FTSE 100 — max 5 words"}]
+No markdown. No url field.`;
 
   try {
     let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', prompt, 1200);
@@ -5405,10 +5539,9 @@ async function loadNewsBackground(key, meta) {
   _newsInFlight.add(key);
   const countryName = meta?.name || 'this country';
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const bgPrompt = `Today is ${today}. List 4 specific recent financial news headlines for ${countryName}. Focus on macro events: central bank decisions, GDP/inflation data, major political or fiscal news.
-
-JSON array of 4: [{"title":"≤15 words","source":"real outlet","time":"Xh ago","impact":"HIGH|MEDIUM|LOW","summary":"1 sentence market implication ≤20 words","url":"plausible source URL"}]
-No markdown.`;
+  const bgPrompt = `Today is ${today}. Generate 4 data-rich financial news headlines for ${countryName}. Each must include a specific number, institution name, or named policy action. Focus on: CB rate decisions (exact bps), CPI/GDP vs consensus, political/fiscal developments, trade/geopolitical events.
+JSON array of 4: [{"title":"≤18 words with specific figure or institution","source":"real financial outlet","time":"Xh ago","impact":"HIGH|MEDIUM|LOW","summary":"affected market instrument and expected direction, ≤25 words"}]
+No markdown. No url field.`;
   try {
     let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', bgPrompt, 1200);
     const arrStart = raw.indexOf('['), arrEnd = raw.lastIndexOf(']');
@@ -5648,21 +5781,25 @@ function closeStockDetail() {
 async function fetchStockAnalysis(stock, cacheKey) {
   const meta = currentCountryMeta || {};
   const priceStr = isFinite(stock.price) ? `${stock.price} ${meta.currency || ''}` : 'unknown';
-  const prompt = `You are a senior equity analyst. Provide a complete fundamental and technical analysis for ${stock.name} (${stock.ticker}), listed on ${meta.index || 'local exchange'} in ${meta.name || 'this country'}. Sector: ${stock.sector || 'unknown'}. Current price: ${priceStr}. Market cap: ${stock.mcap || 'unknown'}.
+  const prompt = `You are a senior equity analyst at a top-tier global investment bank. Produce a rigorous, actionable investment analysis for ${stock.name} (${stock.ticker}), listed on ${meta.index || 'local exchange'} in ${meta.name || 'this country'}. Sector: ${stock.sector || 'unknown'}. Current price: ${priceStr}. Market cap: ${stock.mcap || 'unknown'}. Reflect current earnings, guidance, analyst revisions, and macro regime (${meta.name} rates/FX/growth cycle). Be specific — cite actual ratios, levels, and dated catalysts.
 
-Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas. Use these exact field names with your actual assessment:
+Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
 
-recommendation: string, must be one of Buy, Hold, Sell
-target_price: number, your 12-month price target in ${meta.currency || 'local currency'}
-upside_pct: number, percentage upside (negative for downside)
-time_horizon: string, e.g. "12 months"
-confidence: string, must be one of High, Medium, Low
-overview: string, one sentence describing ${stock.name}'s business, max 25 words
-fundamentals: object with keys pe_ratio (number), pb_ratio (number), ev_ebitda (number), revenue_growth (string with %), net_margin (string with %), roe (string with %), debt_equity (string), dividend_yield (string with %)
-technicals: object with keys trend (Uptrend/Downtrend/Sideways), rsi (number 0-100), macd (Bullish/Bearish/Neutral), ma50 (Above/Below), ma200 (Above/Below), support (number), resistance (number), momentum (Positive/Neutral/Negative)
-catalysts: array of 3 strings, each a specific near-term catalyst for ${stock.ticker}, max 10 words each
-risks: array of 3 strings, each a specific risk for ${stock.ticker}, max 10 words each
-analysis: string, 2-sentence investment thesis for ${stock.ticker}, max 40 words`;
+recommendation: "Buy" | "Hold" | "Sell" — based on risk/reward
+target_price: number, 12-month price target in ${meta.currency || 'local currency'}
+upside_pct: number, % upside/downside to target
+time_horizon: "12 months"
+confidence: "High" | "Medium" | "Low"
+overview: one sentence on ${stock.name}'s business model and competitive moat, max 25 words
+valuation_method: primary method (DCF, EV/EBITDA, P/E relative, P/B, Sum-of-parts), max 10 words
+fundamentals: {pe_ratio (forward P/E), pb_ratio, ev_ebitda, revenue_growth (%), net_margin (%), roe (%), debt_equity, dividend_yield (%), fcf_yield (%)}
+peer_comparison: vs 2 closest peers — premium/discount and why, max 25 words
+technicals: {trend ("Uptrend"|"Downtrend"|"Sideways"), rsi (0-100), macd ("Bullish"|"Bearish"|"Neutral"), ma50 ("Above"|"Below"), ma200 ("Above"|"Below"), support, resistance, momentum ("Positive"|"Neutral"|"Negative"), volume_trend ("Accumulation"|"Distribution"|"Neutral")}
+catalysts: 3 specific dated catalysts (earnings, product launch, regulatory, macro event) — max 12 words each with timeframe
+risks: 3 quantified risks with magnitude (e.g. "tariff escalation compresses margin 150-200bps") — max 15 words each
+positioning: overcrowded, short squeeze candidate, under-owned, or neutral — max 20 words
+trade_setup: {entry (specific level or condition), stop (invalidation level), target (specific level), risk_reward (e.g. "1:2.8"), holding_period}
+analysis: 3-sentence thesis: (1) fundamental case, (2) differentiated insight vs consensus, (3) main risk — max 60 words`;
 
   try {
     let raw = await callLLM(
@@ -6111,10 +6248,10 @@ async function loadAuthorityPubs(key) {
 
   const authInfo = getAuthorityInfo(meta);
   const baseUrl = AUTHORITY_URLS[meta._id || ''] || '#';
-  const prompt = `3 recent publications from ${authInfo.authority} (${meta.name}).
+  const prompt = `Synthesise 3 representative publications from ${authInfo.authority} (${meta.name}) based on their known focus. AI-synthesized — do not assert as verbatim. Focus on market-moving: rate decisions, inflation reports, financial stability reviews, monetary policy minutes, regulatory guidance.
 
-JSON array of 3: [{"type":"Policy Statement|Economic Report|Speech|Press Release|Regulatory Notice","title":"≤15 words, ${meta.name}-specific","date":"Month YYYY","summary":"2 sentences, key findings, ≤40 words","impact":"HIGH|MEDIUM|LOW","url":"${baseUrl}/plausible-path"}]
-No markdown.`;
+JSON array of 3: [{"type":"Policy Statement|Economic Report|Speech|Press Release|Regulatory Notice|Working Paper","title":"≤18 words — ${meta.name} theme with policy angle","date":"Month YYYY","summary":"2 sentences: (1) policy message, (2) implication for local rates/FX/equities — ≤45 words","impact":"HIGH|MEDIUM|LOW","market_signal":"rate path or asset signal, max 8 words"}]
+No markdown. No url field.`;
 
   try {
     let raw = await callLLM('Output only a raw JSON array. No markdown. No code fences. No trailing commas.', prompt, 1000);
@@ -6140,7 +6277,7 @@ function renderAuthorityPubs({ pubs, authority, baseUrl }, label) {
   const typeClass = { 'Policy Statement':'policy', 'Economic Report':'report', 'Speech':'speech', 'Press Release':'release', 'Regulatory Notice':'release' };
   list.innerHTML = pubs.map(p => {
     const cls = typeClass[p.type] || 'release';
-    const href = p.url || baseUrl || '#';
+    const href = baseUrl || '#';
     return `
       <div class="auth-item">
         <div class="auth-top">
@@ -6427,19 +6564,29 @@ async function loadSocialSentiment() {
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const prompt = `Today is ${today}. You are a market sentiment analyst. Based on your training knowledge, estimate the likely social media investor sentiment about "${target}" as of ${today}.${socialFilter.trim() ? ` Focus especially on discussions about: ${socialFilter.trim()}.` : ''}
 
-Important: You do not have live social data. Provide calibrated estimates based on known market conditions, recent developments, and typical retail investor behaviour patterns for ${target}. Do not fabricate specific post counts — use qualitative ranges (e.g. "High", "Moderate", "Low" for volume).
+Epistemic constraint: You do not have live social data. All outputs are calibrated estimates — treat them as directional indicators, not precise measurements. Do not fabricate specific post counts — use qualitative ranges only.
 
-Reason through: (1) what the macro/fundamental backdrop for ${target} is right now, (2) how retail investors typically react to this backdrop, (3) which platforms would most likely have active discussion.
+Calibration method — reason through in order before scoring:
+1. What is the macro/fundamental backdrop for "${target}" right now? (bullish/bearish/mixed)
+2. How far is the situation from consensus expectation? (Surprise = higher social volume)
+3. How does retail sentiment typically lag or lead fundamentals for this asset/market?
+
+fear_greed calibration anchors:
+  80–100 = extreme greed (late-cycle melt-up, FOMO, meme-stock dynamics)
+  60–79  = greed (positive momentum, most investors constructive)
+  40–59  = neutral (mixed signals, wait-and-see)
+  20–39  = fear (downside concerns, defensive positioning)
+  0–19   = extreme fear (panic, capitulation signals)
 
 Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
 
-overall: object with bull_pct (integer 0-100), neut_pct (integer 0-100), bear_pct (integer 0-100, all three sum to 100), volume (string: "High" | "Moderate" | "Low"), trend (string: Rising | Stable | Falling)
-platforms: array of 4 objects — name (Twitter/X, Reddit, StockTwits, Seeking Alpha), bull_pct (integer 0-100), top_sentiment (Bullish|Neutral|Bearish), activity (string: High|Moderate|Low)
-trending: array of 5 objects — ticker (string), name (string), sentiment (Bullish|Neutral|Bearish), driver (string: 1 phrase explaining why this is trending, max 8 words)
-topics: array of 5 objects — tag (string), type (Bullish|Bearish|Neutral|Breaking), relevance (string: brief reason this topic is relevant now, max 8 words)
-fear_greed: integer 0-100 (0=extreme fear, 100=extreme greed), calibrated to current macro environment
-mood_summary: string, 1-sentence reasoned summary of current retail sentiment, max 20 words
-data_note: string, brief honest note about the basis for these estimates, max 15 words`;
+overall: object with bull_pct (integer 0-100), neut_pct (integer 0-100), bear_pct (integer 0-100, all three sum to 100), volume ("High"|"Moderate"|"Low"), trend ("Rising"|"Stable"|"Falling")
+platforms: array of 4 objects — name (Twitter/X, Reddit, StockTwits, Seeking Alpha), bull_pct (integer 0-100), top_sentiment ("Bullish"|"Neutral"|"Bearish"), activity ("High"|"Moderate"|"Low")
+trending: array of 5 objects — ticker (string), name (string), sentiment ("Bullish"|"Neutral"|"Bearish"), driver (string: 1 phrase, max 8 words)
+topics: array of 5 objects — tag (string), type ("Bullish"|"Bearish"|"Neutral"|"Breaking"), relevance (string: max 8 words)
+fear_greed: integer 0-100 calibrated using the anchors above
+mood_summary: string, 1-sentence directional summary, max 20 words
+data_note: "Calibrated estimate — no live social data. Treat as directional indicator only."`;
 
   try {
     const raw = await callLLM('You are a market sentiment analyst. Output only a raw JSON object. No markdown.', prompt, 1400, 0.3);
@@ -6553,7 +6700,7 @@ function renderSocialSentiment(d) {
     const bodyEl = document.getElementById(`soc-tr-${i}`);
     btn.addEventListener('click', () => {
       const cKey = `soc-tr|${ticker}|${socScope}`;
-      const prompt = `Analyse current social media and investor sentiment for ${name} (${ticker}) in the context of ${socScope}. Cover: (1) why retail investors are talking about it right now, (2) key catalysts or concerns driving the sentiment, (3) whether the social buzz aligns with fundamental outlook. Be specific.`;
+      const prompt = `You are a market microstructure and sentiment analyst. Analyse the investor sentiment landscape for ${name} (${ticker}) in the context of ${socScope}. Cover 4 points: (1) SOCIAL NARRATIVE: dominant retail thesis and why this name is trending now — specific reason (earnings, short squeeze, macro catalyst); (2) SMART MONEY VS RETAIL: institutional vs retail positioning, crowding risk, short interest, unusual options flow; (3) FUNDAMENTAL ALIGNMENT: is sentiment supported or contradicted by fundamentals? Name the key metric or event that validates or invalidates the narrative; (4) TACTICAL IMPLICATION: momentum trade, fade, or washout risk? Include a specific level or catalyst. Direct, professional, specific. Max 200 words.`;
       toggleExpand(btn, bodyEl, cKey, prompt);
     });
   });
@@ -6566,7 +6713,7 @@ function renderSocialSentiment(d) {
     const bodyEl = document.getElementById(`soc-tp-${i}`);
     btn.addEventListener('click', () => {
       const cKey = `soc-tp|${tag}|${socScope}`;
-      const prompt = `Analyse the macro significance of the trending topic "${tag}" (sentiment: ${type}) in the context of ${socScope}. Cover: (1) what is driving this topic right now, (2) which assets, sectors, or currencies are most affected, (3) what investors should watch next. Be concise and specific.`;
+      const prompt = `You are a macro strategist at a global macro fund. Analyse the investment significance of the trending topic "${tag}" (community sentiment: ${type}) in the context of ${socScope}. Cover 4 points: (1) CURRENT DRIVER: precise catalyst making this topic prominent — specific events, data prints, or policy decisions, not generic factors; (2) ASSET IMPACT MAP: 3 specific instruments most affected — direction (long/short/spread) and approximate move magnitude; (3) POSITIONING LANDSCAPE: is this already priced or under-appreciated? Where is the positioning asymmetry? (4) WHAT TO WATCH: one specific data release, event, or price level in next 2-4 weeks that confirms or dismisses this theme. Precise and actionable. Max 200 words.`;
       toggleExpand(btn, bodyEl, cKey, prompt);
     });
   });
@@ -6632,10 +6779,10 @@ function initCountrySelector() {
 // DEEP ANALYSIS OVERLAY
 const DEEP_TAB_PROMPTS = {
   overview: m => `Provide a comprehensive macroeconomic overview of ${m.name} (${m.region}). Cover: economic structure, GDP size and growth drivers, major sectors, trade relationships, demographic profile, and geopolitical positioning. Also include recent economic trajectory and how it fits into the global macro landscape.`,
-  economy:  m => `Analyse the current macroeconomy of ${m.name} in depth. Cover: GDP growth rate and forecast, inflation dynamics and central bank (${(AUTHORITY_INFO[m._id||'']?.authority||'').split('&')[0].trim()}) policy stance, fiscal position (deficit/surplus, debt-to-GDP), trade balance and key exports/imports, unemployment, wage growth, structural challenges, and forward-looking economic assessment.`,
+  economy:  m => `Analyse the current macroeconomy of ${m.name} in depth. Use the VERIFIED MACRO SNAPSHOT injected above as your quantitative baseline — cite those specific GDP/CPI/rate figures and explain any deviations from your knowledge of post-vintage developments. Cover: GDP growth rate and forecast, inflation dynamics and central bank (${(AUTHORITY_INFO[m._id||'']?.authority||'').split('&')[0].trim()}) policy stance, fiscal position (deficit/surplus, debt-to-GDP), trade balance and key exports/imports, unemployment, wage growth, structural challenges, and forward-looking economic assessment.`,
   markets:  m => `Provide detailed capital markets analysis for ${m.name}. Cover: ${m.index} equity market performance and valuation (P/E, forward multiples), sector rotation trends, ${m.currency} FX dynamics and key drivers, bond market/yield curve shape, foreign portfolio investment flows, top listed companies and their weight, and overall market liquidity and accessibility.`,
   risks:    m => `Identify and deeply analyse the top macro risks for ${m.name}. Assess: political and geopolitical risks, financial stability (banking system, credit cycle, currency risk), external vulnerabilities (trade shocks, commodity exposure), structural risks (demographics, debt levels), climate/energy transition risks, and contagion risk from global stress. For each risk assess probability and market impact.`,
-  outlook:  m => `Provide a 12-month forward-looking macro outlook for ${m.name}. Include: GDP growth forecast with key upside/downside scenarios, inflation trajectory and expected rate path from ${(AUTHORITY_INFO[m._id||'']?.authority||'').split('&')[0].trim()}, ${m.currency} currency outlook vs USD and EUR, ${m.index} equity market outlook with target range, key upcoming catalysts (elections, central bank meetings, data releases), and overall investment recommendation.`,
+  outlook:  m => `Provide a 12-month forward-looking macro outlook for ${m.name}. Your forecast must be consistent with the CURRENT AI ASSESSMENT (score/regime/rate_outlook) injected above — if you disagree with that assessment, explicitly explain why with specific evidence. Include: GDP growth forecast with key upside/downside scenarios, inflation trajectory and expected rate path from ${(AUTHORITY_INFO[m._id||'']?.authority||'').split('&')[0].trim()}, ${m.currency} currency outlook vs USD and EUR, ${m.index} equity market outlook with target range, key upcoming catalysts (elections, central bank meetings, data releases), and overall investment recommendation.`,
 };
 
 function openDeepAnalysis() {
@@ -6708,7 +6855,22 @@ async function loadDeepSection(tab, background = false) {
 
   const deepToday = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const sysPrompt = 'Senior macro strategist. Respond with JSON only — no markdown, no code fences.';
-  const userPrompt = `Today is ${deepToday}.\n${getPrompt(currentCountryMeta)}
+
+  // ── MACRO_CONTEXT + cached regime injection for deep tabs ─────────────────
+  // Ground Economy/Outlook tabs in the same verified snapshot as the main panel.
+  const deepIsoId = (currentCountryMeta._id || '').padStart(3, '0');
+  const deepEcon  = MACRO_CONTEXT[deepIsoId];
+  const deepEconBlock = deepEcon
+    ? `\nVERIFIED MACRO SNAPSHOT (${DATA_VINTAGE}): GDP ${deepEcon.gdp}% | CPI ${deepEcon.cpi}% | Rate ${deepEcon.rate}% | Unemp ${deepEcon.unemp}% | CA ${deepEcon.ca}% | PMI ${deepEcon.pmi}\nKey context: ${deepEcon.note}\nApply your knowledge of post-${DATA_VINTAGE} developments to update these figures where relevant.\n`
+    : '';
+  // Inject the already-computed sentiment result (if available) for continuity
+  const deepCachedSentiment = cache[activeId];
+  const deepRegimeBlock = deepCachedSentiment
+    ? `\nCURRENT AI ASSESSMENT: score ${deepCachedSentiment.score >= 0 ? '+' : ''}${deepCachedSentiment.score} (${deepCachedSentiment.sentiment}), regime: ${deepCachedSentiment.regime || '—'}, rate outlook: ${deepCachedSentiment.rate_outlook || '—'}, key risk: "${deepCachedSentiment.key_risk || '—'}". Align your analysis with this assessment, or explicitly explain where you disagree and why.\n`
+    : '';
+
+  const userPrompt = `Today is ${deepToday}.${deepEconBlock}${deepRegimeBlock}
+${getPrompt(currentCountryMeta)}
 
 JSON only: {"title":"string","keyStats":[{"label":"METRIC","value":"string"}],"content":"paragraphs separated by \\n\\n"}
 keyStats: 5-6 items. content: 4-5 paragraphs.`;
@@ -6791,7 +6953,11 @@ Respond with ONLY a raw JSON object. No markdown, no code fences:
   "gdp":       [20 numbers: real GDP growth YoY % — can be negative, reflect COVID crash in 2020],
   "inflation": [20 numbers: CPI YoY % consumer price inflation],
   "rate":      [20 numbers: central bank policy rate % e.g. 4.5],
-  "fx":        [20 numbers: ${meta.currency}/USD rate — units of ${meta.currency} per 1 USD; if ${meta.currency} is USD use the DXY index level]
+  "fx":        [20 numbers: FX rate in MARKET CONVENTION for ${meta.currency}:
+    • If ${meta.currency} is EUR, GBP, AUD, NZD, or CHF → USD per 1 ${meta.currency} (e.g. EUR/USD ~1.10, GBP/USD ~1.25)
+    • If ${meta.currency} is JPY, CNY, INR, KRW, BRL, MXN, TRY, or any other currency → ${meta.currency} per 1 USD (e.g. USD/JPY ~150)
+    • If ${meta.currency} is USD → DXY index level (e.g. 100–106 range)],
+  "fx_convention": "EURUSD or GBPUSD or AUDUSD or NZDUSD or CHFUSD or USDJPY or USDCNY or USDINR or etc. or DXY"
 }
 
 Use approximate real historical values for ${meta.name}. Reflect actual cycles: COVID-19 recession Q2 2020, recovery 2021, inflation surge 2021-2022, rate hike cycles 2022-2023, disinflation 2023-2024.`;
@@ -6854,11 +7020,16 @@ function drawHistoryLine(data) {
   const iH = H - margin.top - margin.bottom;
 
   const quarters = data.quarters || [];
+  // Use fx_convention from data (if available) to label the FX axis correctly
+  const fxConvention = data.fx_convention || '';
+  const fxLabel = fxConvention
+    ? fxConvention.replace(/^(EUR|GBP|AUD|NZD|CHF)USD$/i, '$1/USD').replace(/^USD(.+)$/i, 'USD/$1').replace(/^DXY$/i, 'DXY Index') || 'FX vs USD'
+    : 'FX vs USD';
   const SERIES = {
     gdp:       { label:'GDP Growth %',  color:'#10B981', unit:'%' },
     inflation: { label:'CPI Inflation', color:'#F59E0B', unit:'%' },
     rate:      { label:'Policy Rate',   color:'#22D3EE', unit:'%' },
-    fx:        { label:'FX vs USD',     color:'#60A5FA', unit:''  },
+    fx:        { label: fxLabel,        color:'#60A5FA', unit:''  },
   };
   const active = SERIES[historyMetric];
   if (!active) return;
@@ -7080,11 +7251,44 @@ async function addWatchlistItem(rawInput) {
 async function fetchWatchlistSentiment(item, noRender = false) {
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
+  // ── MACRO_CONTEXT lookup for watchlist country items ──────────────────────
+  // Try item.key (e.g. '840', 'c840') then fall back to META name-match.
+  // This grounds watchlist country scores in the same verified snapshot as the
+  // main panel, preventing contradictions between panel and watchlist scores.
+  let econBlockWl = '';
+  if (item.type === 'country') {
+    const stripped = (item.key || '').replace(/^c/, '').padStart(3, '0');
+    let isoIdWl = MACRO_CONTEXT[stripped] ? stripped : null;
+    if (!isoIdWl) {
+      // Fallback: search META by name
+      const nameMatch = Object.entries(META).find(([, m]) =>
+        m.name.toLowerCase() === (item.name || '').toLowerCase()
+      );
+      if (nameMatch) {
+        const candidate = nameMatch[0].padStart(3, '0');
+        if (MACRO_CONTEXT[candidate]) isoIdWl = candidate;
+      }
+    }
+    const econWl = isoIdWl ? MACRO_CONTEXT[isoIdWl] : null;
+    if (econWl) {
+      econBlockWl = `\nVERIFIED SNAPSHOT (${DATA_VINTAGE}): GDP ${econWl.gdp}% | CPI ${econWl.cpi}% | Rate ${econWl.rate}% | Unemp ${econWl.unemp}% | CA ${econWl.ca}% | PMI ${econWl.pmi}\nContext: ${econWl.note}\nApply your knowledge of developments since ${DATA_VINTAGE}.\n`;
+    }
+  }
+
   const prompt = item.type === 'country'
     ? `Today is ${today}. You are a senior macro strategist. Assess the current macroeconomic sentiment for ${item.name}.
+${econBlockWl}
+Score these 6 factors from -1.0 to +1.0 using the same formula as the main panel analysis:
+  Calibration anchors:
+    GROWTH:      +1.0=GDP>4%&PMI>55 | 0.0=GDP~0–1%&PMI~50 | -1.0=contraction&PMI<45
+    INFLATION:   +1.0=converging to target | 0.0=50–100bp from target | -1.0=deflation OR hyperinflation (both negative)
+    MONETARY:    +1.0=easing into positive real rates | 0.0=stable | -1.0=tightening into recession
+    FX:          +1.0=CA surplus+inflows | 0.0=balanced | -1.0=CA deficit+outflows+overvalued
+    GEOPOLITICAL:+1.0=stable,no sanctions | 0.0=moderate risk | -1.0=conflict or crisis
+    MARKET:      +1.0=bull trend,tight credit | 0.0=sideways | -1.0=bear,widening spreads
 
-Score these 4 factors from -1.0 to +1.0: growth momentum, inflation dynamics, monetary policy stance, geopolitical risk.
-Compute score = (growth×0.30) + (inflation×0.25) + (monetary×0.30) + (geopolitical×0.15). Round to 2 decimal places.
+Compute score = (growth×0.25)+(inflation×0.20)+(monetary×0.25)+(fx×0.15)+(geopolitical×0.10)+(market×0.05). Round to 2 decimal places.
+Regime rules: Goldilocks=growth≥0&inflation≥-0.15 | Reflation=growth≥0&inflation<-0.15 | Stagflation=growth<0&inflation<-0.15 | Recession=growth<0&inflation≥-0.15
 sentiment: "bullish" if score > 0.10, "bearish" if score < -0.10, else "neutral" — must match score.
 
 Return ONLY valid JSON, no markdown:
@@ -7235,7 +7439,7 @@ function renderWatchlist() {
       const cKey = `wl|${key}`;
       const typeCtx = item.type === 'country' ? 'country macro' : item.type === 'ticker' ? 'financial asset' : 'investment theme';
       const sentCtx = item.sentiment ? `Current sentiment: ${item.sentiment} (score ${item.score?.toFixed(2)}). Key note: ${item.keyNote || 'N/A'}.` : '';
-      const prompt = `Provide a detailed analysis for the ${typeCtx}: "${item.name}". ${sentCtx} Cover: (1) key macro or fundamental drivers right now, (2) main risks to watch, (3) 3-month outlook. Be specific and data-oriented.`;
+      const prompt = `You are a senior portfolio manager at a multi-strategy hedge fund. Provide rigorous, actionable analysis for the ${typeCtx}: "${item.name}". ${sentCtx} Structure in 4 sections: (1) CURRENT DRIVERS: the 2-3 most important macro or fundamental forces now — cite specific data points, policy decisions, or structural shifts; (2) POSITIONING LANDSCAPE: institutional positioning — overcrowded, under-owned, short squeeze risk, or consensus long — and how this affects risk profile; (3) RISK SCENARIOS: two specific adverse scenarios with probability weighting and price/spread/rate impact magnitude; (4) TRADE SETUP & OUTLOOK: 3-month view with directional bias, dated catalysts, and one concrete trade idea (instrument, direction, entry, stop, target). Cite specific levels, percentages, timeframes. Max 250 words.`;
       toggleExpand(btn, bodyEl, cKey, prompt);
     });
   });
@@ -7318,34 +7522,22 @@ async function runCustomAnalysis() {
   }
 
   const tagsStr = customTags.join(', ');
-  const prompt = `You are a senior macro strategist. Generate a comprehensive thematic analysis report for these topics/themes: ${tagsStr}
+  const prompt = `You are a senior macro strategist writing an institutional research memo for a global macro fund's investment committee. Produce a rigorous, cross-asset thematic analysis covering: ${tagsStr}. Identify macro regime context, inter-theme correlations, consensus vs contrarian view, and actionable trade ideas.
 
 Respond with ONLY a valid JSON object. No markdown, no code fences, no trailing commas:
 {
-  "title": "concise report title string",
-  "executive_summary": "3-4 sentence executive summary covering all themes",
+  "title": "research memo title — key theme and market implication, max 12 words",
+  "macro_regime": "current macro regime (growth, inflation, CB cycle) and how it shapes themes, max 25 words",
+  "executive_summary": "4 sentences: dominant theme phase, inter-theme linkage, consensus vs contrarian angle, portfolio implication",
   "overall_sentiment": "bullish|bearish|neutral",
   "overall_score": <number -1.0 to 1.0>,
-  "themes": [
-    {
-      "name": "theme name",
-      "sentiment": "bullish|bearish|neutral",
-      "score": <-1.0 to 1.0>,
-      "weight": <0-100, relative importance>,
-      "insight": "one sentence key insight max 20 words"
-    }
-  ],
-  "key_findings": [
-    {"icon": "▲ or ▼ or ◆", "text": "finding text max 20 words"},
-    ... 4 findings total
-  ],
-  "opportunities": ["opportunity 1 max 20 words", "opportunity 2", "opportunity 3"],
-  "risks": ["risk 1 max 20 words", "risk 2", "risk 3"],
-  "trade_ideas": [
-    {"idea": "trade description max 15 words", "direction": "Long|Short|Neutral", "conviction": "High|Medium|Low"},
-    ... 3 trade ideas
-  ],
-  "outlook": "2-3 sentence forward-looking conclusion"
+  "themes": [{"name": "theme name", "sentiment": "bullish|bearish|neutral", "score": <-1.0 to 1.0>, "weight": <0-100>, "insight": "differentiated insight beyond consensus, max 25 words", "key_asset": "most affected instrument e.g. USD/JPY, Gold, 2yr UST"}],
+  "key_findings": [{"icon": "▲ or ▼ or ◆", "text": "specific finding with data point or level, max 25 words"}, {3 more with same structure}],
+  "opportunities": ["instrument, direction, catalyst with timeframe, max 25 words", "same for 2", "same for 3"],
+  "risks": ["specific risk with quantified downside, max 25 words", "same for 2", "same for 3"],
+  "trade_ideas": [{"idea": "instrument + direction + entry/exit condition, max 20 words", "direction": "Long|Short|Neutral", "conviction": "High|Medium|Low", "catalyst": "trigger, max 10 words", "risk_reward": "e.g. 1:2.5"}, {same structure for idea 2}, {same for idea 3}],
+  "scenario_analysis": {"base": "base case 60% — outcome and portfolio implication, max 30 words", "bull": "upside case 20% — trigger and market move magnitude, max 25 words", "bear": "downside case 20% — tail risk and drawdown magnitude, max 25 words"},
+  "outlook": "3 sentences: 3-month call, key event in next 30 days, portfolio hedge recommendation"
 }`;
 
   try {
@@ -8178,20 +8370,25 @@ async function loadCalendar() {
   const todayStr = today.toISOString().slice(0,10);
   const endDate = new Date(today); endDate.setDate(endDate.getDate() + 28);
   const endStr = endDate.toISOString().slice(0,10);
-  const sys = 'You are a macro economic calendar expert.';
-  const user = `Generate a comprehensive list of macro economic events from ${todayStr} to ${endStr} (next 4 weeks).
+  const sys = 'You are a macro economic calendar expert. Return only valid JSON arrays.';
+  const user = `Generate a macro economic event calendar for the 4-week window ${todayStr} to ${endStr}.
 
-Return ONLY a JSON array. Each event object must have exactly these fields:
-- date: "YYYY-MM-DD"
-- time: "HH:MM UTC" or "TBD"
-- name: string (event name, e.g. "FOMC Rate Decision", "US CPI (Apr)", "ECB Rate Decision")
+IMPORTANT: Your knowledge cutoff means you cannot know exact future dates for all events. Follow these conventions:
+- For RECURRING events (FOMC, ECB, CPI, NFP, PMIs, GDP releases): use the TYPICAL day they occur each month. Examples: US NFP = first Friday of the month; US CPI = mid-month Tuesday; FOMC = Wednesdays on scheduled meeting dates (8×/year); PMIs = first business day of month. Mark time as "TBD" for events you cannot pinpoint exactly.
+- For NON-RECURRING events you cannot know: do NOT include unless publicly scheduled as of your training.
+- For consensus: use "Est. [typical range]" (e.g. "Est. 175k–225k") rather than a specific number you cannot know.
+
+Return ONLY a JSON array (not an object). Each event must have exactly these fields:
+- date: "YYYY-MM-DD" (your best estimate of when this recurring event falls in the window)
+- time: "TBD" (unless you are certain of the specific time)
+- name: string (e.g. "FOMC Rate Decision", "US CPI (monthly)", "ECB Rate Decision")
 - country: string (e.g. "US", "EU", "UK", "JP", "CN")
 - category: one of "cb" (central bank), "econ" (economic data), "mkt" (market)
 - importance: one of "high", "medium", "low"
-- consensus: string (e.g. "No change expected", "4.2% YoY est.", "—")
+- consensus: string (e.g. "Est. No change", "Est. 175k–225k", "—")
 - note: string (1 sentence on why this matters for traders)
 
-Include: FOMC/Fed meetings, ECB/BOJ/BOE/BOC/RBA rate decisions, US CPI, PPI, NFP, GDP, PCE, PMIs, retail sales, JOLTS, consumer confidence, major Treasury auctions, G7/G20 events, earnings seasons start/end. Aim for 20-30 events over 4 weeks.`;
+Include: FOMC/Fed meetings, ECB/BOJ/BOE/BOC/RBA decisions, US CPI, PPI, NFP, GDP, PCE, ISM PMIs, retail sales, JOLTS, consumer confidence. Aim for 15-25 events.`;
   try {
     const raw = await callLLM(sys, user, 2000, 0);
     const events = repairAndParseJSON(raw);
@@ -8625,30 +8822,28 @@ async function loadDigestTab(tab, forceRefresh) {
   const period = tab === 'daily' ? 'today' : 'this week';
   const periodLabel = tab === 'daily' ? 'Daily Capsule' : 'Weekly Digest';
 
-  const prompt = `You are a senior macro intelligence analyst creating a personalised ${periodLabel} for ${period}.
+  // Build macro snapshot from computed sentiment cache to personalise and ground the digest
+  const digestMacroCtx = Object.entries(cache)
+    .filter(([, v]) => v._meta && typeof v.score === 'number')
+    .slice(0, 4)
+    .map(([, v]) => `${v._meta.name}: ${v.sentiment} (${v.score >= 0 ? '+' : ''}${v.score}, ${v.regime || '—'})`)
+    .join(', ');
+  const digestMacroBlock = digestMacroCtx
+    ? `\nCurrent macro picture from user's recent analyses: ${digestMacroCtx}. Incorporate these signals when selecting and framing relevant digest items.\n`
+    : '';
 
-User profile:
-- Region focus: ${regionCtx}
-- Watchlist: ${wlNames.length ? wlNames.join(', ') : 'none set'}
-- Recently analysed countries: ${recentCountries.length ? recentCountries.join(', ') : 'none yet'}
-
-Generate exactly 10 macro intelligence items most relevant to this user. Prioritise their watchlist and region.
+  const prompt = `You are a senior macro intelligence analyst. Create a personalised ${periodLabel} for ${period}.
+Region: ${regionCtx}. Watchlist: ${wlNames.join(', ')||'none'}. Analysed: ${recentCountries.join(', ')||'none'}.${digestMacroBlock}
+Generate 10 macro intelligence items prioritised for this user. Each must include real data points, specific institutions, and market levels.
 
 Respond with ONLY a valid JSON object. No markdown, no code fences. Exact structure:
 {
   "period": "${tab}",
   "generated": "${tab === 'daily' ? todayKey() : weekKey()}",
-  "items": [
-    {
-      "rank": 1,
-      "title": "headline max 18 words with specific data",
-      "source": "specific real financial media outlet (e.g. Financial Times, Reuters, Bloomberg, WSJ, CNBC, Nikkei)",
-      "impact": "HIGH or MEDIUM or LOW",
-      "region": "region or country name",
-      "summary": "1-2 sentences of factual context, max 30 words",
-      "implication": "1 sentence on what this means for markets or the user's watchlist, max 20 words"
-    }
-  ]
+  "market_recap": {"equities": "overnight equity moves with specific index levels and % changes", "fixed_income": "bond market moves — key yield levels", "fx": "major FX moves — specific pairs and magnitude", "commodities": "key commodity moves"},
+  "events_today": [{"time": "HH:MM ET", "event": "event name", "consensus": "consensus estimate", "importance": "HIGH|MEDIUM|LOW"}, {2 more events same structure}],
+  "positioning_shifts": "2 sentences on institutional positioning — accumulation/distribution and crowding signals",
+  "items": [{"rank": 1, "title": "headline max 18 words with specific number/institution/policy action", "source": "real financial media outlet (FT, Reuters, Bloomberg, WSJ, CNBC, Nikkei)", "impact": "HIGH|MEDIUM|LOW", "region": "region or country", "summary": "1-2 sentences with specific data points, max 35 words", "implication": "affected instrument and direction, max 25 words", "portfolio_relevance": "relevance to user's watchlist/region, max 20 words"}]
 }`;
 
   try {
@@ -8939,20 +9134,59 @@ async function sendOrPreviewNewsletter(tab, action) {
   if (!data) {
     try { const s = storageGet(sKey); if (s) data = JSON.parse(s); } catch(_) {}
   }
+
+  // For preview: open the window SYNCHRONOUSLY before any await so the browser
+  // keeps the user-gesture context. Populate it immediately with a loading state,
+  // then write the real content once data is ready. Without this, browsers block
+  // document.write into a window opened after an async operation, leaving it blank.
+  let previewWin = null;
+  if (action === 'preview') {
+    previewWin = window.open('', '_blank');
+    if (previewWin) {
+      previewWin.document.write(
+        '<!DOCTYPE html><html><head><title>Meridiax — Generating preview…</title>' +
+        '<style>body{margin:0;display:flex;align-items:center;justify-content:center;' +
+        'height:100vh;background:#0f172a;font-family:monospace;color:#94a3b8;font-size:14px;}</style></head>' +
+        '<body>⟳ Generating newsletter preview…</body></html>'
+      );
+      previewWin.document.close();
+    } else {
+      showToast('Popup blocked — allow popups for this page to preview the newsletter.', null, 5000);
+      return;
+    }
+  }
+
   if (!data) {
     const body = document.getElementById('profile-body');
     body.insertAdjacentHTML('beforeend', '<div class="digest-loading" id="nl-gen-msg"><span class="spin"></span> &nbsp;Generating digest…</div>');
     await loadDigestTab(tab, false);
     data = digestCache[digestStorageKey(tab)];
     document.getElementById('nl-gen-msg')?.remove();
-    if (!data) { alert('Could not generate digest. Please try again.'); return; }
+    if (!data) {
+      if (previewWin) previewWin.close();
+      alert('Could not generate digest. Please try again.');
+      return;
+    }
   }
 
-  const html = generateNewsletterHTML(tab, data);
-
   if (action === 'preview') {
-    const win = window.open('', '_blank');
-    if (win) { win.document.write(generateNewsletterHTML(tab, data)); win.document.close(); }
+    try {
+      previewWin.document.open();
+      previewWin.document.write(generateNewsletterHTML(tab, data));
+      previewWin.document.close();
+    } catch (_) {
+      // Fallback: blob URL (works when document.write is blocked by CSP)
+      try {
+        const blob = new Blob([generateNewsletterHTML(tab, data)], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        previewWin.location.href = url;
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } catch (_2) {
+        previewWin.close();
+        showToast('Preview blocked by browser. Try the Copy HTML option instead.', null, 5000);
+      }
+    }
+    return;
   } else if (action === 'copy') {
     try {
       await navigator.clipboard.writeText(generateNewsletterHTML(tab, data));
@@ -9198,36 +9432,26 @@ async function loadOpportunitiesTab(forceRefresh) {
   const recentCountries = [...new Set(Object.values(cache).map(v=>v._meta?.name).filter(Boolean))].slice(0,5);
   const horizonDesc = {DAY:'intraday to next 24 hours',WEEK:'1–5 trading days',MONTH:'2–6 weeks',THEMES:'thematic / structural (3–12 months)'}[oppHorizon]||oppHorizon;
 
+  // Build macro snapshot from already-computed sentiment cache for grounding
+  const cacheContext = Object.entries(cache)
+    .filter(([, v]) => v._meta && typeof v.score === 'number')
+    .slice(0, 5)
+    .map(([, v]) => `${v._meta.name}: score ${v.score >= 0 ? '+' : ''}${v.score} (${v.sentiment}, ${v.regime || '—'}, rate: ${v.rate_outlook || '—'})`)
+    .join('; ');
+  const macroCtxBlock = cacheContext
+    ? `\nCurrent macro assessments from user's recent analyses: ${cacheContext}\n`
+    : '';
+
   const oppToday = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const prompt = `Today is ${oppToday}. You are a senior portfolio strategist and macro trader. Generate exactly 8 specific investment and trading opportunities for a ${horizonDesc} horizon.
-
-User profile:
-- Watchlist: ${wlNames.length ? wlNames.join(', ') : 'none'}
-- Recently analysed: ${recentCountries.length ? recentCountries.join(', ') : 'none'}
-- Horizon focus: ${oppHorizon} (${horizonDesc})
-
-For each opportunity, provide a concrete, actionable trade idea with specific assets, direction, and clear reasoning grounded in current macro conditions.
+  const prompt = `Today is ${oppToday}. You are a senior macro portfolio strategist. Generate 8 actionable investment opportunities for a ${horizonDesc} horizon.
+Watchlist: ${wlNames.join(', ')||'none'}. Analysed: ${recentCountries.join(', ')||'none'}.${macroCtxBlock}
+Each: specific instrument, directional bias, precise entry, stop, target. Derive thesis from user's macro data where relevant.
 
 Respond with ONLY valid JSON. No markdown, no code fences. Exact structure:
 {
   "horizon": "${oppHorizon}",
   "generated": "${todayKey()}",
-  "opportunities": [
-    {
-      "rank": 1,
-      "direction": "LONG or SHORT or NEUTRAL",
-      "asset_class": "Equities / Fixed Income / FX / Commodities / Crypto / Multi-Asset",
-      "asset": "specific ticker, pair, or instrument (e.g. S&P500, USD/JPY, Gold, BTP-Bund spread)",
-      "region": "region or country",
-      "horizon_tag": "${oppHorizon}",
-      "title": "concise trade idea title max 12 words",
-      "thesis": "2-3 sentences: catalyst, macro backdrop, entry rationale",
-      "conviction": 0.75,
-      "key_risk": "single most important risk to the thesis, max 15 words",
-      "source": "primary institution or data source backing this idea (e.g. Fed minutes, ECB statement, BLS report, Goldman Sachs, Bloomberg)",
-      "catalyst": "specific event or data release that triggered this opportunity, max 10 words"
-    }
-  ]
+  "opportunities": [{"rank": 1, "direction": "LONG|SHORT|NEUTRAL", "asset_class": "Equities|Fixed Income|FX|Commodities|Crypto|Multi-Asset", "asset": "specific ticker or pair", "region": "region or country", "horizon_tag": "${oppHorizon}", "title": "trade title max 12 words", "thesis": "3 sentences: catalyst, mispricing, entry rationale", "entry_level": "specific price/yield/spread or break condition", "stop_level": "invalidation level with rationale", "target_level": "price target with timeframe", "risk_reward": "e.g. 1:2.5", "position_size_note": "sizing context", "conviction": 0.75, "key_risk": "risk with magnitude, max 20 words", "correlation_risk": "correlated asset risk, max 12 words", "catalyst_trigger": "dated event or release, max 12 words", "source": "institution or data source"}]
 }`;
 
   try {
@@ -10270,15 +10494,16 @@ async function loadResearch(srcId) {
   }
 
   const today = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
-  const prompt = `Today is ${today}. You are a financial research synthesizer for ${src.name}.
+  const prompt = `Today is ${today}. You are synthesizing the likely research output from ${src.name} based on their known macro views, house style, and publicly available communications as of your training data.
 
 Output ONLY a JSON object — no markdown, no code fences, no explanation. Structure:
-{"institution":"${src.name}","house_view":"<current macro stance 1 sentence>","key_calls":["<call1>","<call2>","<call3>"],"articles":[{"title":"<real title>","date":"<Mon YYYY>","summary":"<2 sentences on findings and implications>","themes":["<tag1>","<tag2>"],"sentiment":"<bullish|bearish|neutral>","score":0.5,"asset_class":"<Macro|Equities|Fixed Income|FX|Commodities|Credit>"}],"disclaimer":"AI-synthesized — verify with ${src.name}"}
+{"institution":"${src.name}","house_view":"<current macro stance 1 sentence>","key_calls":["<call1>","<call2>","<call3>"],"articles":[{"title":"<representative research theme for ${src.name}'s known focus, 10-15 words — do NOT assert this as a verbatim report title>","date":"<Mon YYYY>","summary":"<2 sentences on findings and implications>","themes":["<tag1>","<tag2>"],"sentiment":"<bullish|bearish|neutral>","score":0.5,"asset_class":"<Macro|Equities|Fixed Income|FX|Commodities|Credit>"}],"disclaimer":"AI-synthesized from ${src.name} public communications — specific titles may not exist verbatim. Verify at ${src.url || src.name + ' website'}"}
 
 Requirements:
-- articles array: exactly 10 items, sorted newest-first, 2024-2025 publications only
-- title: real specific ${src.name} report name (not generic); must be exact enough that a reader could find it by searching the title
-- score: number between -1.0 and 1.0 (negative=bearish, positive=bullish)`;
+- articles array: exactly 10 items, sorted newest-first, 2024-2025 period only
+- title: representative research theme aligned to ${src.name}'s known analytical focus — clearly synthesized, NOT a verbatim title claim
+- score: number between -1.0 and 1.0 (negative=bearish, positive=bullish)
+`;
 
   try {
     const raw = await callLLM('You output only valid minified JSON. No markdown, no code fences, no extra text before or after the JSON object.', prompt, 4000, 0.4);
@@ -10533,11 +10758,12 @@ async function openCommodityDetail(symbol) {
 
   commodDetailLoading = true;
   const sys = 'You are a commodity market analyst. Output ONLY a valid JSON object. No markdown, no code fences, no prose before or after. Start your response with { and end with }.';
-  const usr = `Provide detailed macro analysis for ${base.name || symbol} (${base.unit || ''}).
-Current price: ~${base.price || 'unknown'} ${base.unit || ''}, today\'s change: ${(base.pct||0)>=0?'+':''}${(base.pct||0).toFixed(2)}%.
-Return ONLY this JSON object (no extra text):
-{"overview":"2-sentence market overview","macro_drivers":["driver1","driver2","driver3"],"technical_levels":{"support":"value","resistance":"value","key_level":"brief note"},"outlook":"2-sentence outlook","risks":["risk1","risk2"],"trade_idea":{"direction":"LONG","entry":"value","target":"value","stop":"value","conviction":70},"chart_data":[{"month":"May-24","price":0},{"month":"Jun-24","price":0},{"month":"Jul-24","price":0},{"month":"Aug-24","price":0},{"month":"Sep-24","price":0},{"month":"Oct-24","price":0},{"month":"Nov-24","price":0},{"month":"Dec-24","price":0},{"month":"Jan-25","price":0},{"month":"Feb-25","price":0},{"month":"Mar-25","price":0},{"month":"Apr-25","price":0}]}
-Fill in realistic prices for the 12 months. direction must be LONG, SHORT, or NEUTRAL.`;
+  const usr = `You are a senior commodity analyst at a macro hedge fund. Provide rigorous, trader-grade analysis for ${base.name || symbol} (${base.unit || ''}).
+Current price: ~${base.price || 'unknown'} ${base.unit || ''}, today's change: ${(base.pct||0)>=0?'+':''}${(base.pct||0).toFixed(2)}%.
+
+Return ONLY this JSON object — no extra text, start with { end with }:
+{"overview":"2 sentences — market state with supply/demand balance, inventory levels, or OPEC+/producer action","supply_demand":"current fundamental balance — surplus/deficit with approximate magnitude","macro_drivers":["specific driver 1 with direction and magnitude","specific driver 2","specific driver 3 — include USD correlation or geopolitical risk premium"],"positioning":"speculative positioning — net long/short vs historical, squeeze or washout risk","technical_levels":{"support":"price level and why it matters","resistance":"price level and why it matters","key_level":"critical structural level — break changes the trade","structure":"Uptrend|Downtrend|Range-bound"},"seasonal":"seasonal pattern for current quarter","outlook":"2 sentences — 1-3 month directional view with price target range and key catalyst","risks":["specific upside risk with price impact","specific downside risk with price impact"],"trade_idea":{"direction":"LONG|SHORT|NEUTRAL","entry":"specific price level or condition","target":"specific price target","stop":"stop level and reasoning","risk_reward":"e.g. 1:2.3","conviction":70,"timeframe":"e.g. 2-4 weeks"},"chart_data":[{"month":"May-24","price":0},{"month":"Jun-24","price":0},{"month":"Jul-24","price":0},{"month":"Aug-24","price":0},{"month":"Sep-24","price":0},{"month":"Oct-24","price":0},{"month":"Nov-24","price":0},{"month":"Dec-24","price":0},{"month":"Jan-25","price":0},{"month":"Feb-25","price":0},{"month":"Mar-25","price":0},{"month":"Apr-25","price":0}]}
+Fill chart_data with realistic historical prices. direction must be LONG, SHORT, or NEUTRAL.`;
   try {
     const raw  = await callLLM(sys, usr, 1000, 0.2);
     const data = repairAndParseJSON(raw);
@@ -10872,7 +11098,22 @@ async function openFxDetail(symbol) {
   const def  = FX_DEFS.find(d => d.symbol === symbol) || {};
   const heatRow = fxData.find(r => r.symbol === symbol) || {};
   const sys  = 'You are an FX analyst. Output only a raw JSON object. No markdown. No code fences. No trailing commas.';
-  const user = `Detailed FX analysis for ${symbol} (${def.name||symbol}, pair: ${def.quote||symbol+'/USD'}, current price≈${heatRow.price||'market rate'}, today change≈${heatRow.pct||0}% vs USD). Return a JSON object with ALL these fields: symbol ("${symbol}"), name (string), quote ("${def.quote||''}"), price (number), pct (number, % change vs USD today — positive=strengthened), overview (string, 2 sentences), trend ("bullish"|"bearish"|"neutral"), macro_drivers (array of 3 strings), central_bank (object: name string, stance "hawkish"|"neutral"|"dovish", rate number), carry (object: rate_differential number, direction string), technical_levels (object: support string, resistance string, key_level string), risks (array of 2-3 strings), trade_idea (object: direction "LONG"|"SHORT"|"NEUTRAL", entry string, target string, stop string, conviction integer 0-100), outlook (string, 2 sentences), chart_data (array of exactly 12 objects each with month "Mon YYYY" and price number for ${def.quote||'the pair'}).`;
+  const user = `You are a senior FX strategist at a global macro fund. Produce trader-grade analysis for ${symbol} (${def.name||symbol}, pair: ${def.quote||symbol+'/USD'}, current price≈${heatRow.price||'market rate'}, today change≈${heatRow.pct||0}% vs USD).
+
+Return a JSON object with ALL these fields:
+symbol ("${symbol}"), name (string), quote ("${def.quote||''}"), price (number), pct (number — % change vs USD, positive=local currency strengthened),
+overview (2 sentences: price action and dominant macro driver),
+trend ("bullish"|"bearish"|"neutral" — base currency perspective),
+macro_drivers (3 strings — each specific e.g. "Fed-ECB rate differential at 165bp favouring USD"),
+central_bank (name, stance "hawkish"|"neutral"|"dovish", rate, next_meeting, guidance — 1 sentence),
+carry (rate_differential bps, direction "Positive carry for longs"|"Negative carry for longs", annualised_carry_pct),
+positioning (IMM/CFTC net positioning vs history and squeeze risk),
+vol_context (implied vol vs historical, skew e.g. "25-delta puts bid" = bearish bias),
+technical_levels (support with price, resistance with price, key_level — critical level, structure "Uptrend"|"Downtrend"|"Range"),
+risks (3 strings — scenario with price impact e.g. "Hawkish ECB could push EUR/USD +1.5% to 1.12"),
+trade_idea (direction "LONG"|"SHORT"|"NEUTRAL", entry, target, stop with invalidation, conviction 0-100, risk_reward, catalyst),
+outlook (2 sentences: 1-3 month view with level target and key risk),
+chart_data (12 objects: month "Mon YYYY", price number — realistic historical for ${def.quote||'the pair'})`;
   try {
     const raw  = await callLLM(sys, user, 1200, 0);
     const full = repairAndParseJSON(raw);
@@ -11593,13 +11834,13 @@ async function analyzeCommunityPulse() {
   const postData = posts.map(p => ({ content: p.content || '', tag: p.tag || 'neutral' }));
 
   const sysPrompt = 'You are a macro sentiment aggregator. Output only valid JSON. No markdown, no code fences, no explanation.';
-  const userPrompt = `Analyze the collective sentiment of these ${postData.length} community board posts from macro traders and analysts. Base your analysis ONLY on what is written in these posts — do not use or introduce external knowledge.
+  const userPrompt = `You are a sentiment aggregation engine for a professional trading community. Analyze the collective sentiment of these ${postData.length} community posts from macro traders and analysts. Base your analysis ONLY on what is written in these posts — do not introduce external knowledge or assumptions.
 
 Posts:
 ${JSON.stringify(postData)}
 
 Return ONLY valid JSON:
-{"overall_sentiment":"bullish or bearish or neutral","score":<number -1.0 to 1.0>,"bull_pct":<integer 0-100>,"bear_pct":<integer 0-100>,"neutral_pct":<integer 0-100>,"top_themes":["theme1","theme2","theme3","theme4"],"key_views":["representative view 1","representative view 2","representative view 3"],"narrative":"2-3 sentence summary of collective community view based only on these posts","consensus_level":"high or moderate or low","contrarian_signals":"brief note on divergent voices if any, otherwise null"}`;
+{"overall_sentiment":"bullish or bearish or neutral","score":<-1.0 to 1.0>,"bull_pct":<0-100>,"bear_pct":<0-100>,"neutral_pct":<0-100>,"consensus_level":"high or moderate or low","top_themes":["theme1","theme2","theme3","theme4"],"key_views":["most representative bullish view","most representative bearish view","most nuanced view"],"contrarian_signals":"minority view contradicting consensus, or null","conviction_level":"high or medium or low — based on certainty of language","narrative":"2-3 sentences on collective community thesis, dominant concern or opportunity, and risk appetite — based only on what was written"}`;
 
   try {
     const raw  = await callLLM(sysPrompt, userPrompt, 700, 0.2);
