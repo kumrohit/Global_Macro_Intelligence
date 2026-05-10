@@ -15,7 +15,7 @@
 
 Click any country on the world map and instantly get an AI-generated macro brief — sentiment regime, equity bias, rate outlook, FX bias, risk level, rationale, central bank publications, news, social sentiment, and historical charts. No API key needed for country analysis. Advanced features (Deep Analysis, Research Hub, FX/Commodities heatmaps, Digest, Opportunities, Custom Analysis, Stocks) unlock with your own Gemini or Claude API key.
 
-Everything runs in a **single HTML file** (~612 KB · ~8 218 JS lines) with zero dependencies to install.
+Everything runs in a **single HTML file** (~636 KB · ~8 420 JS lines) with zero dependencies to install.
 
 ---
 
@@ -126,7 +126,7 @@ No build step. No `npm install`. No server.
 
 ```
 global_macro_intelligence/
-├── global_macro_intel.html   # Entire application (~612 KB · ~8 218 JS lines)
+├── global_macro_intel.html   # Entire application (~636 KB · ~8 420 JS lines)
 │
 ├── deploy/                   # Production deploy assets
 │   ├── index.html            # Synced copy of the app
@@ -219,7 +219,7 @@ global_macro_intel.html
 │   ├── #mini-ticker-bar          Fixed bottom bar — DXY/GOLD/WTI/VIX/US10Y + UTC clock
 │   └── #mobile-nav               Bottom navigation (phones ≤ 480 px)
 │
-└── <script>              (~8218 lines)
+└── <script>              (~8 420 lines)
     ├── Constants
     │   ├── META{}                195 countries → {name, flag, currency, index, …}
     │   ├── AUTHORITY_INFO{}      54 central banks / finance ministries
@@ -266,7 +266,7 @@ global_macro_intel.html
     │   ├── loadAuthorityPubs()    Central bank publications
     │   ├── loadNews()             Macro news with clickable source URLs
     │   ├── loadSocialSentiment()  Social-style macro posts; hashtag/topic filter
-    │   ├── loadHistoryData()      12-quarter macro history → D3 chart
+    │   ├── loadHistoryData()      20-quarter macro history → D3 chart
     │   ├── toggleLanguage()       Full panel translation
     │   └── loadExpandDetail()     Inline expand-to-detail for any summary
     │
@@ -321,7 +321,7 @@ callLLM(systemPrompt, userPrompt, maxTokens, temperature)
 | `loadAuthorityPubs` | 600 | 0 | Free | Central bank publications |
 | `loadNews` | 700 | 0 | Free | Macro news with source URLs |
 | `loadSocialSentiment` | 500 | 1.0 | Free | Social-style macro posts |
-| `loadHistoryData` | 800 | 0 | Free | 12-quarter macro history |
+| `loadHistoryData` | 800 | 0 | Free | 20-quarter macro history (Q1 2020–Q4 2024) |
 | `toggleLanguage` | 2000 | 0 | Free | Full panel translation |
 | `loadExpandDetail` | 350 | 0.4 | Free | Expand-to-detail for any summary |
 | `loadTickers` | 400 | 0 | Free | Global price ticker estimation |
@@ -369,7 +369,7 @@ All LLM responses are cached to avoid duplicate calls within a session:
 |-------|-------------|-------|
 | `cache` | ISO country id | Sentiment analysis |
 | `deepCache` | `countryName\|tab` | Deep analysis per tab |
-| `historyCache` | `countryName` | 12-quarter chart data |
+| `historyCache` | `countryName` | 20-quarter chart data (Q1 2020–Q4 2024) |
 | `socialCache` | `countryName\|filter` | Social posts |
 | `newsCache` | `countryName` | News feed |
 | `authCache` | `countryName` | Authority publications |

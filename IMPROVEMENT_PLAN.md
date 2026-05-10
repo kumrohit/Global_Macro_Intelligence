@@ -613,11 +613,11 @@ Full E2E testing: log creation, accuracy computation, weight tuning (with mock d
 For each new session, paste the relevant prompt block above preceded by this context header:
 
 ```
-Context: Meridiax is a single-file HTML/CSS/JS macro intelligence terminal (global_macro_intel.html, 612 KB, 510 tests passing). Stack: Vanilla JS, D3.js v7, TradingView Lightweight Charts, Gemini 2.5 Flash / Claude API. Current test suite: node test_e2e.js. Deploy copy: deploy/index.html (sync after changes with: cp global_macro_intel.html deploy/index.html).
+Context: Meridiax is a single-file HTML/CSS/JS macro intelligence terminal (global_macro_intel.html, ~636 KB, ~8 420 JS lines, 510 tests passing). Stack: Vanilla JS, D3.js v7, TradingView Lightweight Charts, Gemini 2.5 Flash / Claude Sonnet / Pollinations.ai (free). Current test suite: node test_e2e.js. Deploy copy: deploy/index.html (sync after changes with: cp global_macro_intel.html deploy/index.html).
 
 [Paste the phase prompt below]
 ```
 
 ---
 
-*Last updated: 2026-05-09 · 12 planned phases · Current build: Phase 20 (56 tasks complete) · 510/510 tests passing*
+*Last updated: 2026-05-10 · 12 planned phases · Current build: Phase 20 (60 tasks complete) · 510/510 tests passing · ~636 KB*

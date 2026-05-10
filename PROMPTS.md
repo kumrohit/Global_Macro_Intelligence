@@ -290,7 +290,7 @@
 ## Architecture Reference
 
 ```
-global_macro_intel.html (~8 218 JS lines, single file)
+global_macro_intel.html (~8 420 JS lines, ~636 KB, single file)
 ├── <style>          (~1900 lines)
 │   ├── CSS custom properties  (:root — color palette, fonts)
 │   ├── Layout                 (topbar, map, side panels, ticker, mini-ticker bar)
@@ -319,7 +319,7 @@ global_macro_intel.html (~8 218 JS lines, single file)
 │   ├── #mini-ticker-bar       Fixed bottom bar (DXY/GOLD/WTI/VIX/US10Y + UTC clock)
 │   └── #mrx-toast             Bottom-center notification toast
 │
-└── <script>         (~8 218 lines)
+└── <script>         (~8 420 lines)
     │
     ├── Storage Layer
     │   ├── getStorage()              Test-write to find available storage
@@ -393,7 +393,7 @@ global_macro_intel.html (~8 218 JS lines, single file)
     │   ├── loadNewsFeed()             Macro news with source links
     │   ├── loadSocialSentiment()      Social-style posts; respects filter + scope
     │   ├── loadDeepSection(tab)       5-tab deep analysis (2000 tokens)
-    │   ├── loadHistoryData()          12-quarter historical macro data
+    │   ├── loadHistoryData()          20-quarter historical macro data (Q1 2020–Q4 2024)
     │   ├── drawHistoryLine(data)      D3 area+line+dot chart with metric toggles
     │   ├── toggleLanguage()           Full panel translation to country native language
     │   ├── loadExpandDetail()         Expand-to-details on summary items (350 tokens)
@@ -441,7 +441,7 @@ global_macro_intel.html (~8 218 JS lines, single file)
 | `loadNewsFeed` | 700 | 0 | Macro news with source outlets |
 | `loadSocialSentiment` | 500 | 1.0 | Social-style macro posts |
 | `loadDeepSection` | 2000 | 0 | Per-tab deep country analysis |
-| `loadHistoryData` | 800 | 0 | 12-quarter historical macro data |
+| `loadHistoryData` | 800 | 0 | 20-quarter historical macro data (Q1 2020–Q4 2024) |
 | `toggleLanguage` | 2000 | 0 | Full panel translation |
 | `loadExpandDetail` | 350 | 0.3 | Expand-to-details on summary items |
 | `fetchWatchlistSentiment` | 400 | 0.8 | Per-item watchlist sentiment |
@@ -548,4 +548,12 @@ All calls use `thinkingBudget: 0` to prevent thinking tokens from consuming the 
 
 - [x] ~~Task 56 - Phase 7 regression: 87/87 passing. 3 bugs fixed during testing: `renderPanel` NaN confidence band (isNaN guard); MACRO_CONTEXT ISO zero-padding (.padStart(3,'0')); Singapore missing from META/AUTHORITY_INFO/AUTHORITY_URLS. Final JS: 8 218 lines, zero errors. deploy/index.html synced.~~
 
-*Last updated: 2026-05-09 · Build version: Phase 20 · 56/56 tasks done · 510/510 tests passing · 612 KB*
+- [x] ~~Task 57 - Fixed `devMode` ReferenceError: "API error: devMode is not defined" appeared on every country analysis because `validateSentimentResult` referenced `devMode` before it was declared. Added `const devMode = typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost';` at the top of the STATE block. Also fixed unclosed template literal in `loadResearch` (missing closing backtick was causing SyntaxError). Fixed authority pubs `renderAuthorityPubs` href to always use real institution `baseUrl` (removed `p.url` fallback that allowed LLM-hallucinated sub-paths). 510/510 passing.~~
+
+- [x] ~~Task 58 - Comprehensive prompt enhancement — trader-grade analysis across 14 prompts. Enhanced: `fetchStockAnalysis` (valuation method, peer comparison, FCF yield, trade setup with entry/stop/target/R:R/holding_period, differentiated 3-sentence thesis); `loadNews` inline expand (IMMEDIATE IMPACT / 48-HOUR POSITIONING / CROSS-ASSET CONTAGION / KEY LEVEL TO WATCH); `loadNews` + `loadNewsBackground` (specific numbers/institutions required, `asset_impact` field); watchlist expand (CURRENT DRIVERS / POSITIONING LANDSCAPE / RISK SCENARIOS / TRADE SETUP & OUTLOOK); custom analysis builder (`macro_regime`, `scenario_analysis` with base/bull/bear probabilities, `key_asset` per theme, `risk_reward`/`catalyst` per trade idea); digest (`market_recap` overnight moves, `events_today`, `positioning_shifts`, `portfolio_relevance` per item); opportunities (`entry_level`, `stop_level`, `target_level`, `risk_reward`, `position_size_note`, `catalyst_trigger`); commodity detail (`supply_demand`, positioning CoT context, `seasonal`, full trade setup with `risk_reward` and `timeframe`); FX detail (IMM positioning, vol skew context, annualised carry %, trade `risk_reward` and `catalyst`); social expand ticker/topic (4-point professional structure, smart money vs retail divergence, asset impact map); authority pubs (`market_signal` field, policy message + market implication structure); community board sentiment (`conviction_level`, bull/bear/nuanced `key_views`). 510/510 passing.~~
+
+- [x] ~~Task 59 - Fixed empty window bug in newsletter preview: `window.open('', '_blank')` was called after `await loadDigestTab()` — async broke the browser's user-gesture context, causing popup blockers to block or blank windows. Restructured `sendOrPreviewNewsletter` to open window synchronously first (captures user gesture), write a loading-state placeholder immediately, then populate final content after async data fetch. Added Blob URL CSP fallback (`URL.createObjectURL`) for environments where `document.write` is blocked by policy. Added popup-blocked toast when `window.open` returns null. 510/510 passing.~~
+
+- [x] ~~Task 60 - Updated all 7 markdown files (README.md, RELEASE.md, IMPROVEMENT_PLAN.md, PROMPTS.md, AI_PROMPTS_AND_AGENTS.md, deploy/README.md, android/README.md) to reflect current state: file size ~636 KB / ~8 420 JS lines, 510/510 tests / 21 phases, all prompt enhancements, bug fixes, devMode constant, and corrected API key security statement in RELEASE.md.~~
+
+*Last updated: 2026-05-10 · Build version: Phase 20 · 60/60 tasks done · 510/510 tests passing · ~636 KB*

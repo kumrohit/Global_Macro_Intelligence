@@ -47,8 +47,8 @@ API keys are stored on-device only — never sent to any server other than the s
 
 ### Map & Country Analysis (Free)
 - **Interactive world map** — flat equirectangular D3 projection; click any of 195 countries
-- **Country sentiment panel** — sentiment score, regime pill (dovish / hawkish / neutral), key indicator chips (equity, rate, FX, risk, currency, key rate), AI rationale
-- **Historical macro chart** — D3 multi-line chart: GDP, Inflation, Rate, FX over 12 quarters
+- **Country sentiment panel** — sentiment score (−1 to +1), regime pill, key indicator chips (equity, rate, FX, risk, currency); **FC ADJ** amber badge when factor-composite blending was applied; **📊 ANCHORED** badge when Q1 2025 MACRO_CONTEXT was injected; **⚠ SHIFT** banner on sentiment flip or regime change
+- **Historical macro chart** — D3 multi-line chart: GDP, Inflation, Rate, FX over 20 quarters (Q1 2020–Q4 2024)
 - **Authority publications** — links to 54 central banks and finance ministries
 - **Macro news feed** — AI-generated news with clickable source URLs
 - **Social sentiment panel** — community-style macro posts with hashtag/topic filter
@@ -72,8 +72,8 @@ API keys are stored on-device only — never sent to any server other than the s
 ### FX & Commodity Markets (API Key Required)
 - **FX heatmap** — G10 and EM currencies vs USD; colour-coded sentiment tiles
 - **Commodity heatmap** — energy, metals, agriculture; colour-coded sentiment tiles
-- **Full-screen TradingView charts** — LINE / AREA / CANDLESTICK; real OHLCV from Yahoo Finance with AI simulation fallback
-- MA(5/20), Bollinger Bands (20,2), RSI(14), Volume histogram, LIVE / AI ESTIMATE badge
+- **Full-screen TradingView charts** — LINE / AREA / CANDLESTICK; real 5-year OHLCV from Yahoo Finance (adjusted close, dual-tier: 5Y weekly + 1Y daily) with AI simulation fallback
+- EMA9/21/50/200 overlays, Bollinger Bands (20,2), RSI(14) / MACD(12,26,9) / Stoch(14,3,3) oscillators, Volume histogram, AI support/resistance price lines, AI trade signal overlay (direction + conviction + entry/target/stop), LIVE / AI ESTIMATE badge
 
 ### Community Board (Free)
 - **Feed** — post macro views; bullish / bearish / neutral tagging; like, comment, delete
@@ -118,7 +118,7 @@ No build step. No `npm install`. No server.
 
 ```
 global_macro_intelligence/
-├── global_macro_intel.html   # Entire application (~612 KB · ~8 218 JS lines)
+├── global_macro_intel.html   # Entire application (~636 KB · ~8 420 JS lines)
 │
 ├── deploy/                   # Production deploy assets
 │   ├── index.html            # Synced copy of the app
@@ -208,13 +208,17 @@ global_macro_intel.html
 │   │       └── #profile-overlay  Profile, Digest, Opportunities, Newsletter, ⚙ API
 │   └── #mobile-nav               Bottom navigation (phones ≤ 480 px)
 │
-└── <script>              (~7100 lines)
+└── <script>              (~8 420 lines)
     ├── Constants
     │   ├── META{}                195 countries → {name, flag, currency, index, …}
     │   ├── AUTHORITY_INFO{}      54 central banks / finance ministries
     │   ├── RESEARCH_SOURCES[]    16 institution definitions (id, name, color, rss)
     │   ├── DEEP_TAB_PROMPTS{}    Per-tab prompt builders for deep analysis
-    │   └── OPP_HORIZONS[]        Trade-idea time horizons
+    │   ├── OPP_HORIZONS[]        Trade-idea time horizons
+    │   ├── DATA_VINTAGE          'Q1 2025' — snapshot date injected into LLM prompts
+    │   ├── MACRO_CONTEXT{}       40-country Q1 2025 economic snapshots (GDP/CPI/rate/unemp/CA/PMI/note)
+    │   ├── HIGH_STAKES           Set of 20 ISO ids → dual-call self-consistency averaging
+    │   └── devMode               true when running on localhost (enables dev logging)
     │
     ├── Storage layer
     │   └── storageGet/Set/Remove  localStorage → sessionStorage → _memStore fallback
@@ -234,20 +238,26 @@ global_macro_intel.html
     │   │     Custom Analysis, Digest, Opportunities.
     │   ├── repairAndParseJSON(raw)
     │   │     7-step repair pipeline for truncated/malformed LLM JSON.
-    │   └── closeTruncated(s)
-    │         Character-walk state machine — closes open strings/arrays/objects.
+    │   ├── closeTruncated(s)
+    │   │     Character-walk state machine — closes open strings/arrays/objects.
+    │   └── validateSentimentResult(r)
+    │         9-step post-parse validation: clamp score → clamp factors → set defaults
+    │         → check fields → fix types → validate ranges → derive label → clamp band
+    │         → Step 9: factor-composite coherence enforcement (weighted blend if deviation ≥ 15%)
     │
     ├── Map
     │   ├── initMap()              Fetches TopoJSON, renders SVG, wires events
     │   ├── selectCountry(d)       Sets active country, triggers panel + fetch
-    │   ├── renderPanel(data)      Populates all side-panel DOM fields from cache
-    │   └── fetchSentiment(id)     LLM → country macro JSON → stored in cache{}
+    │   ├── renderPanel(data)      Populates all side-panel DOM fields; shows FC ADJ / ⚠ SHIFT / 📊 ANCHORED badges
+    │   ├── fetchSentiment(id)     Chain-of-thought prompt with MACRO_CONTEXT; HIGH_STAKES → dual LLM call
+    │   │                          with smart voting (pickRegime/pickRisk) + regime shift detection
+    │   └── pickRegime/pickRisk    Score-informed categorical tiebreakers for HIGH_STAKES dual-call averaging
     │
     ├── Free-tier features (no API key needed)
     │   ├── loadAuthorityPubs()    Central bank publications
     │   ├── loadNews()             Macro news with clickable source URLs
     │   ├── loadSocialSentiment()  Social-style macro posts; hashtag/topic filter
-    │   ├── loadHistoryData()      12-quarter macro history → D3 chart
+    │   ├── loadHistoryData()      20-quarter macro history (Q1 2020–Q4 2024) → D3 chart
     │   ├── toggleLanguage()       Full panel translation
     │   └── loadExpandDetail()     Inline expand-to-detail for any summary
     │
@@ -301,7 +311,7 @@ callLLM(systemPrompt, userPrompt, maxTokens, temperature)
 | `loadAuthorityPubs` | 600 | 0 | Free | Central bank publications |
 | `loadNews` | 700 | 0 | Free | Macro news with source URLs |
 | `loadSocialSentiment` | 500 | 1.0 | Free | Social-style macro posts |
-| `loadHistoryData` | 800 | 0 | Free | 12-quarter macro history |
+| `loadHistoryData` | 800 | 0 | Free | 20-quarter macro history (Q1 2020–Q4 2024) |
 | `toggleLanguage` | 2000 | 0 | Free | Full panel translation |
 | `loadExpandDetail` | 350 | 0.4 | Free | Expand-to-detail for any summary |
 | `loadTickers` | 400 | 0 | Free | Global price ticker estimation |
@@ -349,7 +359,7 @@ All LLM responses are cached to avoid duplicate calls within a session:
 |-------|-------------|-------|
 | `cache` | ISO country id | Sentiment analysis |
 | `deepCache` | `countryName\|tab` | Deep analysis per tab |
-| `historyCache` | `countryName` | 12-quarter chart data |
+| `historyCache` | `countryName` | 20-quarter chart data (Q1 2020–Q4 2024) |
 | `socialCache` | `countryName\|filter` | Social posts |
 | `newsCache` | `countryName` | News feed |
 | `authCache` | `countryName` | Authority publications |
@@ -420,11 +430,11 @@ No browser, no Playwright, no Puppeteer — pure Node.js static analysis of the 
 
 ```
 ═════════════════════════════════════════════════════════════════
-  RESULTS   482/482 passing   0 failing   0 warnings
+  RESULTS   510/510 passing   0 failing   0 warnings
 ═════════════════════════════════════════════════════════════════
 ```
 
-**20 test phases:**
+**21 test phases:**
 
 | Phase | Tests | Coverage |
 |-------|-------|----------|
@@ -448,6 +458,7 @@ No browser, no Playwright, no Puppeteer — pure Node.js static analysis of the 
 | 17 — FX Heatmap | 37 | G10/EM grid, detail panel, charts |
 | 18 — Real Market Data | 21 | Yahoo Finance, CORS proxy, LIVE/AI badge |
 | 19 — Research Hub | 29 | 16 institutions, RSS, house view, articles |
+| 20 — Accuracy & Intelligence | 28 | Factor coherence, regime shift, data freshness, DATA_VINTAGE, HIGH_STAKES voting, ISO zero-padding, Singapore META |
 
 ---
 

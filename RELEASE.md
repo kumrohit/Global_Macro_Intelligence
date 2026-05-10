@@ -21,6 +21,8 @@ Before deploying, verify each item:
 - [ ] Switch to a different country then back — if cached result differs in sentiment or regime, verify ⚠ SHIFT banner renders correctly
 - [ ] Check browser DevTools → Console: no red errors on load (yellow warnings in catch blocks are fine)
 - [ ] Check DevTools → Network: D3 and TopoJSON load from CDN without 404s
+- [ ] Open Profile → Newsletter tab → click **PREVIEW** — confirm a new tab opens with the newsletter (not a blank window); if blocked, check browser popup settings
+- [ ] Open Profile → ⚙ API & SETTINGS → confirm the API key persists after a page reload (`gmi_api_key` in localStorage)
 
 ---
 
@@ -155,11 +157,12 @@ After deploying to GitHub Pages or Netlify:
 ## Security Considerations
 
 ### API Key
-The Gemini API key is entered by the user in the browser and stored **only in the DOM** for the session duration — it is never sent to any server other than `generativelanguage.googleapis.com`. No key is stored in localStorage or committed to the repository.
+The API key is entered by the user in the browser and **persisted to localStorage** (`gmi_api_key`) on-device so it survives page reloads. It is never sent to any server other than the selected AI provider endpoint — `generativelanguage.googleapis.com` (Gemini), `api.anthropic.com` (Claude), or `text.pollinations.ai` (free tier). No key is committed to the repository.
 
 **Recommendation for public deployments:** Advise users to:
-- Use a key with billing limits set in [Google AI Studio](https://aistudio.google.com/app/apikey)
-- Restrict the key to the `generativelanguage.googleapis.com` API in the Google Cloud Console
+- Use a key with billing limits set in [Google AI Studio](https://aistudio.google.com/app/apikey) or the Anthropic Console
+- Restrict Gemini keys to the `generativelanguage.googleapis.com` API in the Google Cloud Console
+- Clear their API key (Profile → ⚙ API & SETTINGS → clear field) when using a shared device
 
 ### Authentication
 The login system uses client-side localStorage only. Passwords are hashed with a simple deterministic hash — **this is not cryptographically secure**. It prevents casual access but is not suitable for protecting sensitive data. This is appropriate for a personal or team tool; do not use it to gate truly sensitive information.
@@ -170,12 +173,20 @@ If your host allows setting response headers, add this CSP header for defense-in
 ```
 Content-Security-Policy:
   default-src 'self';
-  script-src 'unsafe-inline' https://cdnjs.cloudflare.com;
+  script-src 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com
+              https://appleid.cdn-apple.com https://accounts.google.com
+              https://unpkg.com https://cdn.emailjs.com;
   style-src 'unsafe-inline' https://fonts.googleapis.com;
   font-src https://fonts.gstatic.com;
-  connect-src https://generativelanguage.googleapis.com https://cdn.jsdelivr.net;
-  img-src 'self' data:;
+  connect-src https://generativelanguage.googleapis.com https://api.anthropic.com
+              https://text.pollinations.ai https://cdn.jsdelivr.net
+              https://corsproxy.io https://api.allorigins.win https://query1.finance.yahoo.com
+              https://api.emailjs.com;
+  img-src 'self' data: https:;
+  frame-ancestors 'none';
 ```
+
+> The `deploy/netlify.toml`, `deploy/vercel.json`, and `deploy/_headers` files already contain production-ready CSP headers tailored to all active CDN and API endpoints.
 
 ---
 
@@ -183,8 +194,9 @@ Content-Security-Policy:
 
 - **First load:** ~200 KB transferred (D3 + TopoJSON from CDN, ~80 KB each)
 - **TopoJSON world map** is fetched once from jsDelivr CDN on load (~100 KB)
-- **All AI calls** are cached in-memory; refreshing the page clears the cache
-- **No analytics, no tracking, no third-party cookies** — the app makes zero external requests except CDN assets and the Gemini API
+- **All AI calls** are cached in-memory; refreshing the page clears the in-memory cache (digest/opportunities also persist to localStorage)
+- **No analytics, no tracking, no third-party cookies** — the app makes zero external requests except CDN assets, the selected AI provider, and Yahoo Finance (for chart data)
+- **Firebase SDK** loaded dynamically — only when the user connects a Firebase project; never blocking at boot
 
 ---
 

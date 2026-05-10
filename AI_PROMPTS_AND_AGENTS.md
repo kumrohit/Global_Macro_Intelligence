@@ -140,7 +140,26 @@ const today = new Date().toISOString().split('T')[0];
 // Injected into prompt as: `Today is ${today}.`
 ```
 
-### 2.5 Economic Data Anchoring
+### 2.5 Trader-Grade Output Fields
+
+All 14 prompt-generating features include specific actionable output fields for professional traders and macro strategists. Key additions across the prompt library:
+
+| Feature | Trader-Grade Fields Added |
+|---------|--------------------------|
+| Stock Analysis | `valuation_method`, `peer_comparison`, `fcf_yield`, `positioning`, `trade_setup` (entry/stop/target/R:R/holding_period) |
+| News Expand | IMMEDIATE IMPACT / 48-HOUR POSITIONING / CROSS-ASSET CONTAGION / KEY LEVEL TO WATCH structure |
+| News Headlines | `asset_impact` field; specific numbers and institutions required |
+| Watchlist Expand | CURRENT DRIVERS / POSITIONING LANDSCAPE / RISK SCENARIOS / TRADE SETUP & OUTLOOK structure |
+| Custom Analysis | `macro_regime`, `scenario_analysis` (base/bull/bear with probabilities), `key_asset`, `risk_reward`, `catalyst` |
+| Digest | `market_recap` (overnight moves), `events_today`, `positioning_shifts`, `portfolio_relevance` per item |
+| Opportunities | `entry_level`, `stop_level`, `target_level`, `risk_reward`, `position_size_note`, `catalyst_trigger` |
+| Commodity Detail | `supply_demand`, `positioning` (CoT context), `seasonal`, trade setup with `risk_reward` and `timeframe` |
+| FX Detail | `positioning` (IMM data), `vol_context` (skew), `carry.annualised_carry_pct`, trade `risk_reward` and `catalyst` |
+| Social Expand | Smart money vs retail divergence, asset impact map, 4-point professional structure |
+| Authority Pubs | `market_signal` field, policy message + market implication structure |
+| Community Sentiment | `conviction_level`, bull/bear/nuanced `key_views` |
+
+### 2.7 Economic Data Anchoring
 
 Quantitative macro context is injected into sentiment prompts via `MACRO_CONTEXT` — a curated Q1 2025 snapshot covering 40 countries:
 
@@ -1239,6 +1258,14 @@ This single constant is the source of truth for the data vintage label injected 
 - Apply its own knowledge of developments since that date
 - Disclose when extrapolating beyond the snapshot
 
+**devMode constant:**
+
+```javascript
+const devMode = typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost';
+```
+
+Controls dev-only logging in `validateSentimentResult` (factor-composite adjustment warnings, inflation-directionality guard flags). Safe to use in production — evaluates to `false` on any non-localhost host.
+
 ### Freshness Badges
 
 | Badge | Condition | Meaning |
@@ -1250,4 +1277,4 @@ This single constant is the source of truth for the data vintage label injected 
 
 ---
 
-*Last updated: 2026-05-09 · Dashboard version: Phase 20 · 19 LLM features · 5 agent patterns*
+*Last updated: 2026-05-10 · Dashboard version: Phase 20 · 19 LLM features · 5 agent patterns · ~636 KB · 510/510 tests*
