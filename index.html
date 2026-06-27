@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Meridiax — Country Sentiment Terminal</title>
+
+<!-- SEO -->
+<meta name="description" content="AI-powered macro intelligence terminal by Meridiax. Click any country for real-time sentiment analysis, deep economic briefs, watchlists, and cross-asset custom analysis — powered by Gemini.">
+<meta name="keywords" content="macro intelligence, country sentiment, global macro, forex, emerging markets, central bank, AI analysis, Gemini">
+<meta name="author" content="Meridiax">
+<meta name="theme-color" content="#050811">
+
+<!-- PWA / Android -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MRX Terminal">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Meridiax — Country Sentiment Terminal">
+<meta property="og:description" content="AI-powered macro terminal. Click any country for sentiment analysis, deep economic briefs, watchlists, and custom analysis powered by Gemini.">
+<meta property="og:image" content="https://raw.githubusercontent.com/rohitkumawat/global-macro-intelligence/main/preview.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Meridiax">
+<meta name="twitter:description" content="AI-powered country sentiment terminal. Click any country, get macro analysis instantly.">
+
+<!-- Favicon (inline SVG → data URI) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23050811'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%2322D3EE'>◈</text></svg>">
+
+<!-- Firebase SDKs loaded on-demand via loadFirebaseSDK() when user configures Firebase -->
+
+<!-- Critical CSS — prevents FOUC before the JS module and bundled CSS load -->
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;background:#050811;color:#CBD5E1;overflow:hidden;
+    font-family:'JetBrains Mono',monospace;-webkit-font-smoothing:antialiased;}
+  /* Splash loader */
+  #app-loader{
+    position:fixed;inset:0;z-index:99999;background:#050811;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  }
+  #app-loader-logo{
+    font-size:22px;font-weight:700;letter-spacing:0.32em;
+    background:linear-gradient(90deg,#22d3ee 0%,#a5b4fc 45%,#f0abfc 70%,#22d3ee 100%);
+    background-size:220% auto;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    animation:_loaderShimmer 2s linear infinite;
+  }
+  #app-loader-bar{
+    width:140px;height:2px;background:#1A2540;border-radius:1px;overflow:hidden;
+  }
+  #app-loader-bar::after{
+    content:'';display:block;height:100%;width:40%;
+    background:linear-gradient(90deg,transparent,#22d3ee,transparent);
+    animation:_loaderSweep 1.2s ease-in-out infinite;
+  }
+  #app-loader-sub{font-size:9px;color:#475569;letter-spacing:0.14em;}
+  @keyframes _loaderShimmer{0%{background-position:0% center}100%{background-position:220% center}}
+  @keyframes _loaderSweep{0%{transform:translateX(-200%)}100%{transform:translateX(400%)}}
+</style>
+</head>
+<body>
+
+<!-- Splash loader — removed by main.js after boot completes -->
+<div id="app-loader">
+  <div id="app-loader-logo">◈ MERIDIAX</div>
+  <div id="app-loader-bar"></div>
+  <div id="app-loader-sub">INITIALISING TERMINAL…</div>
+</div>
+
+<!-- ── Login overlay ── -->
+<div id="login-overlay">
+  <div id="login-box">
+    <button id="login-close-btn" title="Continue as guest — sign in later">✕</button>
+    <div id="login-logo">
+      <div class="logo">◈ MERIDIAX</div>
+      <div class="logo-sub">SIGN IN TO UNLOCK ANALYSIS</div>
+    </div>
+    <div id="login-context"></div>
+    <div id="login-main-form">
+    <div id="login-mode-tabs">
+      <button class="lm-tab active" data-mode="login">SIGN IN</button>
+      <button class="lm-tab" data-mode="register">REGISTER</button>
+    </div>
+    <!-- Social login -->
+    <button class="social-btn" id="google-signin-btn" onclick="googleSignIn()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      CONTINUE WITH GOOGLE
+    </button>
+    <button class="social-btn" id="apple-signin-btn" onclick="appleSignIn()">
+      <svg viewBox="0 0 814 1000" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-43.4-150.3-111.7C142.6 729.8 90 568.4 90 415.2c0-200 131-306.9 259.5-306.9 85.5 0 155.5 56.4 204.5 56.4 47 0 121-60 215-60z"/><path fill="currentColor" d="M567.5 93.6c-32.5 40.3-86 71.4-137.6 71.4-3.8 0-7.7-.3-11.5-.9 1.3-48.3 23.8-97.8 59.5-132.5C513.3 0 576 0 607.3 0c-1.3 51.3-22 99.5-39.8 93.6z"/></svg>
+      CONTINUE WITH APPLE
+    </button>
+    <button class="social-btn" id="github-signin-btn" onclick="githubSignIn()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      CONTINUE WITH GITHUB
+    </button>
+    <div class="social-divider"><span>OR SIGN IN WITH USERNAME</span></div>
+    <!-- Username / password form -->
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="login-field" id="login-name-wrap" style="display:none;">
+      <label>Display Name</label>
+      <input type="text" id="login-displayname" placeholder="Your name (optional)">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password">
+        <button class="pw-eye-btn" type="button" onclick="togglePwVis('login-password',this)" title="Show/hide password">👁</button>
+      </div>
+    </div>
+    <div class="login-field" id="login-confirm-wrap" style="display:none;">
+      <label>Confirm Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="login-confirm" placeholder="Repeat password" autocomplete="new-password">
+        <button class="pw-eye-btn" type="button" onclick="togglePwVis('login-confirm',this)" title="Show/hide password">👁</button>
+      </div>
+    </div>
+    <div id="login-error"></div>
+    <button id="login-submit-btn">SIGN IN</button>
+    <div id="login-footer">
+      <span id="login-footer-text">New here? <a id="login-switch-link">Create an account</a></span>
+    </div>
+    </div><!-- /#login-main-form -->
+    <!-- GitHub username verification panel -->
+    <div id="github-panel" style="display:none;">
+      <div class="github-panel-header">
+        <button class="github-back-btn" onclick="cancelGithubSignIn()">← BACK</button>
+        <span class="github-panel-title">GITHUB SIGN IN</span>
+      </div>
+      <div class="login-field">
+        <label>GitHub Username</label>
+        <input type="text" id="github-username-input" placeholder="e.g. torvalds" autocomplete="off" onkeydown="if(event.key==='Enter')verifyGithubUser()">
+      </div>
+      <div id="github-preview" style="display:none;">
+        <img id="github-avatar" src="" alt="">
+        <div id="github-userinfo">
+          <div id="github-name"></div>
+          <div id="github-login-handle"></div>
+        </div>
+      </div>
+      <div id="github-panel-error"></div>
+      <button id="github-verify-btn" onclick="verifyGithubUser()">VERIFY &amp; SIGN IN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ABOUT / PRODUCT PAGE ══ -->
+<div id="about-overlay">
+  <button id="about-close-btn" onclick="closeAbout()">✕ CLOSE</button>
+  <div class="about-wrap">
+
+    <!-- Hero -->
+    <div class="about-hero">
+      <div class="about-hero-badge">
+        <div class="about-hero-badge-dot"></div>
+        MERIDIAX · AI-POWERED · GLOBAL
+      </div>
+      <div class="about-hero-title">The Intelligence Terminal<br>for Global Macro Markets</div>
+      <div class="about-hero-sub">Meridiax delivers real-time macro sentiment, multi-asset heatmaps, institutional research and AI-driven trade ideas — unified in a single terminal for traders, analysts and investors worldwide.</div>
+      <div class="about-hero-actions">
+        <button class="about-cta-primary" onclick="handleAboutCta()">ENTER TERMINAL →</button>
+        <button class="about-cta-secondary" onclick="closeAbout()">EXPLORE THE MAP</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="about-stats">
+      <div class="about-stat"><div class="about-stat-num" data-target="195">0</div><div class="about-stat-label">COUNTRIES COVERED</div></div>
+      <div class="about-stat"><div class="about-stat-num" data-target="16">0</div><div class="about-stat-label">TOP INSTITUTIONS</div></div>
+      <div class="about-stat"><div class="about-stat-num" data-target="6" data-suffix="+">0</div><div class="about-stat-label">ASSET CLASSES</div></div>
+      <div class="about-stat"><div class="about-stat-num" data-target="50" data-suffix="+">0</div><div class="about-stat-label">MACRO INDICATORS</div></div>
+    </div>
+
+    <!-- Core Modules -->
+    <div class="about-section-head">CORE MODULES</div>
+    <div class="about-features">
+
+      <div class="about-feat-card" style="--fc:#00d4ff;--fbc:rgba(0,212,255,0.2);--fac:rgba(0,212,255,0.04);">
+        <div class="about-feat-icon">◉</div>
+        <div class="about-feat-title">WORLD SENTIMENT MAP</div>
+        <div class="about-feat-desc">Real-time macro sentiment scored across 195 countries. Click any nation for instant regime identification, risk scoring, central bank policy tracking and AI-generated economic outlook.</div>
+        <div class="about-feat-tag">195 COUNTRIES · LIVE AI</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#818cf8;--fbc:rgba(99,102,241,0.2);--fac:rgba(99,102,241,0.04);">
+        <div class="about-feat-icon">◊</div>
+        <div class="about-feat-title">FX MARKETS</div>
+        <div class="about-feat-desc">G10 and Emerging Market currency heatmap benchmarked against the Dollar. Real OHLCV data via Yahoo Finance with TradingView charts, Bollinger Bands, RSI and AI-driven FX trade signals.</div>
+        <div class="about-feat-tag">G10 + EM · LIVE OHLCV</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#f59e0b;--fbc:rgba(245,158,11,0.2);--fac:rgba(245,158,11,0.04);">
+        <div class="about-feat-icon">◆</div>
+        <div class="about-feat-title">COMMODITIES</div>
+        <div class="about-feat-desc">Cross-commodity heatmap spanning energy, metals, agriculture and softs. Live pricing layered with conviction-scored trade ideas, supply-demand catalysts and sector rotation signals.</div>
+        <div class="about-feat-tag">ENERGY · METALS · AGRI</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#60a5fa;--fbc:rgba(96,165,250,0.2);--fac:rgba(96,165,250,0.04);">
+        <div class="about-feat-icon">◎</div>
+        <div class="about-feat-title">RESEARCH HUB</div>
+        <div class="about-feat-desc">AI-curated macro research from 16 top institutions: Goldman Sachs, JPMorgan, IMF, BIS, World Bank, ECB, Fed and more. House views, key calls and direct article links in one unified feed.</div>
+        <div class="about-feat-tag">16 INSTITUTIONS · AI CURATED</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#a855f7;--fbc:rgba(168,85,247,0.2);--fac:rgba(168,85,247,0.04);">
+        <div class="about-feat-icon">⬡</div>
+        <div class="about-feat-title">COMMUNITY BOARD</div>
+        <div class="about-feat-desc">Real-time trader and investor pulse. AI-powered post sentiment scoring, trend detection, official MRX broadcasts and community macro insights — the market's collective intelligence, structured.</div>
+        <div class="about-feat-tag">LIVE PULSE · AI SENTIMENT</div>
+      </div>
+
+      <div class="about-feat-card" style="--fc:#34d399;--fbc:rgba(52,211,153,0.2);--fac:rgba(52,211,153,0.04);">
+        <div class="about-feat-icon">⊕</div>
+        <div class="about-feat-title">PERSONAL INTELLIGENCE</div>
+        <div class="about-feat-desc">Personalised daily and weekly macro digests, a horizon-based opportunity scanner, custom multi-theme analysis builder and professional newsletter delivery — all tuned to your watchlist and region.</div>
+        <div class="about-feat-tag">DIGEST · OPPORTUNITIES · WATCHLIST</div>
+      </div>
+
+    </div>
+
+    <!-- Who it's for -->
+    <div class="about-section-head">WHO IT'S FOR</div>
+    <div class="about-usecases">
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">◊</div>
+        <div>
+          <div class="about-usecase-title">MACRO TRADERS</div>
+          <div class="about-usecase-desc">Identify regime shifts, FX momentum and EM risk events before they move markets. Combine country sentiment with real-time FX heatmaps and conviction-ranked trade ideas.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">FX POSITIONING</span>
+            <span class="about-uc-chip">RATES OUTLOOK</span>
+            <span class="about-uc-chip">EM RISK</span>
+            <span class="about-uc-chip">REGIME SHIFTS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">◉</div>
+        <div>
+          <div class="about-usecase-title">PORTFOLIO MANAGERS</div>
+          <div class="about-usecase-desc">Allocate across countries and asset classes with data-driven regime scoring. Monitor drawdown signals, cross-asset correlations and institutional research from a single dashboard.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">COUNTRY ALLOCATION</span>
+            <span class="about-uc-chip">RISK SCORING</span>
+            <span class="about-uc-chip">CORRELATION</span>
+            <span class="about-uc-chip">REBALANCING</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">◎</div>
+        <div>
+          <div class="about-usecase-title">RESEARCH ANALYSTS</div>
+          <div class="about-usecase-desc">Aggregate institutional views from 16 top sources in minutes, not hours. Deep-dive country reports, AI-generated digests and professional newsletter delivery to your inbox.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">INSTITUTIONAL RESEARCH</span>
+            <span class="about-uc-chip">DEEP REPORTS</span>
+            <span class="about-uc-chip">NEWSLETTER</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-usecase">
+        <div class="about-usecase-sym">⬡</div>
+        <div>
+          <div class="about-usecase-title">LONG-TERM INVESTORS</div>
+          <div class="about-usecase-desc">Scan for structural opportunities across day, week and month horizons. Track themes, build multi-factor custom views and follow official MRX investment outlooks on the community board.</div>
+          <div class="about-usecase-chips">
+            <span class="about-uc-chip">OPPORTUNITY SCANNER</span>
+            <span class="about-uc-chip">THEMATIC ANALYSIS</span>
+            <span class="about-uc-chip">WATCHLIST</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tech stack -->
+    <div class="about-section-head">POWERED BY</div>
+    <div class="about-tech">
+      <div class="about-tech-chip">Gemini 2.5 Flash</div>
+      <div class="about-tech-chip">Claude AI · Anthropic</div>
+      <div class="about-tech-chip">Pollinations.ai (Free Tier)</div>
+      <div class="about-tech-chip">TradingView Lightweight Charts</div>
+      <div class="about-tech-chip">D3.js v7</div>
+      <div class="about-tech-chip">Yahoo Finance Data</div>
+      <div class="about-tech-chip">TopoJSON World Map</div>
+      <div class="about-tech-chip">Google Identity Services</div>
+      <div class="about-tech-chip">Apple Sign-In SDK</div>
+      <div class="about-tech-chip">Progressive Web App</div>
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="about-footer">
+      <div class="about-footer-title">See the World Through Meridiax</div>
+      <div class="about-footer-sub">Start free — no account required to explore the map. Sign in to unlock full analysis.</div>
+      <div class="about-hero-actions">
+        <button class="about-cta-primary" onclick="handleAboutCta()">ENTER TERMINAL →</button>
+        <button class="about-cta-secondary" onclick="closeAbout();openContact();">✉ CONTACT US</button>
+      </div>
+      <div style="margin-top:18px;font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:0.1em;">
+        Bugs · Feature requests · Data suggestions · Partnerships →
+        <a href="mailto:connectwithmeridiax@gmail.com" style="color:var(--cyan);text-decoration:none;">connectwithmeridiax@gmail.com</a>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /#about-overlay -->
+
+<!-- ══ CONTACT US ══ -->
+<div id="contact-overlay">
+  <div id="contact-panel">
+    <button id="contact-close" onclick="closeContact()">✕ CLOSE &nbsp;·&nbsp; ESC</button>
+
+    <div class="contact-title">GET IN TOUCH</div>
+    <div class="contact-sub">
+      We read every message →
+      <a href="mailto:connectwithmeridiax@gmail.com">connectwithmeridiax@gmail.com</a>
+    </div>
+
+    <!-- Category selector -->
+    <div class="contact-field">
+      <div class="contact-label">CATEGORY</div>
+      <div class="contact-cats" id="contact-cats">
+        <button class="contact-cat selected" data-cat="Bug Report">🐛 BUG REPORT</button>
+        <button class="contact-cat" data-cat="Feature Request">💡 FEATURE REQUEST</button>
+        <button class="contact-cat" data-cat="Data Request">📊 DATA REQUEST</button>
+        <button class="contact-cat" data-cat="Partnership">🤝 PARTNERSHIP</button>
+        <button class="contact-cat" data-cat="General">💬 GENERAL</button>
+      </div>
+      <!-- Quick-pick idea chips (shown for Feature Request / Data Request) -->
+      <div class="contact-suggestions" id="contact-suggestions">
+        <span class="contact-sugg-label">QUICK IDEAS — click to pre-fill:</span>
+      </div>
+    </div>
+
+    <!-- Subject -->
+    <div class="contact-field">
+      <label class="contact-label" for="contact-subject">SUBJECT</label>
+      <input class="contact-input" id="contact-subject" type="text" autocomplete="off"
+        placeholder="Brief description…">
+      <div class="contact-err-msg" id="contact-subject-err">Subject is required.</div>
+    </div>
+
+    <!-- Message -->
+    <div class="contact-field">
+      <label class="contact-label" for="contact-msg">
+        MESSAGE
+        <span class="contact-char-count" id="contact-char-count"></span>
+      </label>
+      <textarea class="contact-textarea" id="contact-msg"
+        placeholder="Describe in detail — the more context, the better we can help."></textarea>
+      <div class="contact-err-msg" id="contact-msg-err">Message is required.</div>
+    </div>
+
+    <!-- Reply email (optional) -->
+    <div class="contact-field">
+      <label class="contact-label" for="contact-reply">
+        YOUR EMAIL <span>(OPTIONAL — so we can reply)</span>
+      </label>
+      <input class="contact-input" id="contact-reply" type="email"
+        placeholder="your@email.com" autocomplete="email">
+      <div class="contact-err-msg" id="contact-reply-err">Please enter a valid email address.</div>
+    </div>
+
+    <div class="contact-actions">
+      <button id="contact-submit" onclick="submitContact()">✉ OPEN IN EMAIL CLIENT</button>
+      <button id="contact-copy-email" onclick="copyContactEmail()">⧉ COPY ADDRESS</button>
+      <span id="contact-status">✓ Copied!</span>
+    </div>
+
+    <!-- Post-submit success note -->
+    <div id="contact-sent-note">
+      ✓ Your email client should have opened with the message pre-filled — just press Send.
+      If it didn't open, <a href="mailto:connectwithmeridiax@gmail.com">click here to compose</a>
+      or use ⧉ COPY ADDRESS above.
+    </div>
+
+    <div class="contact-note">
+      Clicking <strong style="color:var(--text2);">OPEN IN EMAIL CLIENT</strong> pre-fills your default mail app — no data leaves your browser until you press Send.
+      &nbsp;·&nbsp; <strong style="color:var(--text2);">Ctrl + Enter</strong> to submit.
+    </div>
+  </div>
+</div><!-- /#contact-overlay -->
+
+<div id="app">
+
+<div id="topbar">
+  <div class="topbar-brand">
+    <div class="logo">◈ MERIDIAX</div>
+  </div>
+  <nav class="topbar-nav">
+    <button id="comm-topbar-btn" title="Community Board">⬡ COMMUNITY</button>
+    <div class="nav-sep"></div>
+    <button id="fx-topbar-btn" title="FX Heatmap">◊ FX MARKETS</button>
+    <div class="nav-sep"></div>
+    <button id="commod-topbar-btn" title="Commodity Heatmap">◆ COMMODITIES</button>
+    <div class="nav-sep"></div>
+    <button id="ca-topbar-btn" title="Custom Analysis Builder">⊕ ANALYSIS</button>
+    <div class="nav-sep"></div>
+    <button id="research-topbar-btn" title="Research Hub">◎ RESEARCH</button>
+  </nav>
+  <div class="topbar-right">
+    <button id="topbar-search-btn" onclick="openSearch()" title="Quick Search (/)">⌕</button>
+    <button id="about-topbar-btn" onclick="openAbout()" title="About Meridiax">◈ ABOUT</button>
+    <button id="contact-topbar-link" onclick="openContact()" title="Contact Us">✉ CONTACT</button>
+    <div id="topbar-user" style="display:none;">
+      <span id="topbar-username" title="Open Profile &amp; Digest">—</span>
+      <button id="logout-btn">⏻ LOGOUT</button>
+    </div>
+    <div id="clock">—</div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="map-wrap">
+    <svg id="map-svg"></svg>
+
+    <!-- Floating title card -->
+    <div id="map-header">
+      <div class="mh-line">
+        <span class="mh-dot"></span>
+        <span class="mh-label">LIVE ANALYSIS</span>
+      </div>
+      <div class="mh-title">World Sentiment Map</div>
+      <div class="mh-sub">Click any country · Pan · Zoom · <span id="analysed-inline">0 analysed</span></div>
+    </div>
+
+    <div id="map-hint">▼ &nbsp;CLICK ANY COUNTRY TO ANALYSE &nbsp;▼</div>
+    <!-- Map loading skeleton — shown while world topojson fetches -->
+    <div id="map-loading">
+      <div class="map-load-spin"></div>
+      <div class="map-load-txt">Loading world map…</div>
+    </div>
+
+    <!-- Zoom controls -->
+    <div id="zoom-ctrls">
+      <button class="zbtn" data-zoom="in" title="Zoom in">+</button>
+      <button class="zbtn" data-zoom="out" title="Zoom out">−</button>
+      <button class="zbtn" data-zoom="reset" title="Reset view">⟲</button>
+    </div>
+
+    <!-- Region quick-jump -->
+    <div id="region-jump">
+      <div class="rj-label">JUMP TO REGION</div>
+      <div class="rj-btns">
+        <button class="rj-btn" data-region="americas">Americas</button>
+        <button class="rj-btn" data-region="europe">Europe</button>
+        <button class="rj-btn" data-region="asia">Asia</button>
+        <button class="rj-btn" data-region="africa">Africa</button>
+        <button class="rj-btn" data-region="oceania">Oceania</button>
+      </div>
+    </div>
+
+    <div id="legend">
+      <div class="legend-title">SENTIMENT OVERLAY</div>
+      <div class="legend-row"><div class="ldot bullish"></div>Bullish</div>
+      <div class="legend-row"><div class="ldot bearish"></div>Bearish</div>
+      <div class="legend-row"><div class="ldot neutral"></div>Neutral</div>
+      <div class="legend-row"><div class="ldot default"></div>Not analysed</div>
+    </div>
+  </div>
+
+  <!-- Stocks modal -->
+  <div id="stocks-modal">
+    <div id="stocks-backdrop"></div>
+    <div id="stocks-panel">
+      <div id="stocks-header">
+        <div>
+          <div class="sh-flag" id="sh-flag">🌍</div>
+          <div class="sh-title" id="sh-title">—</div>
+          <div class="sh-sub" id="sh-sub">—</div>
+        </div>
+        <div class="sh-stats" id="sh-stats"></div>
+        <button class="sh-close" id="sh-close-btn">✕</button>
+      </div>
+
+      <div id="stocks-toolbar">
+        <div class="st-search">
+          <input type="text" id="st-filter" placeholder="Search ticker or company...">
+        </div>
+        <div class="st-tabs" id="st-tabs">
+          <button class="st-tab active" data-sector="all">ALL</button>
+          <button class="st-tab" data-sector="Financials">FIN</button>
+          <button class="st-tab" data-sector="Technology">TECH</button>
+          <button class="st-tab" data-sector="Energy">ENERGY</button>
+          <button class="st-tab" data-sector="Healthcare">HEALTH</button>
+          <button class="st-tab" data-sector="Consumer">CONS</button>
+          <button class="st-tab" data-sector="Industrials">IND</button>
+          <button class="st-tab" data-sector="Materials">MAT</button>
+        </div>
+      </div>
+
+      <div id="stocks-body">
+        <div id="stocks-loading" style="display:none;">
+          <div class="big-spin"></div>
+          <div class="sl-text">Fetching constituents from exchange...</div>
+          <div class="sl-sub">Generating data via AI model</div>
+        </div>
+        <div id="stocks-grid"></div>
+        <div id="stocks-empty" style="display:none;">
+          <div style="font-size:32px;margin-bottom:8px;">∅</div>
+          <div>No stocks match your filter</div>
+        </div>
+      </div>
+
+      <!-- Stock detail overlay — shown when a stock card is clicked -->
+      <div id="stock-detail">
+        <div id="sdp-header">
+          <button id="sdp-back">← BACK</button>
+          <div id="sdp-info">
+            <div id="sdp-ticker">—</div>
+            <div id="sdp-name">—</div>
+          </div>
+          <div id="sdp-rec" class="pending">— —</div>
+        </div>
+        <div id="sdp-price-row">
+          <div id="sdp-price">—</div>
+          <div id="sdp-chg" class="sdp-chg">—</div>
+          <div id="sdp-mcap" class="sdp-pill">MCAP —</div>
+          <div id="sdp-sector" class="sdp-pill">—</div>
+        </div>
+        <div id="sdp-body">
+          <div id="sdp-loading" style="text-align:center;padding:60px 20px;">
+            <div class="big-spin"></div>
+            <div class="sl-text">Analysing stock...</div>
+            <div class="sl-sub">Generating fundamental &amp; technical analysis</div>
+          </div>
+          <div id="sdp-content" style="display:none;">
+            <div class="sdp-stitle">COMPANY OVERVIEW</div>
+            <div id="sdp-overview" class="sdp-overview">—</div>
+
+            <div class="sdp-stitle">INVESTMENT RECOMMENDATION</div>
+            <div id="sdp-target-row">
+              <div><div class="sdp-tlabel">PRICE TARGET</div><div class="sdp-tval" id="sdp-target">—</div></div>
+              <div><div class="sdp-tlabel">UPSIDE / DOWNSIDE</div><div class="sdp-upside" id="sdp-upside">—</div></div>
+              <div><div class="sdp-tlabel">HORIZON</div><div class="sdp-conf" id="sdp-horizon">—</div></div>
+              <div><div class="sdp-tlabel">CONFIDENCE</div><div class="sdp-conf" id="sdp-conf">—</div></div>
+            </div>
+
+            <div class="sdp-stitle">FUNDAMENTAL ANALYSIS</div>
+            <div class="sdp-metrics" id="sdp-fund-metrics"></div>
+
+            <div class="sdp-stitle">TECHNICAL ANALYSIS</div>
+            <div class="sdp-metrics" id="sdp-tech-metrics"></div>
+
+            <div class="sdp-stitle">INVESTMENT THESIS</div>
+            <div id="sdp-analysis" class="sdp-analysis">—</div>
+
+            <div class="sdp-stitle">CATALYSTS</div>
+            <ul class="sdp-bullets" id="sdp-catalysts"></ul>
+
+            <div class="sdp-stitle">KEY RISKS</div>
+            <ul class="sdp-bullets" id="sdp-risks"></ul>
+          </div>
+          <div id="sdp-error" style="display:none;" class="sdp-error"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="tooltip">
+    <div id="tt-flag" style="font-size:20px;margin-bottom:4px;"></div>
+    <div class="tt-country" id="tt-name">—</div>
+    <div class="tt-region" id="tt-region">—</div>
+    <div id="tt-sent" style="display:none;"></div>
+    <div id="tt-score" class="tt-score" style="display:none;"></div>
+    <div class="tt-click" id="tt-action">CLICK TO ANALYSE</div>
+  </div>
+
+  <!-- Side panel -->
+  <div id="panel">
+    <div id="panel-top">
+      <button id="p-close">✕</button>
+      <div id="p-flag">🌍</div>
+      <div id="p-name">—</div>
+      <div id="p-meta">—</div>
+      <button id="lang-btn" title="Translate to native language">🌐 EN</button>
+    </div>
+    <div id="panel-body">
+      <div id="panel-welcome">
+        <div class="pw-icon">◈</div>
+        <div class="pw-title">SELECT A COUNTRY</div>
+        <div class="pw-sub">Click any country on the map<br>to run live macro sentiment analysis.</div>
+      </div>
+      <div id="native-note" class=""></div>
+      <div class="slabel">MACRO SENTIMENT</div>
+      <div id="sent-badge" class="loading"><span class="spin"></span> &nbsp;ANALYSING</div><br>
+      <div id="regime-pill"></div>
+      <div class="sbar-wrap">
+        <div class="sbar-track">
+          <div class="sbar-range" id="sbar-range" style="display:none;"></div>
+          <div class="sbar-fill" id="sbar" style="width:50%;background:var(--neut);"></div>
+        </div>
+        <div class="sbar-labels"><span>BEARISH −1</span><span>0</span><span>+1 BULLISH</span></div>
+        <div id="score-text">Score: —</div>
+        <div id="data-freshness-badge" style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.08em;padding:2px 5px;border-radius:2px;background:rgba(100,116,139,0.15);color:var(--text3);border:1px solid rgba(100,116,139,0.25);margin-top:4px;align-items:center;gap:4px;">📊 ANCHORED: Q1 2025</div>
+      </div>
+      <div id="regime-shift-banner" style="display:none;font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;padding:5px 10px;margin:6px 0 2px;border-radius:3px;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.30);color:#F59E0B;align-items:center;gap:4px;flex-wrap:wrap;"></div>
+      <div class="slabel">ANALYST RATIONALE</div>
+      <div id="rationale">—</div>
+      <div class="factor-section" id="factor-section" style="display:none;">
+        <div class="slabel" style="margin-top:10px;">FACTOR BREAKDOWN</div>
+        <div class="factor-grid" id="factor-grid"></div>
+      </div>
+      <div class="slabel">KEY INDICATORS</div>
+      <div class="chips">
+        <div class="chip"><div class="chip-label">EQUITY BIAS</div><div class="chip-val" id="c-eq">—</div></div>
+        <div class="chip"><div class="chip-label">RATE OUTLOOK</div><div class="chip-val" id="c-rt">—</div></div>
+        <div class="chip"><div class="chip-label">FX BIAS</div><div class="chip-val" id="c-fx">—</div></div>
+        <div class="chip"><div class="chip-label">RISK LEVEL</div><div class="chip-val" id="c-rk">—</div></div>
+        <div class="chip"><div class="chip-label">CURRENCY</div><div class="chip-val" id="c-cy">—</div></div>
+        <div class="chip"><div class="chip-label">KEY RISK</div><div class="chip-val" id="c-kr" style="font-size:9px;line-height:1.4;">—</div></div>
+      </div>
+
+      <div class="slabel">ACTIONS</div>
+      <button id="deep-analysis-btn">⬡ &nbsp;OPEN FULL COUNTRY ANALYSIS</button>
+      <button id="add-to-watchlist-btn" style="display:none;">★ &nbsp;ADD TO WATCHLIST</button>
+
+      <div class="slabel">AUTHORITY PUBLICATIONS</div>
+      <div id="auth-toggle">
+        <span id="auth-label">📋 &nbsp;Load latest publications</span>
+        <span id="auth-arrow">▼</span>
+      </div>
+      <div id="auth-list"></div>
+
+      <div class="slabel">PRIMARY EXCHANGE</div>
+      <div id="exchange-card">
+        <div class="ex-left">
+          <div class="ex-name" id="ex-name">—</div>
+          <div class="ex-meta" id="ex-meta">—</div>
+        </div>
+        <div class="ex-arrow">→</div>
+      </div>
+
+      <div class="slabel">LATEST HEADLINES</div>
+      <div id="news-toggle">
+        <span id="news-label">📰 &nbsp;Load latest news</span>
+        <span id="news-arrow">▼</span>
+      </div>
+      <div id="news-list"></div>
+
+      <div class="slabel">MACRO HISTORY CHART</div>
+      <div id="history-toggle">
+        <span>📈 &nbsp;Historical macro data</span>
+        <span id="history-arrow">▼</span>
+      </div>
+      <div id="history-section"></div>
+
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Social Media Sentiment floating tab + panel -->
+<div id="social-tab" title="Market Social Sentiment">
+  <div class="soc-tab-icon">◈</div>
+  <div class="soc-tab-label">SOCIAL FEED</div>
+  <div class="soc-tab-dot"></div>
+</div>
+<div id="social-panel">
+  <div id="social-header">
+    <div class="social-htop">
+      <div id="social-title-txt">◈ SOCIAL SENTIMENT</div>
+      <button id="social-close-btn">✕</button>
+    </div>
+    <div id="social-sub-txt">AI-synthesised from market discourse · Twitter/X · Reddit · StockTwits</div>
+    <div class="soc-scope-row">
+      <button class="soc-scope-btn active" data-scope="global">GLOBAL</button>
+      <button class="soc-scope-btn" id="soc-country-btn" data-scope="country" style="display:none;">—</button>
+      <button id="soc-refresh-btn">↻ REFRESH</button>
+    </div>
+    <div id="soc-filter-row">
+      <input type="text" id="soc-filter-input" placeholder="Filter by hashtag, topic, sector… e.g. #Fed #AI">
+    </div>
+  </div>
+  <div id="social-body">
+    <div id="social-loading" style="display:none;">
+      <div class="big-spin"></div>
+      <div class="sl-text">Fetching sentiment data...</div>
+      <div class="sl-sub">Synthesising social market discourse</div>
+    </div>
+    <div id="social-content"></div>
+    <div id="social-error" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Deep Analysis Overlay -->
+<div id="deep-overlay">
+  <div id="deep-panel">
+    <div id="deep-header">
+      <div id="deep-flag">🌍</div>
+      <div>
+        <div id="deep-title-txt">Country Analysis</div>
+        <div id="deep-subtitle">—</div>
+      </div>
+      <button id="deep-close-btn">✕ CLOSE</button>
+    </div>
+    <div id="deep-tabs">
+      <button class="deep-tab active" data-tab="overview">OVERVIEW</button>
+      <button class="deep-tab" data-tab="economy">ECONOMY</button>
+      <button class="deep-tab" data-tab="markets">MARKETS</button>
+      <button class="deep-tab" data-tab="risks">RISKS</button>
+      <button class="deep-tab" data-tab="outlook">OUTLOOK</button>
+    </div>
+    <div id="deep-body">
+      <div class="deep-loading">
+        <div class="big-spin"></div>
+        <div class="sl-text">Select a country and click Open Full Analysis</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Watchlist floating tab + panel (right side) -->
+<div id="watchlist-tab" title="My Watchlist">
+  <div class="wl-tab-icon">★</div>
+  <div class="wl-tab-label">WATCHLIST</div>
+  <div class="wl-tab-dot"></div>
+</div>
+<div id="watchlist-panel">
+  <div id="wl-header">
+    <div class="wl-htop">
+      <div id="wl-title">★ WATCHLIST</div>
+      <button id="wl-close-btn">✕</button>
+    </div>
+    <div id="wl-sub">Track sentiment for countries, stocks, sectors &amp; themes</div>
+    <div id="wl-progress"></div>
+  </div>
+  <div id="wl-add-row">
+    <input type="text" id="wl-search-input" placeholder="Add country, ticker, sector, theme…">
+    <button id="wl-add-btn">+ ADD</button>
+  </div>
+  <div id="wl-body">
+    <button id="wl-add-country-btn" style="display:none;">★ Add current country to watchlist</button>
+    <div id="wl-list"></div>
+    <div id="wl-empty">
+      <div style="font-size:28px;margin-bottom:8px;color:var(--amber);">★</div>
+      <div>Your watchlist is empty.</div>
+      <div style="margin-top:6px;font-size:11px;">Add any country, stock, sector, or custom theme to track its macro sentiment.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile + Digest Overlay -->
+<div id="profile-overlay">
+  <div id="profile-panel">
+    <div id="profile-header">
+      <div id="profile-header-left">
+        <div id="profile-avatar" id="profile-avatar-el">?</div>
+        <div>
+          <div id="profile-name">—</div>
+          <div id="profile-meta">Member since —</div>
+        </div>
+      </div>
+      <button id="profile-close">✕</button>
+    </div>
+    <div id="profile-stats-bar">
+      <div class="ps-stat">Watchlist: <strong id="ps-wl">0</strong></div>
+      <div class="ps-stat">Countries Analysed: <strong id="ps-ca">0</strong></div>
+      <div class="ps-stat">Last Active: <strong id="ps-la">—</strong></div>
+    </div>
+    <div id="profile-region-row">
+      <span class="pr-label">YOUR REGION ▸</span>
+      <button class="pr-region-btn active" data-region="global">Global</button>
+      <button class="pr-region-btn" data-region="Americas">Americas</button>
+      <button class="pr-region-btn" data-region="Europe">Europe</button>
+      <button class="pr-region-btn" data-region="Asia">Asia</button>
+      <button class="pr-region-btn" data-region="Africa">Africa</button>
+      <button class="pr-region-btn" data-region="Middle East">Middle East</button>
+    </div>
+    <div id="profile-tabs">
+      <button class="profile-tab active" data-tab="daily">📅 &nbsp;DAILY CAPSULE</button>
+      <button class="profile-tab" data-tab="weekly">📆 &nbsp;WEEKLY DIGEST</button>
+      <button class="profile-tab" data-tab="newsletter">✉ &nbsp;NEWSLETTER</button>
+      <button class="profile-tab" data-tab="opportunities">◎ &nbsp;OPPORTUNITIES</button>
+      <button class="profile-tab" data-tab="settings">⚙ &nbsp;API</button>
+      <button class="profile-tab" data-tab="countries">🌍 &nbsp;COUNTRIES</button>
+    </div>
+    <div id="profile-body">
+      <div class="digest-empty">Open your profile to load today's personalised digest.</div>
+    </div>
+    <div id="api-widget">
+      <div class="aw-label">API KEY — CLAUDE (sk-ant-…) OR GEMINI (AIza…)</div>
+      <input type="password" id="api-input" placeholder="sk-ant-… or AIza…">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="api-save" style="flex:1;">SAVE &amp; ACTIVATE</button>
+        <button id="api-clear" title="Remove saved API key" style="background:transparent;border:1px solid var(--border);border-radius:3px;padding:7px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);cursor:pointer;letter-spacing:0.08em;white-space:nowrap;">CLEAR</button>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:5px;">Key is stored on this device only — never sent anywhere except the API provider.</div>
+      <div id="api-ok">✓ KEY ACTIVE</div>
+      <div id="api-progress" style="display:none;margin-top:6px;font-size:9px;font-family:var(--font-mono);color:var(--accent);">
+        <div id="api-progress-bar" style="height:2px;background:var(--accent);width:0%;transition:width 0.3s;margin-bottom:4px;border-radius:1px;"></div>
+        <span id="api-progress-text">Precomputing 0 / 0…</span>
+      </div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div class="aw-label">GOOGLE SIGN-IN CLIENT ID <span style="font-size:8px;color:var(--text3);font-weight:400;">(optional — enables "Continue with Google")</span></div>
+        <input type="text" id="google-client-id-input" placeholder="123456789-abc….apps.googleusercontent.com" style="width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none;margin-bottom:6px;">
+        <button id="google-client-id-save" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:rgba(66,133,244,0.1);border:1px solid rgba(66,133,244,0.35);color:#4285F4;border-radius:3px;padding:5px 14px;cursor:pointer;">SAVE CLIENT ID</button>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:6px;line-height:1.6;">Get a free Client ID at <span style="color:var(--accent);">console.cloud.google.com</span> → APIs → Credentials → OAuth 2.0</div>
+      </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div class="aw-label">APPLE SIGN-IN SERVICE ID <span style="font-size:8px;color:var(--text3);font-weight:400;">(optional — enables "Continue with Apple")</span></div>
+        <input type="text" id="apple-service-id-input" placeholder="com.yourcompany.yourapp" style="width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none;margin-bottom:6px;">
+        <button id="apple-service-id-save" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:var(--text);border-radius:3px;padding:5px 14px;cursor:pointer;">SAVE SERVICE ID</button>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:6px;line-height:1.6;">Create a Services ID at <span style="color:var(--accent);">developer.apple.com</span> → Certificates → Identifiers → Sign In with Apple</div>
+      </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div class="aw-label">FRED API KEY <span style="font-size:8px;color:var(--text3);font-weight:400;">(optional — authoritative US yields from St. Louis Fed)</span></div>
+        <input type="text" id="fred-key-input" placeholder="abcdef1234567890abcdef1234567890" style="width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none;margin-bottom:6px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button onclick="saveFredKey()" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.35);color:#10B981;border-radius:3px;padding:5px 14px;cursor:pointer;flex:1;">SAVE FRED KEY</button>
+          <button onclick="clearFredKey()" style="background:transparent;border:1px solid var(--border);border-radius:3px;padding:5px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);cursor:pointer;">CLEAR</button>
+        </div>
+        <div id="fred-key-ok" style="display:none;font-family:var(--font-mono);font-size:9px;color:var(--green);text-align:center;margin-top:6px;letter-spacing:0.1em;">✓ FRED KEY SAVED</div>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:6px;line-height:1.6;">Get a free key at <span style="color:var(--accent);">fred.stlouisfed.org/docs/api/api_key.html</span>. Enables DGS10 (US 10Y) in place of Yahoo Finance.</div>
+      </div>
+    </div>
+    <div id="country-widget">
+      <div class="aw-label">COUNTRY ANALYSIS SCOPE</div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-bottom:10px;line-height:1.6;">
+        Controls which countries are available for on-demand analysis when you click the map. <span style="color:var(--text2);">Analysis runs only when you click a country.</span>
+      </div>
+      <div id="country-mode-row">
+        <button class="cmode-btn active" data-mode="all">ALL COUNTRIES</button>
+        <button class="cmode-btn" data-mode="select">SELECT SCOPE</button>
+      </div>
+      <div id="country-search-wrap">
+        <input type="text" id="country-search-input" placeholder="Filter countries…">
+        <div id="country-list-box"></div>
+        <div id="country-sel-count">0 selected — select to restrict analysis</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Research Hub Overlay -->
+<div id="research-overlay">
+  <div id="research-panel">
+    <div id="research-header">
+      <div>
+        <div id="research-header-title">📄 RESEARCH HUB</div>
+        <div id="research-header-sub">INVESTMENT BANKS · HEDGE FUNDS · OFFICIAL INSTITUTIONS · AI-SYNTHESIZED</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="overlay-esc-hint">ESC</span>
+        <button id="research-refresh-btn" onclick="refreshResearch()" title="Clear cached data and reload from AI">↺ REFRESH</button>
+        <button id="research-close-btn" onclick="closeResearch()">✕ CLOSE</button>
+      </div>
+    </div>
+    <div id="research-body">
+      <div id="research-sources-col"></div>
+      <div id="research-content-col">
+        <div id="research-search-wrap">
+          <input type="text" id="research-search-input" placeholder="Filter articles by keyword…">
+        </div>
+        <div id="research-articles">
+          <div id="research-empty">Select an institution from the left panel to load research briefs.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Analysis Overlay -->
+<div id="ca-overlay">
+  <div id="ca-panel">
+    <div id="ca-header">
+      <div>
+        <div id="ca-title">⊕ CUSTOM MACRO ANALYSIS BUILDER</div>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text2);letter-spacing:0.1em;margin-top:2px;">Add tags to build a custom thematic analysis with data and charts</div>
+      </div>
+      <button id="ca-close-btn">✕ CLOSE</button>
+    </div>
+    <div id="ca-input-zone">
+      <div class="ca-input-row">
+        <input type="text" id="ca-tag-input" placeholder="Add a tag or theme… e.g. Fed rate cuts, AI semiconductors, Oil & gas, Emerging markets">
+        <button id="ca-add-tag-btn">+ TAG</button>
+        <button id="ca-run-btn" disabled>▶ ANALYSE</button>
+      </div>
+      <div id="ca-tags-box"></div>
+      <div id="ca-suggestions">
+        <span style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-right:4px;">Suggestions:</span>
+        <span class="ca-tag-suggestion" data-tag="Fed rate policy">Fed rate policy</span>
+        <span class="ca-tag-suggestion" data-tag="China slowdown">China slowdown</span>
+        <span class="ca-tag-suggestion" data-tag="AI & semiconductors">AI & semiconductors</span>
+        <span class="ca-tag-suggestion" data-tag="Oil & energy">Oil & energy</span>
+        <span class="ca-tag-suggestion" data-tag="Emerging markets">Emerging markets</span>
+        <span class="ca-tag-suggestion" data-tag="Dollar strength">Dollar strength</span>
+        <span class="ca-tag-suggestion" data-tag="Inflation dynamics">Inflation dynamics</span>
+        <span class="ca-tag-suggestion" data-tag="EM debt crisis">EM debt crisis</span>
+        <span class="ca-tag-suggestion" data-tag="Tech sector">Tech sector</span>
+        <span class="ca-tag-suggestion" data-tag="Gold & commodities">Gold & commodities</span>
+      </div>
+    </div>
+    <div id="ca-body">
+      <div id="ca-placeholder">
+        <div style="font-size:32px;margin-bottom:10px;color:var(--cyan);">⊕</div>
+        <div style="font-size:14px;color:var(--text);margin-bottom:6px;">Build your custom analysis</div>
+        <div style="font-size:12px;">Add tags above — then click ▶ ANALYSE to generate a comprehensive thematic deep-dive with sentiment data and charts.</div>
+      </div>
+      <div id="ca-result" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FX Heatmap overlay -->
+<div id="fx-overlay">
+  <div id="fx-panel">
+    <div id="fx-header">
+      <div>
+        <div id="fx-header-title">◈ FX MARKETS</div>
+        <div id="fx-header-sub">G10 &amp; EMERGING MARKETS VS USD</div>
+        <div id="fx-data-badge" style="font-family:var(--font-mono);font-size:9px;color:#545862;margin-top:3px;"></div>
+      </div>
+      <div id="fx-toolbar">
+        <button class="fx-tab active" data-tab="all">ALL</button>
+        <button class="fx-tab" data-tab="g10">G10</button>
+        <button class="fx-tab" data-tab="em_asia">EM ASIA</button>
+        <button class="fx-tab" data-tab="em_emea">EM EMEA</button>
+        <button class="fx-tab" data-tab="em_latam">EM LATAM</button>
+      </div>
+      <button id="fx-close-btn" onclick="closeFx()">✕ CLOSE</button>
+    </div>
+    <div id="fx-body">
+      <div id="fx-grid-wrap">
+        <div id="fx-grid"></div>
+      </div>
+      <div id="fx-detail-wrap">
+        <div id="fx-detail"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Commodity Heatmap overlay -->
+<div id="commod-overlay">
+  <div id="commod-panel">
+    <div id="commod-header">
+      <div>
+        <div id="commod-title">⬡ COMMODITY HEATMAP</div>
+        <div id="commod-subtitle">MACRO COMMODITY ANALYSIS · ENERGY · METALS · AGRICULTURE · SOFTS</div>
+        <div id="commod-data-badge" style="font-family:var(--font-mono);font-size:9px;color:#545862;margin-top:3px;"></div>
+      </div>
+      <button id="commod-close-btn">✕ CLOSE</button>
+    </div>
+    <div id="commod-tabs">
+      <button class="commod-tab active" data-tab="all">ALL</button>
+      <button class="commod-tab" data-tab="energy">⚡ ENERGY</button>
+      <button class="commod-tab" data-tab="metals">◈ METALS</button>
+      <button class="commod-tab" data-tab="agriculture">🌾 AGRI</button>
+      <button class="commod-tab" data-tab="softs">⬥ SOFTS</button>
+    </div>
+    <div id="commod-main">
+      <div id="commod-grid-wrap">
+        <div id="commod-toolbar">
+          <div class="commod-sort-row">
+            <span class="commod-label">SORT BY:</span>
+            <button class="commod-sort-btn active" data-sort="pct">CHANGE %</button>
+            <button class="commod-sort-btn" data-sort="name">NAME</button>
+          </div>
+          <button id="commod-refresh-btn">⟳ REFRESH DATA</button>
+        </div>
+        <div id="commod-grid">
+          <div class="commod-empty">⬡<br><br>Open Profile → ⚙ API &amp; SETTINGS, enter your API key, then click ⟳ REFRESH DATA to load live commodity prices and analysis.</div>
+        </div>
+      </div>
+      <div id="commod-detail-wrap" style="display:none;">
+        <div id="commod-detail"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Community Board overlay — must be before <script> so wireCommEvents() finds elements -->
+<div id="comm-overlay">
+  <div id="comm-panel">
+    <div id="comm-header">
+      <span class="comm-h-icon">◈</span>
+      <div>
+        <div class="comm-h-title">COMMUNITY BOARD</div>
+        <div class="comm-h-sub">MERIDIAX NETWORK · POST · DISCUSS · COLLABORATE</div>
+      </div>
+      <button id="comm-close-btn">✕ CLOSE</button>
+    </div>
+
+    <div id="comm-tabs">
+      <button class="comm-tab active" data-tab="feed">◉ &nbsp;FEED</button>
+      <button class="comm-tab" data-tab="pulse">⚡ &nbsp;PULSE</button>
+      <button class="comm-tab" data-tab="settings">⚙ &nbsp;SETTINGS</button>
+    </div>
+
+    <div id="comm-body">
+      <!-- Feed Tab -->
+      <div id="comm-feed">
+        <div class="comm-mode-notice" id="comm-mode-notice">
+          ◌ LOCAL BOARD — posts are stored on this device. Connect Firebase in Settings for real-time sharing with other users.
+        </div>
+
+        <!-- Composer -->
+        <div class="comm-composer" id="comm-composer">
+          <div class="comm-composer-top">
+            <div class="comm-avatar" id="comm-my-avatar">?</div>
+            <textarea id="comm-text-input" placeholder="Share a macro view, trade idea, or market observation…" maxlength="600"></textarea>
+          </div>
+          <div class="comm-composer-footer">
+            <button class="comm-tag-btn" data-tag="bullish">▲ BULLISH</button>
+            <button class="comm-tag-btn" data-tag="bearish">▼ BEARISH</button>
+            <button class="comm-tag-btn" data-tag="neutral">◆ NEUTRAL</button>
+            <span class="comm-char-count" id="comm-char-count">600</span>
+            <button class="comm-submit-btn" id="comm-submit-btn">POST →</button>
+          </div>
+        </div>
+
+        <!-- Feed controls: search + sort + post count -->
+        <div class="comm-feed-controls">
+          <input type="text" id="comm-search-input" class="comm-search-input" placeholder="🔍 Search posts…">
+          <div class="comm-sort-row">
+            <button class="comm-sort-btn active" data-sort="newest">NEWEST</button>
+            <button class="comm-sort-btn" data-sort="top">TOP</button>
+          </div>
+          <span class="comm-post-count" id="comm-post-count"></span>
+        </div>
+
+        <!-- Posts list -->
+        <div id="comm-posts-list"></div>
+      </div>
+
+      <!-- Pulse Tab — Community Sentiment Analysis -->
+      <div id="comm-pulse" style="display:none;">
+        <div class="comm-pulse-intro">
+          <div class="comm-pulse-intro-title">⚡ COMMUNITY PULSE</div>
+          <div class="comm-pulse-intro-desc">
+            AI-powered sentiment analysis distilled exclusively from community posts — no external data, no AI priors.
+            Pure signal from your fellow macro traders and analysts.
+          </div>
+          <button class="comm-pulse-run-btn" id="comm-pulse-run-btn" onclick="analyzeCommunityPulse()">
+            ⚡ ANALYSE COMMUNITY SENTIMENT
+          </button>
+        </div>
+        <div id="comm-pulse-result"></div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="comm-settings" style="display:none;">
+
+        <div class="comm-set-section">
+          <div class="comm-set-title">OWNER / OFFICIAL ACCOUNTS</div>
+          <div class="comm-set-desc">Comma-separated usernames whose posts appear with an OFFICIAL badge (e.g. admin,editor). Your own username here gives your posts the official mark.</div>
+          <input type="text" class="comm-set-input" id="comm-owners-input" placeholder="admin,yourname">
+          <button class="comm-set-save-btn" id="comm-owners-save-btn">SAVE OWNERS</button>
+          <div class="comm-set-status" id="comm-owners-status"></div>
+        </div>
+
+        <div class="comm-set-section">
+          <div class="comm-set-title">FIREBASE FIRESTORE — REAL-TIME SYNC</div>
+          <div class="comm-firebase-steps">
+            <ol>
+              <li>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → create a project</li>
+              <li>Add a Web App → copy the <code>firebaseConfig</code> object</li>
+              <li>In Firestore → Create database → Start in <strong>test mode</strong> (or add rules)</li>
+              <li>Paste the config JSON below and click Save</li>
+            </ol>
+          </div>
+          <div class="comm-set-desc">Paste your Firebase config object (JSON format):</div>
+          <textarea class="comm-set-textarea" id="comm-fb-config-input" placeholder='{"apiKey":"AIza…","authDomain":"…","projectId":"…","storageBucket":"…","messagingSenderId":"…","appId":"…"}'></textarea>
+          <button class="comm-set-save-btn" id="comm-fb-save-btn">CONNECT FIREBASE</button>
+          <button class="comm-set-save-btn" id="comm-fb-clear-btn" style="margin-left:8px;background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--bear);">DISCONNECT</button>
+          <div class="comm-set-status" id="comm-fb-status"></div>
+        </div>
+
+        <div class="comm-set-section">
+          <div class="comm-set-title">CLEAR ALL LOCAL POSTS</div>
+          <div class="comm-set-desc">Removes all locally stored posts from this device. Firebase posts are not affected.</div>
+          <button class="comm-set-save-btn" id="comm-clear-local-btn" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--bear);">CLEAR LOCAL BOARD</button>
+          <div class="comm-set-status" id="comm-clear-status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- API Key required gate modal -->
+<div id="apikey-gate-overlay" onclick="if(event.target===this)closeApiKeyGate()">
+  <div id="apikey-gate-box">
+    <div id="apikey-gate-header">
+      <span id="apikey-gate-title">🔑 API KEY REQUIRED</span>
+      <button id="apikey-gate-close" onclick="closeApiKeyGate()">✕</button>
+    </div>
+    <div id="apikey-gate-desc"></div>
+    <div id="apikey-gate-field">
+      <div class="aw-label" style="margin-bottom:6px;">GEMINI OR CLAUDE API KEY</div>
+      <div id="apikey-gate-input-row">
+        <input type="password" id="apikey-gate-input" placeholder="AIza… (Gemini)  ·  sk-ant-… (Claude)" onkeydown="if(event.key==='Enter')saveApiKeyGate()">
+        <button id="apikey-gate-eye" onclick="toggleApiKeyGateVis()" title="Show/hide key">👁</button>
+      </div>
+    </div>
+    <div id="apikey-gate-error"></div>
+    <div id="apikey-gate-actions">
+      <button id="apikey-gate-save" onclick="saveApiKeyGate()">✓ SAVE &amp; ACTIVATE</button>
+      <button id="apikey-gate-cancel" onclick="closeApiKeyGate()">CANCEL</button>
+    </div>
+    <div id="apikey-gate-links">
+      <span>Free keys:</span>
+      <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio (Gemini)</a>
+      <span>·</span>
+      <a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic Console (Claude)</a>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile bottom navigation (shown on phones ≤ 480px) -->
+<nav id="mobile-nav" role="navigation" aria-label="Mobile navigation">
+  <button class="mob-nav-btn" onclick="toggleSocialPanel()" title="Social Feed">
+    <span class="mob-icon">◈</span>SOCIAL
+  </button>
+  <button class="mob-nav-btn" onclick="toggleWatchlist()" title="Watchlist">
+    <span class="mob-icon">★</span>WATCH
+  </button>
+  <button class="mob-nav-btn" onclick="openCustomAnalysis()" title="Custom Analysis">
+    <span class="mob-icon">⊕</span>ANALYSE
+  </button>
+  <button class="mob-nav-btn" onclick="openCommunity()" title="Community Board">
+    <span class="mob-icon">◉</span>COMMUNITY
+  </button>
+  <button class="mob-nav-btn" onclick="openProfile()" title="Profile &amp; Digest">
+    <span class="mob-icon">⊙</span>PROFILE
+  </button>
+</nav>
+
+<!-- Chart Fullscreen Overlay -->
+<div id="chart-fs">
+  <div id="chart-fs-header">
+    <div>
+      <div id="chart-fs-title">CHART</div>
+      <div id="chart-fs-sub"></div>
+    </div>
+    <div id="chart-fs-toolbar"></div>
+    <button id="chart-fs-close" onclick="closeChartFs()">✕ CLOSE</button>
+  </div>
+  <div id="chart-fs-ohlc"></div>
+  <div id="chart-fs-body">
+    <div id="chart-analysis-info" style="display:none"></div>
+    <div id="chart-fs-chart"></div>
+    <div id="chart-fs-tip"></div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="mrx-toast">
+  <span id="mrx-toast-msg">Your daily capsule is ready.</span>
+  <button id="mrx-toast-send" onclick="openProfile();dismissToast();">OPEN NEWSLETTER</button>
+  <button id="mrx-toast-dismiss" onclick="dismissToast();">✕</button>
+</div>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
+
+<!-- Economic Calendar Overlay -->
+<div id="econ-cal-overlay" onclick="if(event.target===this)closeCalendar()">
+  <div id="econ-cal-panel">
+    <div id="econ-cal-header">
+      <div>
+        <div id="econ-cal-title">📅 ECONOMIC CALENDAR</div>
+        <div style="font-family:var(--font-mono);font-size:8px;color:#22D3EE;margin-top:2px;letter-spacing:0.1em;">UPCOMING MACRO EVENTS · NEXT 4 WEEKS</div>
+      </div>
+      <button id="econ-cal-close" onclick="closeCalendar()">✕ CLOSE</button>
+    </div>
+    <div id="econ-cal-filters">
+      <button class="ecal-filter active" data-f="all" onclick="ecalFilterClick(this,'all')">ALL</button>
+      <button class="ecal-filter" data-f="cb" onclick="ecalFilterClick(this,'cb')">CENTRAL BANKS</button>
+      <button class="ecal-filter" data-f="econ" onclick="ecalFilterClick(this,'econ')">ECONOMIC DATA</button>
+      <button class="ecal-filter" data-f="mkt" onclick="ecalFilterClick(this,'mkt')">MARKETS</button>
+      <button class="ecal-filter" data-f="high" onclick="ecalFilterClick(this,'high')">HIGH IMPACT ONLY</button>
+    </div>
+    <div id="econ-cal-body"><div id="econ-cal-loading">Loading calendar…</div></div>
+  </div>
+</div>
+
+<!-- Quick Search Overlay -->
+<div id="quick-search-overlay" onclick="if(event.target===this)closeSearch()">
+  <div id="quick-search-box">
+    <div id="quick-search-input-wrap">
+      <span id="quick-search-icon">⌕</span>
+      <input id="quick-search-input" type="text" placeholder="Search countries, FX pairs, commodities…" autocomplete="off" oninput="performSearch(this.value)" onkeydown="handleSearchKey(event)">
+      <span id="quick-search-kbd">ESC to close</span>
+    </div>
+    <div id="quick-search-results"></div>
+    <div id="quick-search-hint">
+      <span class="qs-hint-item"><span class="qs-hint-key">↑↓</span> Navigate</span>
+      <span class="qs-hint-item"><span class="qs-hint-key">↵</span> Select</span>
+      <span class="qs-hint-item"><span class="qs-hint-key">ESC</span> Close</span>
+      <span class="qs-hint-item"><span class="qs-hint-key">Ctrl+K</span> or <span class="qs-hint-key">/</span> Open</span>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Panel -->
+<div id="shortcuts-panel">
+  <div id="shortcuts-panel-title">KEYBOARD SHORTCUTS <button id="shortcuts-panel-close" onclick="closeShortcuts()">✕</button></div>
+  <div class="sc-group">
+    <div class="sc-group-lbl">NAVIGATION</div>
+    <div class="sc-row"><span class="sc-desc">Quick Search</span><span class="sc-keys"><span class="sc-key">Ctrl+K</span><span class="sc-key">/</span></span></div>
+    <div class="sc-row"><span class="sc-desc">FX Markets</span><span class="sc-keys"><span class="sc-key">F</span></span></div>
+    <div class="sc-row"><span class="sc-desc">Commodities</span><span class="sc-keys"><span class="sc-key">X</span></span></div>
+    <div class="sc-row"><span class="sc-desc">Research Hub</span><span class="sc-keys"><span class="sc-key">R</span></span></div>
+    <div class="sc-row"><span class="sc-desc">Economic Calendar</span><span class="sc-keys"><span class="sc-key">E</span></span></div>
+    <div class="sc-row"><span class="sc-desc">Community</span><span class="sc-keys"><span class="sc-key">B</span></span></div>
+    <div class="sc-row"><span class="sc-desc">Profile / Digest</span><span class="sc-keys"><span class="sc-key">P</span></span></div>
+    <div class="sc-row"><span class="sc-desc">Custom Analysis</span><span class="sc-keys"><span class="sc-key">A</span></span></div>
+  </div>
+  <div class="sc-group">
+    <div class="sc-group-lbl">GENERAL</div>
+    <div class="sc-row"><span class="sc-desc">Close overlay</span><span class="sc-keys"><span class="sc-key">ESC</span></span></div>
+    <div class="sc-row"><span class="sc-desc">This help</span><span class="sc-keys"><span class="sc-key">?</span></span></div>
+  </div>
+</div>
+
+<!-- Mini Ticker Bar -->
+<div id="mini-ticker">
+  <span class="mtb-item" title="US Dollar Index"><span class="mtb-lbl">DXY</span><span id="mtb-dxy" class="mtb-val mtb-na">—</span><span id="mtb-dxy-c" class="mtb-chg mtb-na"></span></span>
+  <span class="mtb-item" title="Gold (oz)"><span class="mtb-lbl">GOLD</span><span id="mtb-gold" class="mtb-val mtb-na">—</span><span id="mtb-gold-c" class="mtb-chg mtb-na"></span></span>
+  <span class="mtb-item" title="WTI Crude Oil"><span class="mtb-lbl">WTI</span><span id="mtb-wti" class="mtb-val mtb-na">—</span><span id="mtb-wti-c" class="mtb-chg mtb-na"></span></span>
+  <span class="mtb-item" title="CBOE Volatility Index"><span class="mtb-lbl">VIX</span><span id="mtb-vix" class="mtb-val mtb-na">—</span><span id="mtb-vix-c" class="mtb-chg mtb-na"></span></span>
+  <span class="mtb-item" title="US 10-Year Treasury Yield"><span class="mtb-lbl">US10Y</span><span id="mtb-10y" class="mtb-val mtb-na">—</span><span id="mtb-10y-c" class="mtb-chg mtb-na"></span></span>
+  <button id="mtb-cal-btn" onclick="openCalendar()" title="Economic Calendar (E)">📅 CALENDAR</button>
+  <button id="mtb-search-btn" onclick="openSearch()" title="Quick Search (/)">⌕ SEARCH</button>
+  <span class="mtb-item"><span class="mtb-lbl">UTC</span><span id="mtb-clock">—</span></span>
+</div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

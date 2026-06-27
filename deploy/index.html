@@ -3631,6 +3631,16 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
         <button id="apple-service-id-save" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:var(--text);border-radius:3px;padding:5px 14px;cursor:pointer;">SAVE SERVICE ID</button>
         <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:6px;line-height:1.6;">Create a Services ID at <span style="color:var(--accent);">developer.apple.com</span> → Certificates → Identifiers → Sign In with Apple</div>
       </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div class="aw-label">FRED API KEY <span style="font-size:8px;color:var(--text3);font-weight:400;">(optional — authoritative US yields from St. Louis Fed)</span></div>
+        <input type="text" id="fred-key-input" placeholder="abcdef1234567890abcdef1234567890" style="width:100%;background:rgba(5,8,17,0.7);border:1px solid var(--border);border-radius:3px;padding:8px 10px;color:var(--text);font-family:var(--font-mono);font-size:10px;outline:none;margin-bottom:6px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button onclick="saveFredKey()" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.35);color:#10B981;border-radius:3px;padding:5px 14px;cursor:pointer;flex:1;">SAVE FRED KEY</button>
+          <button onclick="clearFredKey()" style="background:transparent;border:1px solid var(--border);border-radius:3px;padding:5px 10px;font-family:var(--font-mono);font-size:9px;color:var(--text3);cursor:pointer;">CLEAR</button>
+        </div>
+        <div id="fred-key-ok" style="display:none;font-family:var(--font-mono);font-size:9px;color:var(--green);text-align:center;margin-top:6px;letter-spacing:0.1em;">✓ FRED KEY SAVED</div>
+        <div style="font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:6px;line-height:1.6;">Get a free key at <span style="color:var(--accent);">fred.stlouisfed.org/docs/api/api_key.html</span>. Enables DGS10 (US 10Y) in place of Yahoo Finance.</div>
+      </div>
     </div>
     <div id="country-widget">
       <div class="aw-label">COUNTRY ANALYSIS SCOPE</div>
@@ -3727,6 +3737,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
       <div>
         <div id="fx-header-title">◈ FX MARKETS</div>
         <div id="fx-header-sub">G10 &amp; EMERGING MARKETS VS USD</div>
+        <div id="fx-data-badge" style="font-family:var(--font-mono);font-size:9px;color:#545862;margin-top:3px;"></div>
       </div>
       <div id="fx-toolbar">
         <button class="fx-tab active" data-tab="all">ALL</button>
@@ -3755,6 +3766,7 @@ a.research-read-btn--search:hover{color:var(--accent);border-color:rgba(96,165,2
       <div>
         <div id="commod-title">⬡ COMMODITY HEATMAP</div>
         <div id="commod-subtitle">MACRO COMMODITY ANALYSIS · ENERGY · METALS · AGRICULTURE · SOFTS</div>
+        <div id="commod-data-badge" style="font-family:var(--font-mono);font-size:9px;color:#545862;margin-top:3px;"></div>
       </div>
       <button id="commod-close-btn">✕ CLOSE</button>
     </div>
@@ -4219,9 +4231,106 @@ const MACRO_CONTEXT = {
   "608": { gdp:"+5.8", cpi:"2.7",  rate:"5.25", unemp:"3.5", ca:"-2.6", pmi:"51.7", note:"BSP cut to 5.25%; strong remittance inflows; BPO sector growing; domestic consumption solid; typhoon and climate risk a structural concern" },
 };
 
+// ISO-2 codes for World Bank API, keyed by the same numeric IDs used in MACRO_CONTEXT / SVG paths
+const COUNTRY_ISO2 = {
+  '840':'US','156':'CN','276':'DE','392':'JP','826':'GB','250':'FR','380':'IT',
+  '124':'CA','036':'AU','076':'BR','356':'IN','410':'KR','484':'MX','682':'SA',
+  '158':'TW','702':'SG','752':'SE','756':'CH','528':'NL','710':'ZA','643':'RU',
+  '792':'TR','360':'ID','724':'ES','616':'PL','032':'AR','554':'NZ','376':'IL',
+  '784':'AE','578':'NO','152':'CL','458':'MY','704':'VN','764':'TH','818':'EG',
+  '566':'NG','300':'GR','208':'DK','246':'FI','608':'PH',
+};
+
+async function fetchWorldBankSeries(iso2, indicator) {
+  const cKey = `gmi_wb_${iso2}_${indicator}`;
+  try {
+    const cached = storageGet(cKey);
+    if (cached) {
+      const { data, ts } = JSON.parse(cached);
+      if (Date.now() - ts < 24 * 3600 * 1000) return data;
+    }
+  } catch(_) {}
+  const url = `https://api.worldbank.org/v2/country/${iso2}/indicator/${indicator}?format=json&per_page=10&mrv=10`;
+  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+  for (const endpoint of [url, proxied]) {
+    try {
+      const res = await fetch(endpoint, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const json = await res.json();
+      const rows = Array.isArray(json[1]) ? json[1] : null;
+      if (!rows) continue;
+      const data = rows.filter(r => r.value !== null)
+                       .map(r => ({ year: +r.date, value: +r.value }))
+                       .sort((a, b) => a.year - b.year);
+      if (data.length === 0) continue;
+      try { storageSet(cKey, JSON.stringify({ data, ts: Date.now() })); } catch(_) {}
+      return data;
+    } catch(_) {}
+  }
+  return null;
+}
+
+// Expand annual WB series → 22 quarter slots (Q1 2020 – Q2 2025)
+function _wbAnnualToQuarterly(annualData) {
+  const QUARTERS = ['Q1 2020','Q2 2020','Q3 2020','Q4 2020','Q1 2021','Q2 2021','Q3 2021','Q4 2021',
+                    'Q1 2022','Q2 2022','Q3 2022','Q4 2022','Q1 2023','Q2 2023','Q3 2023','Q4 2023',
+                    'Q1 2024','Q2 2024','Q3 2024','Q4 2024','Q1 2025','Q2 2025'];
+  const byYear = {};
+  annualData.forEach(r => { byYear[r.year] = r.value; });
+  // For Q1/Q2 2025, WB data not yet available — linearly interpolate from 2023→2024 trend
+  if (!byYear[2025] && byYear[2024] && byYear[2023]) {
+    byYear[2025] = byYear[2024] + (byYear[2024] - byYear[2023]) * 0.5;
+  }
+  return QUARTERS.map(q => {
+    const yr = +q.slice(-4);
+    return byYear[yr] != null ? byYear[yr] : null;
+  });
+}
+
+// Auto-refresh MACRO_CONTEXT GDP/CPI/unemployment from World Bank (24h cache)
+async function refreshMacroContextFromWB() {
+  const TS_KEY = 'gmi_macro_wb_ts';
+  try {
+    const lastTs = +storageGet(TS_KEY) || 0;
+    if (Date.now() - lastTs < 24 * 3600 * 1000) return; // fresh enough
+  } catch(_) {}
+
+  // Top 10 countries most likely to be viewed — fetch in parallel
+  const PRIORITY = ['840','276','392','826','156','036','124','376','156','410'];
+  const unique = [...new Set(PRIORITY)].filter(id => COUNTRY_ISO2[id]);
+
+  await Promise.allSettled(unique.map(async id => {
+    const iso2 = COUNTRY_ISO2[id];
+    try {
+      const [gdpRows, cpiRows, unempRows] = await Promise.all([
+        fetchWorldBankSeries(iso2, 'NY.GDP.MKTP.KD.ZG'),
+        fetchWorldBankSeries(iso2, 'FP.CPI.TOTL.ZG'),
+        fetchWorldBankSeries(iso2, 'SL.UEM.TOTL.ZS'),
+      ]);
+      const entry = MACRO_CONTEXT[id];
+      if (!entry) return;
+      if (gdpRows && gdpRows.length) {
+        const latest = gdpRows[gdpRows.length - 1];
+        entry.gdp = (latest.value >= 0 ? '+' : '') + latest.value.toFixed(1);
+      }
+      if (cpiRows && cpiRows.length) {
+        const latest = cpiRows[cpiRows.length - 1];
+        entry.cpi = latest.value.toFixed(1);
+      }
+      if (unempRows && unempRows.length) {
+        const latest = unempRows[unempRows.length - 1];
+        entry.unemp = latest.value.toFixed(1);
+      }
+    } catch(_) {}
+  }));
+
+  try { storageSet(TS_KEY, String(Date.now())); } catch(_) {}
+}
+
 // CLOCK
 const _clockEl = document.getElementById('clock');
 function tick() {
+  if (!_clockEl) return;
   const n = new Date();
   _clockEl.textContent = n.toUTCString().slice(5,25).replace('GMT','') + ' UTC';
 }
@@ -4279,15 +4388,26 @@ async function initMap() {
 
   // Load world topojson from CDN
   let world;
+  const mapLoader = document.getElementById('map-loading');
   try {
-    world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
-  } catch(e) {
-    world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
+    try {
+      world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    } catch(e) {
+      world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
+    }
+  } catch(fetchErr) {
+    // Both CDN fetches failed — hide spinner and show error so the page is usable
+    if (mapLoader) {
+      mapLoader.innerHTML = '<div style="color:#ef4444;font-family:monospace;font-size:12px;padding:16px;text-align:center;">MAP DATA UNAVAILABLE<br><span style="color:#666;font-size:10px;">Check network connection</span></div>';
+      mapLoader.classList.add('hidden');
+      setTimeout(() => mapLoader.remove(), 450);
+    }
+    console.error('[initMap] Failed to load world atlas:', fetchErr);
+    return;
   }
   worldData = world;
 
   // Hide loading overlay now that map data is ready
-  const mapLoader = document.getElementById('map-loading');
   if (mapLoader) {
     mapLoader.classList.add('hidden');
     setTimeout(() => mapLoader.remove(), 450);
@@ -4439,7 +4559,7 @@ function moveTip(event) {
 }
 
 // SVG-level mousemove: only reposition tooltip when cursor is between country paths
-document.getElementById('map-svg').addEventListener('mousemove', e => {
+document.getElementById('map-svg')?.addEventListener('mousemove', e => {
   if (!_ttVisible || _tipRafPending) return;
   _tipLastEvent = e;
 });
@@ -5934,7 +6054,7 @@ async function precomputeAll() {
   }
 }
 
-document.getElementById('api-save').addEventListener('click', () => {
+document.getElementById('api-save')?.addEventListener('click', () => {
   const v = document.getElementById('api-input').value.trim();
   if (!v) return;
 
@@ -5982,6 +6102,41 @@ document.getElementById('api-clear')?.addEventListener('click', () => {
   tickerTimer = setInterval(loadTickers, 300000);
   loadTickers();
 });
+
+// FRED API key management
+function saveFredKey() {
+  const v = (document.getElementById('fred-key-input')?.value || '').trim();
+  if (!v) return;
+  storageSet('gmi_fred_key', v);
+  const ok = document.getElementById('fred-key-ok');
+  if (ok) { ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 3000); }
+  loadTickers(); // re-fetch tickers using FRED for US10Y
+}
+function clearFredKey() {
+  storageRemove('gmi_fred_key');
+  const inp = document.getElementById('fred-key-input');
+  if (inp) inp.value = '';
+}
+// FRED key restore is deferred to boot sequence (storageGet depends on _storage which is declared later)
+
+// Fetch US10Y from FRED (DGS10 series) if key is available
+async function fetchFredUS10Y() {
+  const key = storageGet('gmi_fred_key');
+  if (!key) return null;
+  const url = `https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&api_key=${key}&file_type=json&limit=5&sort_order=desc`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const obs = json.observations?.filter(o => o.value !== '.');
+    if (!obs || obs.length === 0) return null;
+    const price = parseFloat(obs[0].value);
+    const prev  = obs.length > 1 ? parseFloat(obs[1].value) : price;
+    if (!isFinite(price)) return null;
+    const pct = prev ? ((price - prev) / prev) * 100 : 0;
+    return { price, pct, date: obs[0].date };
+  } catch(_) { return null; }
+}
 
 // COUNTER
 const _elAnalysedInline = document.getElementById('analysed-inline');
@@ -6085,9 +6240,17 @@ function startMiniClock() {
   setInterval(tick, 60000); // HH:MM display — minute-level accuracy is sufficient
 }
 
-let _tickerFetching = false; // in-flight guard: only one LLM fetch at a time
+let _tickerFetching = false; // in-flight guard: only one fetch at a time
 
 async function loadTickers() {
+  // YF_TICKER is defined later in the file — build the map here at call time, not at parse time
+  const TICKER_YF_MAP = {
+    dxy:   YF_TICKER.DXY,
+    gold:  YF_TICKER.GOLD,
+    wti:   YF_TICKER.WTI,
+    vix:   YF_TICKER.VIX,
+    us10y: YF_TICKER.US10Y,
+  };
   // Serve from localStorage cache if < 5 min old
   try {
     const cached = storageGet('gmi_ticker_cache');
@@ -6097,10 +6260,10 @@ async function loadTickers() {
     }
   } catch(_) {}
 
-  if (_tickerFetching) return; // already fetching — skip
+  if (_tickerFetching) return;
   _tickerFetching = true;
 
-  // Show spinners (if ticker elements still present)
+  // Show spinners
   TICKERS.forEach(t => {
     const el = document.getElementById(t.id);
     if (!el) return;
@@ -6108,96 +6271,75 @@ async function loadTickers() {
     el.className = 'tick-val tick-na';
   });
 
-  const prompt = `Use web search to get the latest prices for these 5 market instruments RIGHT NOW. For each, find the current price and the percentage change from the previous close.
+  // ── Primary: Yahoo Finance + optional FRED for US10Y ──
+  try {
+    const keys    = Object.keys(TICKER_YF_MAP);
+    const [settled, fredQuote] = await Promise.all([
+      Promise.allSettled(keys.map(k => fetchYFQuote(TICKER_YF_MAP[k]))),
+      fetchFredUS10Y(), // null if no FRED key configured
+    ]);
+    const quotes  = {};
+    let hitCount  = 0;
+    settled.forEach((res, i) => {
+      const k = keys[i];
+      if (res.status === 'fulfilled' && res.value) {
+        let { price, pct } = res.value;
+        // ^TNX via YF v8 API already returns actual yield % (e.g. 4.394 = 4.394%)
+        quotes[k] = { price, pct };
+        hitCount++;
+      }
+    });
+    // Prefer FRED for US10Y when available (more authoritative)
+    if (fredQuote) {
+      quotes['us10y'] = { price: fredQuote.price, pct: fredQuote.pct, _src: '📡 FRED' };
+      if (!quotes['us10y'].price) hitCount++;
+    }
 
-Return ONLY a valid JSON object, no markdown, no prose:
-{
-  "dxy":  {"price": <number>, "pct": <number>},
-  "gold": {"price": <number>, "pct": <number>},
-  "wti":  {"price": <number>, "pct": <number>},
-  "vix":  {"price": <number>, "pct": <number>},
-  "us10y":{"price": <number>, "pct": <number>}
-}
+    if (hitCount >= 3) { // accept partial success
+      try { storageSet('gmi_ticker_cache', JSON.stringify({ data: quotes, ts: Date.now() })); } catch(_) {}
+      _applyTickerQuotes(quotes, fredQuote ? '📡 YF+FRED' : '📡 YF');
+      _tickerFetching = false;
+      return;
+    }
+  } catch(_) {}
 
-Where:
-- dxy   = US Dollar Index (DXY)
-- gold  = Spot gold in USD per oz (XAU/USD)
-- wti   = WTI Crude Oil futures price in USD
-- vix   = CBOE Volatility Index
-- us10y = US 10-Year Treasury yield (percentage value, e.g. 4.25)
-
-pct = today's percentage change vs previous close (signed, e.g. 0.45 or -1.2).
-Use the most recent intraday value available. Output JSON only.`;
-
+  // ── Fallback: LLM estimate (Claude web-search or Gemini) ──
   try {
     let fullText;
-    if (detectProvider() !== 'claude') {
-      // Gemini and free mode (Pollinations): use LLM price estimation
-      const _tickerToday = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-      const geminiTickerPrompt = `Today is ${_tickerToday}. Based on your most recent training data, estimate current approximate market prices for these five instruments.
-
-Output ONLY a raw JSON object matching this schema (no markdown, no code fences, no trailing commas):
-{"dxy":{"price":0,"pct":0},"gold":{"price":0,"pct":0},"wti":{"price":0,"pct":0},"vix":{"price":0,"pct":0},"us10y":{"price":0,"pct":0}}
-
-Replace every 0 with your best estimate as of ${_tickerToday}:
-- dxy: US Dollar Index (typical range 96-106)
-- gold: spot gold in USD per troy oz (typical range 2800-3500)
-- wti: WTI crude oil futures USD per barrel (typical range 55-90)
-- vix: CBOE Volatility Index (typical range 12-50)
-- us10y: US 10-Year Treasury yield as percentage e.g. 4.25 (typical range 3.5-5.5)
-- pct: estimated % change vs previous close (signed, e.g. -0.3 or 0.8)
-
-Output only the JSON with your estimates substituted in.`;
-      fullText = await callLLM(null, geminiTickerPrompt, 400);
-    } else {
-      const data = await callClaudeWithSearch(prompt, 1200, 5);
+    if (detectProvider() === 'claude') {
+      const prompt = `Use web search to get the latest prices for DXY, Gold spot, WTI crude, VIX, and US 10-Year Treasury yield. Return ONLY JSON: {"dxy":{"price":0,"pct":0},"gold":{"price":0,"pct":0},"wti":{"price":0,"pct":0},"vix":{"price":0,"pct":0},"us10y":{"price":0,"pct":0}}`;
+      const data = await callClaudeWithSearch(prompt, 800, 5);
       fullText = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    } else {
+      const _td = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      fullText = await callLLM(null, `Today is ${_td}. Estimate current market prices. Output ONLY JSON: {"dxy":{"price":0,"pct":0},"gold":{"price":0,"pct":0},"wti":{"price":0,"pct":0},"vix":{"price":0,"pct":0},"us10y":{"price":0,"pct":0}} — replace 0s with best estimates. dxy≈96-106, gold≈2800-3500, wti≈55-90, vix≈12-50, us10y≈3.5-5.5 (%). pct = daily % change.`, 400);
     }
-    // Concatenate all text blocks (there may be multiple after tool use)
-
     const quotes = repairAndParseJSON(fullText);
-
-    // Persist to localStorage cache (5-min TTL)
     try { storageSet('gmi_ticker_cache', JSON.stringify({ data: quotes, ts: Date.now() })); } catch(_) {}
-
-    // Render each ticker (no-op if elements were removed)
-    TICKERS.forEach(t => {
-      const el = document.getElementById(t.id);
-      if (!el) return;
-      const q = quotes[t.key];
-      if (!q || !isFinite(q.price)) {
-        el.textContent = 'N/A';
-        el.className = 'tick-val tick-na';
-        return;
-      }
-      const pct = isFinite(q.pct) ? q.pct : 0;
-      const up = pct >= 0;
-      el.textContent = q.price.toFixed(t.decimals) + ' ' + (up ? '▲' : '▼') + Math.abs(pct).toFixed(2) + '%';
-      el.className = 'tick-val ' + (up ? 'tick-up' : 'tick-dn');
-      el.title = `${q.price.toFixed(t.decimals)}  ·  Δ ${up ? '+' : ''}${pct.toFixed(2)}%  (via ${detectProvider() === 'gemini' ? 'Gemini estimate' : 'Claude web search'})`;
-    });
-    applyMiniTicker(quotes);
-
+    _applyTickerQuotes(quotes, '⚠ AI');
   } catch (e) {
     console.warn('Ticker fetch failed:', e);
     TICKERS.forEach(t => {
       const el = document.getElementById(t.id);
-      if (!el) return;
-      el.textContent = 'N/A';
-      el.className = 'tick-val tick-na';
-      el.title = 'Error: ' + (e.message || e);
+      if (el) { el.textContent = 'N/A'; el.className = 'tick-val tick-na'; }
     });
   } finally {
     _tickerFetching = false;
   }
 }
 
+function _applyTickerQuotes(quotes, src) {
+  // Tag each quote with its data source for tooltip
+  Object.values(quotes).forEach(q => { if (q) q._src = src; });
+  applyTickerData(quotes);
+}
+
 const TICKERS = [
-  { id: 't-dxy',  key: 'dxy',   decimals: 2, label: 'DXY'   },
-  { id: 't-gold', key: 'gold',  decimals: 1, label: 'GOLD'  },
-  { id: 't-wti',  key: 'wti',   decimals: 2, label: 'WTI'   },
-  { id: 't-vix',  key: 'vix',   decimals: 2, label: 'VIX'   },
-  { id: 't-10y',  key: 'us10y', decimals: 3, label: 'US10Y' },
+  { id: 'mtb-dxy',  key: 'dxy',   decimals: 2, label: 'DXY'   },
+  { id: 'mtb-gold', key: 'gold',  decimals: 1, label: 'GOLD'  },
+  { id: 'mtb-wti',  key: 'wti',   decimals: 2, label: 'WTI'   },
+  { id: 'mtb-vix',  key: 'vix',   decimals: 2, label: 'VIX'   },
+  { id: 'mtb-10y',  key: 'us10y', decimals: 3, label: 'US10Y' },
 ];
 
 // AUTHORITY PUBLICATIONS
@@ -6946,34 +7088,103 @@ async function loadHistoryData() {
   const section = document.getElementById('history-section');
   section.innerHTML = '<div style="padding:20px;text-align:center;"><div class="big-spin"></div><div class="sl-text" style="font-size:11px;margin-top:8px;">Loading macro history…</div></div>';
 
-
   const meta = currentCountryMeta;
-  const prompt = `Generate realistic historical macroeconomic data for ${meta.name} covering 22 quarters from Q1 2020 through Q2 2025.
+  const QUARTERS = ['Q1 2020','Q2 2020','Q3 2020','Q4 2020','Q1 2021','Q2 2021','Q3 2021','Q4 2021',
+                    'Q1 2022','Q2 2022','Q3 2022','Q4 2022','Q1 2023','Q2 2023','Q3 2023','Q4 2023',
+                    'Q1 2024','Q2 2024','Q3 2024','Q4 2024','Q1 2025','Q2 2025'];
 
-Respond with ONLY a raw JSON object. No markdown, no code fences:
-{
-  "quarters": ["Q1 2020","Q2 2020","Q3 2020","Q4 2020","Q1 2021","Q2 2021","Q3 2021","Q4 2021","Q1 2022","Q2 2022","Q3 2022","Q4 2022","Q1 2023","Q2 2023","Q3 2023","Q4 2023","Q1 2024","Q2 2024","Q3 2024","Q4 2024","Q1 2025","Q2 2025"],
-  "gdp":       [22 numbers: real GDP growth YoY % — can be negative, reflect COVID crash in 2020],
-  "inflation": [22 numbers: CPI YoY % consumer price inflation],
-  "rate":      [22 numbers: central bank policy rate % e.g. 4.5],
-  "fx":        [22 numbers: FX rate in MARKET CONVENTION for ${meta.currency}:
-    • If ${meta.currency} is EUR, GBP, AUD, NZD, or CHF → USD per 1 ${meta.currency} (e.g. EUR/USD ~1.10, GBP/USD ~1.25)
-    • If ${meta.currency} is JPY, CNY, INR, KRW, BRL, MXN, TRY, or any other currency → ${meta.currency} per 1 USD (e.g. USD/JPY ~150)
-    • If ${meta.currency} is USD → DXY index level (e.g. 100–106 range)],
-  "fx_convention": "EURUSD or GBPUSD or AUDUSD or NZDUSD or CHFUSD or USDJPY or USDCNY or USDINR or etc. or DXY"
-}
+  // ── Step 1: try World Bank for GDP + CPI ──────────────────────────────────
+  const numId = meta._id ? String(meta._id).replace(/^c/, '') : null;
+  const iso2 = numId ? COUNTRY_ISO2[numId] : null;
+  let wbGdp = null, wbCpi = null;
 
-Use approximate real historical values for ${meta.name}. Reflect actual cycles: COVID-19 recession Q2 2020, recovery 2021, inflation surge 2021-2022, rate hike cycles 2022-2023, disinflation 2023-2024, rate cutting cycles beginning 2024-2025.`;
-
-  try {
-    const raw = await callLLM('Output only a raw JSON object. No markdown.', prompt, 800);
-    const result = repairAndParseJSON(raw);
-    historyCache[meta.name] = result;
-    historyCurrentData = result;
-    renderHistoryChart(result);
-  } catch (err) {
-    section.innerHTML = `<div style="padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Error: ${err.message}</div>`;
+  if (iso2) {
+    try {
+      [wbGdp, wbCpi] = await Promise.all([
+        fetchWorldBankSeries(iso2, 'NY.GDP.MKTP.KD.ZG'),
+        fetchWorldBankSeries(iso2, 'FP.CPI.TOTL.ZG'),
+      ]);
+    } catch(_) {}
   }
+
+  const gdpFromWB  = wbGdp  ? _wbAnnualToQuarterly(wbGdp)  : null;
+  const inflFromWB = wbCpi  ? _wbAnnualToQuarterly(wbCpi)  : null;
+
+  // ── Step 2: FX from Yahoo Finance (existing) ──────────────────────────────
+  let fxFromYF = null;
+  const yfFxSym = meta._yfSym || null; // set by country meta if available
+  if (yfFxSym) {
+    try {
+      const bars = await fetchYFOHLC(yfFxSym, '5y', '1wk');
+      if (bars && bars.length >= 4) {
+        // map weekly bars to quarterly slots (use last bar within each quarter)
+        const quarterly = {};
+        bars.forEach(b => {
+          const d = new Date(b.t * 1000);
+          const yr = d.getUTCFullYear();
+          const q = Math.floor(d.getUTCMonth() / 3) + 1;
+          const key = `Q${q} ${yr}`;
+          quarterly[key] = b.c ?? b.o;
+        });
+        fxFromYF = QUARTERS.map(q => quarterly[q] ?? null);
+      }
+    } catch(_) {}
+  }
+
+  // Check if we have enough real data to skip LLM for GDP/CPI
+  const hasRealGdp  = gdpFromWB  && gdpFromWB.filter(v => v !== null).length >= 4;
+  const hasRealCpi  = inflFromWB && inflFromWB.filter(v => v !== null).length >= 4;
+  const needLLM     = !hasRealGdp || !hasRealCpi;
+
+  // ── Step 3: LLM for rate + FX (and GDP/CPI if WB unavailable) ─────────────
+  const llmFields = [];
+  if (!hasRealGdp)  llmFields.push('"gdp": [22 numbers: real GDP growth YoY %]');
+  if (!hasRealCpi)  llmFields.push('"inflation": [22 numbers: CPI YoY %]');
+  llmFields.push('"rate": [22 numbers: central bank policy rate %]');
+  if (!fxFromYF)    llmFields.push(`"fx": [22 numbers: FX rate in market convention for ${meta.currency}]`);
+  llmFields.push('"fx_convention": "e.g. EURUSD or USDJPY or DXY"');
+
+  const prompt = `Generate historical macroeconomic data for ${meta.name} covering 22 quarters Q1 2020–Q2 2025.
+Respond ONLY with a raw JSON object (no markdown):
+{
+  "quarters": ${JSON.stringify(QUARTERS)},
+  ${llmFields.join(',\n  ')}
+}
+Reflect actual history: COVID crash Q2 2020, recovery 2021, inflation surge 2021-2022, rate hikes 2022-2023, disinflation 2023-2024, rate cuts 2024-2025.`;
+
+  let llmResult = {};
+  try {
+    const raw = await callLLM('Output only a raw JSON object. No markdown.', prompt, 700);
+    llmResult = repairAndParseJSON(raw) || {};
+  } catch(_) {}
+
+  // ── Step 4: merge real + LLM data ─────────────────────────────────────────
+  // Fill nulls in WB series using LLM interpolation
+  const fillNulls = (arr, fallback) => {
+    if (!arr || !fallback) return fallback || arr;
+    return arr.map((v, i) => v !== null ? v : (fallback[i] ?? null));
+  };
+
+  const result = {
+    quarters:     QUARTERS,
+    gdp:          hasRealGdp ? fillNulls(gdpFromWB, llmResult.gdp)   : (llmResult.gdp || []),
+    inflation:    hasRealCpi ? fillNulls(inflFromWB, llmResult.inflation) : (llmResult.inflation || []),
+    rate:         llmResult.rate || [],
+    fx:           fxFromYF   ? fxFromYF : (llmResult.fx || []),
+    fx_convention: llmResult.fx_convention || '',
+    _wbGdp:       hasRealGdp,
+    _wbCpi:       hasRealCpi,
+    _yfFx:        !!fxFromYF,
+  };
+
+  if (!result.gdp.length && !result.inflation.length) {
+    section.innerHTML = `<div style="padding:10px;font-family:var(--font-mono);font-size:10px;color:var(--bear);">Failed to load history data. Check API key or try again.</div>`;
+    return;
+  }
+
+  historyCache[meta.name] = result;
+  historyCurrentData = result;
+  renderHistoryChart(result);
 }
 
 function renderHistoryChart(data) {
@@ -7117,7 +7328,13 @@ function drawHistoryLine(data) {
   });
 
   // Legend
-  legendBox.innerHTML = `<div class="hchart-leg-item"><div class="hchart-leg-dot" style="background:${active.color};"></div>${active.label} · Q1 2020–Q2 2025</div>`;
+  const srcTag = (() => {
+    if (historyMetric === 'gdp'       && data._wbGdp) return ' · <span style="color:#10B981;font-size:9px;">📡 WORLD BANK</span>';
+    if (historyMetric === 'inflation' && data._wbCpi) return ' · <span style="color:#10B981;font-size:9px;">📡 WORLD BANK</span>';
+    if (historyMetric === 'fx'        && data._yfFx)  return ' · <span style="color:#10B981;font-size:9px;">📡 YF</span>';
+    return ' · <span style="color:#F59E0B;font-size:9px;">⚠ AI EST.</span>';
+  })();
+  legendBox.innerHTML = `<div class="hchart-leg-item"><div class="hchart-leg-dot" style="background:${active.color};"></div>${active.label} · Q1 2020–Q2 2025${srcTag}</div>`;
 }
 
 // WATCHLIST
@@ -8366,45 +8583,199 @@ function ecalFilterClick(btn, f) {
   document.querySelectorAll('.ecal-filter').forEach(b => b.classList.toggle('active', b.dataset.f === f));
   if (calCache) renderCalendar(calCache);
 }
+// ── Hardcoded central bank meeting dates 2025–2026 ──
+const CB_SCHEDULE = [
+  // FOMC
+  {date:'2025-01-29',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2025-03-19',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2025-05-07',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2025-06-18',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2025-07-30',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2025-09-17',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2025-10-29',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2025-12-10',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-01-28',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-03-18',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-04-29',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-06-17',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-07-29',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-09-16',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-10-28',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  {date:'2026-12-09',name:'FOMC Rate Decision',country:'US',category:'cb',importance:'high'},
+  // ECB
+  {date:'2025-01-30',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2025-03-06',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2025-04-17',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2025-06-05',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2025-07-24',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2025-09-11',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2025-10-30',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2025-12-18',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-01-22',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-03-05',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-04-23',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-06-04',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-07-23',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-09-10',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-10-29',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  {date:'2026-12-17',name:'ECB Rate Decision',country:'EU',category:'cb',importance:'high'},
+  // BOE
+  {date:'2025-02-06',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2025-03-20',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2025-05-08',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2025-06-19',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2025-08-07',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2025-09-18',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2025-11-06',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2025-12-18',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-02-05',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-03-19',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-05-07',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-06-18',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-08-06',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-09-17',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-11-05',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  {date:'2026-12-17',name:'BOE Rate Decision',country:'UK',category:'cb',importance:'high'},
+  // BOJ
+  {date:'2025-01-24',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2025-03-19',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2025-05-01',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2025-06-17',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2025-07-31',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2025-09-19',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2025-10-29',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2025-12-19',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-01-23',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-03-18',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-04-30',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-06-16',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-07-30',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-09-18',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-10-28',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  {date:'2026-12-18',name:'BOJ Rate Decision',country:'JP',category:'cb',importance:'high'},
+  // RBA
+  {date:'2025-02-18',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2025-04-01',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2025-05-20',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2025-07-08',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2025-08-05',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2025-09-30',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2025-11-04',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2025-12-09',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-02-17',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-03-31',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-05-19',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-07-07',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-08-04',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-09-29',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-11-03',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+  {date:'2026-12-08',name:'RBA Rate Decision',country:'AU',category:'cb',importance:'high'},
+];
+
+// Generate recurring US data releases algorithmically
+function _buildRecurringEvents(startDate, endDate) {
+  const events = [];
+  const s = new Date(startDate), e = new Date(endDate);
+
+  // Helper: nth weekday of a month (0=Sun, 1=Mon, ..., 5=Fri)
+  function nthWeekday(year, month, n, weekday) {
+    let count = 0, d = new Date(year, month, 1);
+    while (d.getMonth() === month) {
+      if (d.getDay() === weekday) { if (++count === n) return new Date(d); }
+      d.setDate(d.getDate() + 1);
+    }
+    return null;
+  }
+  // Helper: last weekday of a month
+  function lastWeekday(year, month, weekday) {
+    let d = new Date(year, month + 1, 0); // last day of month
+    while (d.getDay() !== weekday) d.setDate(d.getDate() - 1);
+    return d;
+  }
+  // Helper: nearest weekday to a target day-of-month
+  function nearestWeekday(year, month, target) {
+    let d = new Date(year, month, target);
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+    if (d.getDay() === 6) d.setDate(d.getDate() - 1);
+    return d;
+  }
+
+  const fmt = d => d ? d.toISOString().slice(0, 10) : null;
+  const inRange = d => d && d >= s && d <= e;
+
+  // Iterate months in range
+  let cur = new Date(s.getFullYear(), s.getMonth(), 1);
+  while (cur <= e) {
+    const yr = cur.getFullYear(), mo = cur.getMonth();
+
+    // US NFP — 1st Friday
+    const nfp = nthWeekday(yr, mo, 1, 5);
+    if (inRange(nfp)) events.push({ date: fmt(nfp), time:'08:30 ET', name:'US Nonfarm Payrolls (NFP)', country:'US', category:'econ', importance:'high', consensus:'Est. 150k–200k', note:'' });
+
+    // US CPI — nearest weekday to the 13th
+    const cpi = nearestWeekday(yr, mo, 13);
+    if (inRange(cpi)) events.push({ date: fmt(cpi), time:'08:30 ET', name:'US CPI (monthly)', country:'US', category:'econ', importance:'high', consensus:'—', note:'' });
+
+    // US PPI — day after CPI (nearest weekday)
+    const ppi = nearestWeekday(yr, mo, 14);
+    if (inRange(ppi)) events.push({ date: fmt(ppi), time:'08:30 ET', name:'US PPI (monthly)', country:'US', category:'econ', importance:'medium', consensus:'—', note:'' });
+
+    // US PCE — last Friday
+    const pce = lastWeekday(yr, mo, 5);
+    if (inRange(pce)) events.push({ date: fmt(pce), time:'08:30 ET', name:'US PCE Deflator', country:'US', category:'econ', importance:'high', consensus:'—', note:'' });
+
+    // US GDP — advance estimate: last Wed of Jan/Apr/Jul/Oct
+    if ([0,3,6,9].includes(mo)) {
+      const gdp = lastWeekday(yr, mo, 3);
+      if (inRange(gdp)) events.push({ date: fmt(gdp), time:'08:30 ET', name:'US GDP (advance)', country:'US', category:'econ', importance:'high', consensus:'—', note:'' });
+    }
+
+    // ISM Manufacturing PMI — 1st business day of month
+    const ism = nearestWeekday(yr, mo, 1);
+    if (inRange(ism)) events.push({ date: fmt(ism), time:'10:00 ET', name:'US ISM Manufacturing PMI', country:'US', category:'econ', importance:'medium', consensus:'—', note:'' });
+
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  return events;
+}
+
+function buildEconCalendar(startStr, endStr) {
+  const s = new Date(startStr), e = new Date(endStr);
+  const fixed   = CB_SCHEDULE.filter(ev => ev.date >= startStr && ev.date <= endStr)
+                              .map(ev => ({ ...ev, time:'TBD', consensus:'Est. no change', note:'' }));
+  const rolling = _buildRecurringEvents(s, e);
+  return [...fixed, ...rolling].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 async function loadCalendar() {
   const body = document.getElementById('econ-cal-body');
-  body.innerHTML = '<div id="econ-cal-loading"><span class="big-spin"></span><br><br>Generating calendar…</div>';
+  body.innerHTML = '<div id="econ-cal-loading"><span class="big-spin"></span><br><br>Loading calendar…</div>';
   const today = new Date();
   const todayStr = today.toISOString().slice(0,10);
   const endDate = new Date(today); endDate.setDate(endDate.getDate() + 28);
   const endStr = endDate.toISOString().slice(0,10);
-  const sys = 'You are a macro economic calendar expert. Return only valid JSON arrays.';
-  const user = `Generate a macro economic event calendar for the 4-week window ${todayStr} to ${endStr}.
 
-IMPORTANT: Your knowledge cutoff means you cannot know exact future dates for all events. Follow these conventions:
-- For RECURRING events (FOMC, ECB, CPI, NFP, PMIs, GDP releases): use the TYPICAL day they occur each month. Examples: US NFP = first Friday of the month; US CPI = mid-month Tuesday; FOMC = Wednesdays on scheduled meeting dates (8×/year); PMIs = first business day of month. Mark time as "TBD" for events you cannot pinpoint exactly.
-- For NON-RECURRING events you cannot know: do NOT include unless publicly scheduled as of your training.
-- For consensus: use "Est. [typical range]" (e.g. "Est. 175k–225k") rather than a specific number you cannot know.
+  // ── Step 1: render deterministic events immediately (no LLM needed) ──
+  const deterministicEvents = buildEconCalendar(todayStr, endStr);
+  calCache = deterministicEvents;
+  calCacheTs = Date.now();
+  renderCalendar(calCache);
 
-Return ONLY a JSON array (not an object). Each event must have exactly these fields:
-- date: "YYYY-MM-DD" (your best estimate of when this recurring event falls in the window)
-- time: "TBD" (unless you are certain of the specific time)
-- name: string (e.g. "FOMC Rate Decision", "US CPI (monthly)", "ECB Rate Decision")
-- country: string (e.g. "US", "EU", "UK", "JP", "CN")
-- category: one of "cb" (central bank), "econ" (economic data), "mkt" (market)
-- importance: one of "high", "medium", "low"
-- consensus: string (e.g. "Est. No change", "Est. 175k–225k", "—")
-- note: string (1 sentence on why this matters for traders)
-
-Include: FOMC/Fed meetings, ECB/BOJ/BOE/BOC/RBA decisions, US CPI, PPI, NFP, GDP, PCE, ISM PMIs, retail sales, JOLTS, consumer confidence. Aim for 15-25 events.`;
+  // ── Step 2: LLM annotates with notes + consensus in background ──
   try {
-    const raw = await callLLM(sys, user, 2000, 0);
-    const events = repairAndParseJSON(raw);
-    if (!Array.isArray(events) || events.length < 5) throw new Error('invalid');
-    calCache = events.sort((a,b) => a.date.localeCompare(b.date));
-    calCacheTs = Date.now();
-    renderCalendar(calCache);
-  } catch(e) {
-    body.innerHTML = `<div style="padding:30px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--bear);">
-      ⚠ Failed to load calendar<br><br>
-      <button onclick="calCache=null;loadCalendar()" style="background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--font-mono);font-size:9px;padding:6px 16px;border-radius:3px;cursor:pointer;">↺ RETRY</button>
-    </div>`;
-  }
+    const eventSummary = deterministicEvents.map(e => `${e.date} ${e.name} (${e.country})`).join('\n');
+    const sys = 'You are a macro calendar analyst. Output only valid JSON arrays.';
+    const user = `For each of these known upcoming macro events, add a brief "note" (1 sentence why it matters for traders) and a "consensus" estimate where applicable. Return a JSON array with objects containing ONLY: date, note, consensus — do not change the dates or names.\n\nEvents:\n${eventSummary}\n\nReturn array length: ${deterministicEvents.length}`;
+    const raw = await callLLM(sys, user, 1500, 0);
+    const annotations = repairAndParseJSON(raw);
+    if (Array.isArray(annotations)) {
+      annotations.forEach(ann => {
+        const ev = calCache.find(e => e.date === ann.date && (!ann.name || e.name.includes(ann.name?.split(' ')[0])));
+        if (ev) { ev.note = ann.note || ev.note; ev.consensus = ann.consensus || ev.consensus; }
+      });
+      renderCalendar(calCache);
+    }
+  } catch(_) {} // annotations are optional — deterministic dates already rendered
 }
 function renderCalendar(events) {
   const body = document.getElementById('econ-cal-body');
@@ -10216,6 +10587,7 @@ const YF_TICKER = {
   WTI:'CL=F', BRENT:'BZ=F', NATGAS:'NG=F', RBOB:'RB=F', HOIL:'HO=F',
   // Metals
   GOLD:'GC=F', SILVER:'SI=F', PLAT:'PL=F', PALL:'PA=F', COPPER:'HG=F', ALUM:'ALI=F', NICKEL:'NIF=F',
+  ZINC:'ZNC=F', LEAD:'PB=F',
   // Agriculture & Softs
   CORN:'ZC=F', WHEAT:'ZW=F', SOYB:'ZS=F', COFFEE:'KC=F', SUGAR:'SB=F',
   COTTON:'CT=F', COCOA:'CC=F', CATTLE:'LE=F', HOGS:'HE=F', OJ:'OJ=F', LUMBER:'LBS=F',
@@ -10225,12 +10597,16 @@ const YF_TICKER = {
   // EM Asia
   CNY:'USDCNY=X', INR:'USDINR=X', KRW:'USDKRW=X', SGD:'USDSGD=X',
   HKD:'USDHKD=X', IDR:'USDIDR=X', MYR:'USDMYR=X', THB:'USDTHB=X', PHP:'USDPHP=X',
+  TWD:'USDTWD=X',
   // EM EMEA
   ZAR:'USDZAR=X', TRY:'USDTRY=X', RUB:'USDRUB=X', PLN:'USDPLN=X',
   HUF:'USDHUF=X', ILS:'USDILS=X', EGP:'USDEGP=X', NGN:'USDNGN=X',
   SAR:'USDSAR=X', AED:'USDAED=X', QAR:'USDQAR=X',
+  CZK:'USDCZK=X',
   // EM LatAm
   BRL:'USDBRL=X', MXN:'USDMXN=X', ARS:'USDARS=X', CLP:'USDCLP=X', COP:'USDCOP=X', PEN:'USDPEN=X',
+  // Market indicators (for mini-tickers)
+  DXY:'DX-Y.NYB', VIX:'^VIX', US10Y:'^TNX',
 };
 
 const _yfCache = {};
@@ -10241,12 +10617,15 @@ async function fetchYFOHLC(yfSym, range, interval) {
   if (_yfCache[key]) return _yfCache[key];
   if (_yfInFlight[key]) return _yfInFlight[key]; // reuse pending promise
   const _doFetch = (async () => {
-  const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yfSym)}?interval=${interval}&range=${range}&includePrePost=false&events=div,split`;
-  // Try two CORS proxies in sequence
+  const yfUrl1 = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yfSym)}?interval=${interval}&range=${range}&includePrePost=false&events=div,split`;
+  const yfUrl2 = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yfSym)}?interval=${interval}&range=${range}&includePrePost=false&events=div,split`;
+  // Try multiple CORS proxies; corsproxy.io last (may work in browser even if blocked server-side)
   const proxies = [
-    `https://corsproxy.io/?${yfUrl}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(yfUrl)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(yfUrl1)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(yfUrl2)}`,
+    `https://corsproxy.io/?${yfUrl1}`,
   ];
+  const yfUrl = yfUrl1; // kept for error message reference
   let json = null;
   for (const proxyUrl of proxies) {
     try {
@@ -10291,6 +10670,29 @@ async function fetchYFOHLC(yfSym, range, interval) {
   } finally {
     delete _yfInFlight[key];
   }
+}
+
+// ── fetchYFQuote: lightweight price + daily % change via last 2 closes ──
+const _yfQuoteCache = {};
+async function fetchYFQuote(yfSym) {
+  if (!yfSym) return null;
+  const cacheKey = yfSym + '|quote';
+  const hit = _yfQuoteCache[cacheKey];
+  if (hit && Date.now() - hit.ts < 10 * 60 * 1000) return hit.data;
+  try {
+    const bars = await fetchYFOHLC(yfSym, '5d', '1d');
+    if (!bars || bars.length < 2) return null;
+    const last = bars[bars.length - 1];
+    const prev = bars[bars.length - 2];
+    const price    = last.c ?? last.o ?? null;
+    const prevClose = prev.c ?? prev.o ?? null;
+    if (price == null || prevClose == null || prevClose === 0) return null;
+    const pct  = ((price - prevClose) / prevClose) * 100;
+    const date = last.t ? new Date(last.t * 1000).toISOString().slice(0, 10) : null;
+    const result = { price, pct, date };
+    _yfQuoteCache[cacheKey] = { data: result, ts: Date.now() };
+    return result;
+  } catch(_) { return null; }
 }
 
 // RESEARCH HUB
@@ -10686,42 +11088,67 @@ function commodPctColor(pct) {
   return              {bg:'#450a0a', text:'#f87171'};
 }
 
-async function loadCommodityHeat() {
+// Commodities with no reliable free Yahoo Finance futures data — use LLM for these
+const COMMOD_LLM_ONLY = new Set(['COAL', 'STEEL', 'RUBBER']);
 
+async function loadCommodityHeat() {
   if (commodLoading) return;
   commodLoading = true;
   const grid = document.getElementById('commod-grid');
   if (grid) grid.innerHTML = '<div class="commod-loading">⟳ Loading commodity data…</div>';
-  const symbols = COMMOD_DEFS.map(d => `${d.symbol}:${d.name}(${d.unit})`).join(', ');
-  const _commodToday = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const sys = 'You are a commodity market data provider. Output only valid JSON. No markdown, no code fences, no explanation.';
-  const usr = `Today is ${_commodToday}. Provide realistic current market price estimates for these ${COMMOD_DEFS.length} commodities as of today: ${symbols}. Use your most recent training knowledge — do not default to outdated training-memory prices.
-Return ONLY a valid JSON object in this exact format:
-{"data":[{"symbol":"WTI","price":78.42,"pct":1.23,"trend":"bullish"},{"symbol":"BRENT","price":82.10,"pct":0.95,"trend":"bullish"},...]}
-Rules:
-- data array must have exactly ${COMMOD_DEFS.length} objects in the same order as the input list
-- price: current realistic spot price in the commodity's native unit as of ${_commodToday}
-- pct: today's % change (positive or negative float)
-- trend: "bullish" | "bearish" | "neutral"`;
-  try {
-    const raw    = await callLLM(sys, usr, 800, 0);
-    const parsed = repairAndParseJSON(raw);
-    // Accept bare array, {"data":[...]}, {"commodities":[...]}, or any object whose first array value is the list
-    let arr = null;
-    if (Array.isArray(parsed)) {
-      arr = parsed;
-    } else if (parsed && typeof parsed === 'object') {
-      arr = Object.values(parsed).find(v => Array.isArray(v)) || null;
+
+  const withYF = COMMOD_DEFS.filter(d => YF_TICKER[d.symbol] && !COMMOD_LLM_ONLY.has(d.symbol));
+  const noYF   = COMMOD_DEFS.filter(d => !YF_TICKER[d.symbol] ||  COMMOD_LLM_ONLY.has(d.symbol));
+
+  // ── Step 1: Yahoo Finance real quotes for all supported commodities ──
+  const yfSettled = await Promise.allSettled(
+    withYF.map(def => fetchYFQuote(YF_TICKER[def.symbol]).then(q => ({ def, q })))
+  );
+
+  const realData = {};
+  let yfHits = 0;
+  yfSettled.forEach(res => {
+    if (res.status === 'fulfilled' && res.value?.q) {
+      const { def, q } = res.value;
+      realData[def.symbol] = {
+        ...def, price: q.price, pct: q.pct, _src: 'yf',
+        trend: q.pct > 0.2 ? 'bullish' : q.pct < -0.2 ? 'bearish' : 'neutral',
+      };
+      yfHits++;
     }
-    if (!arr || !arr.length) throw new Error('Invalid response format — expected array of commodity objects');
-    commodData = COMMOD_DEFS.map((def, i) => {
-      const ai = arr[i] || arr.find(x => x.symbol === def.symbol) || {};
-      return { ...def, price: +(ai.price) || 0, pct: +(ai.pct) || 0, trend: ai.trend || 'neutral' };
-    });
-    renderCommodityHeat();
-  } catch(e) {
-    if (grid) grid.innerHTML = `<div class="commod-empty">⚠ Failed to load — ${escHtml(e.message)}<br><button class="commod-retry-btn" onclick="loadCommodityHeat()">⟳ RETRY</button></div>`;
-  } finally { commodLoading = false; }
+  });
+
+  // ── Step 2: LLM only for COAL/STEEL/RUBBER + any YF failures ──
+  const needsLLM = [
+    ...noYF,
+    ...withYF.filter(d => !realData[d.symbol]),
+  ];
+  let llmData = {};
+  if (needsLLM.length > 0) {
+    try {
+      const _ct = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      const syms = needsLLM.map(d => `${d.symbol}:${d.name}(${d.unit})`).join(', ');
+      const sys = 'You are a commodity market data provider. Output only valid JSON. No markdown, no code fences.';
+      const usr = `Today is ${_ct}. Provide realistic current market price estimates ONLY for these ${needsLLM.length} commodities: ${syms}. JSON: {"data":[{"symbol":"COAL","price":0,"pct":0,"trend":"neutral"},...]}. Use latest available prices.`;
+      const raw = await callLLM(sys, usr, 400, 0);
+      const parsed = repairAndParseJSON(raw);
+      const arr = Array.isArray(parsed) ? parsed : (parsed && Object.values(parsed).find(v => Array.isArray(v)));
+      if (arr) arr.forEach(row => {
+        const def = needsLLM.find(d => d.symbol === row.symbol);
+        if (def && row.price) llmData[def.symbol] = { ...def, price: +row.price, pct: +row.pct || 0, trend: row.trend || 'neutral', _src: 'ai' };
+      });
+    } catch(_) {}
+  }
+
+  commodData = COMMOD_DEFS.map(def => realData[def.symbol] || llmData[def.symbol] || { ...def, price: 0, pct: 0, trend: 'neutral', _src: 'na' });
+
+  const srcLabel = yfHits >= 15 ? '📡 YF' : yfHits > 0 ? '📡 YF (partial)' : '⚠ AI';
+  const dateStr  = new Date().toISOString().slice(0, 10);
+  const badge    = document.getElementById('commod-data-badge');
+  if (badge) badge.textContent = `${srcLabel} · ${dateStr}`;
+
+  renderCommodityHeat();
+  commodLoading = false;
 }
 
 function renderCommodityHeat() {
@@ -11042,29 +11469,94 @@ function closeFx() {
   document.getElementById('fx-topbar-btn')?.classList.remove('nav-active');
 }
 
+// FX pairs that invert: price = 1/rate (quoted as X/USD not USD/X)
+const FX_INVERT = new Set(['EUR','GBP','AUD','NZD']);
+
 async function loadFxHeat() {
   fxLoading = true;
   const grid = document.getElementById('fx-grid');
-  if (grid) grid.innerHTML = '<div class="fx-loading-msg">⟳ Loading FX data via AI…</div>';
-  const symbols = FX_DEFS.map(d => `${d.symbol}(${d.quote})`).join(', ');
-  const _fxToday = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const sys  = 'You are an FX market data provider. Output only a raw JSON object {"data":[...]}. No markdown. No code fences. No trailing commas.';
-  const user = `Today is ${_fxToday}. Return realistic current FX market data for these currency pairs vs USD as of today: ${symbols}. Use your most recent training knowledge of exchange rates — do not default to outdated training-memory levels. For each return: symbol (3-letter code), price (number — the conventional quote rate, e.g. EUR/USD≈1.08, USD/JPY≈150), pct (number — today % change; positive = local currency strengthened vs USD), trend ("bullish"|"bearish"|"neutral"). Include all ${FX_DEFS.length} currencies.`;
-  try {
-    const raw  = await callLLM(sys, user, 900, 0);
-    const parsed = repairAndParseJSON(raw);
-    let arr = Array.isArray(parsed) ? parsed
-      : parsed && typeof parsed === 'object'
-        ? Object.values(parsed).find(v => Array.isArray(v)) || null
-        : null;
-    if (!arr || !arr.length) throw new Error('Model returned no currency data — try again');
-    fxData = arr;
-    renderFxHeat();
-  } catch(e) {
-    if (grid) grid.innerHTML = `<div class="fx-loading-msg" style="color:#ef4444">⚠ ${escHtml(e.message)}<br><br><span style="cursor:pointer;text-decoration:underline;color:#818cf8" onclick="fxData=[];loadFxHeat()">↺ try again</span></div>`;
-  } finally {
-    fxLoading = false;
+  if (grid) grid.innerHTML = '<div class="fx-loading-msg">⟳ Loading FX data…</div>';
+
+  // ── Step 1: Yahoo Finance real quotes for all pairs ──
+  const yfSettled = await Promise.allSettled(
+    FX_DEFS.map(def => {
+      const yfSym = YF_TICKER[def.symbol];
+      return yfSym ? fetchYFQuote(yfSym).then(q => ({ def, q })) : Promise.resolve({ def, q: null });
+    })
+  );
+
+  let filled = 0;
+  const newFxData = FX_DEFS.map((def, i) => {
+    const res = yfSettled[i];
+    if (res.status === 'fulfilled' && res.value?.q) {
+      filled++;
+      const { price, pct } = res.value.q;
+      return { symbol: def.symbol, price, pct,
+               trend: pct > 0.1 ? 'bullish' : pct < -0.1 ? 'bearish' : 'neutral', _src: 'yf' };
+    }
+    return null;
+  });
+
+  // ── Step 2: Frankfurter.app for any nulls (CORS-native, no proxy needed) ──
+  const missing = newFxData.map((d, i) => d === null ? i : -1).filter(i => i >= 0);
+  if (missing.length > 0) {
+    try {
+      const yday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      const [todayFx, yestFx] = await Promise.all([
+        fetch('https://api.frankfurter.app/latest?from=USD', {signal: AbortSignal.timeout(8000)}).then(r => r.json()),
+        fetch(`https://api.frankfurter.app/${yday}?from=USD`,  {signal: AbortSignal.timeout(8000)}).then(r => r.json()),
+      ]);
+      for (const i of missing) {
+        const def = FX_DEFS[i];
+        const rate = todayFx?.rates?.[def.symbol];
+        const prev = yestFx?.rates?.[def.symbol];
+        if (!rate) continue;
+        const inv   = FX_INVERT.has(def.symbol);
+        const price = inv ? 1 / rate : rate;
+        const prevP = prev ? (inv ? 1 / prev : prev) : price;
+        const pct   = prevP ? ((price - prevP) / prevP) * 100 : 0;
+        newFxData[i] = { symbol: def.symbol, price, pct,
+                         trend: pct > 0.1 ? 'bullish' : pct < -0.1 ? 'bearish' : 'neutral', _src: 'fkfr' };
+        filled++;
+      }
+    } catch(_) {}
   }
+
+  // ── Step 3: LLM for any still-missing pairs ──
+  const stillNull = newFxData.map((d, i) => d === null ? i : -1).filter(i => i >= 0);
+  if (stillNull.length > 0) {
+    try {
+      const missingSymbols = stillNull.map(i => `${FX_DEFS[i].symbol}(${FX_DEFS[i].quote})`).join(', ');
+      const _fxToday = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+      const sys  = 'You are an FX market data provider. Output only a raw JSON object {"data":[...]}. No markdown.';
+      const user = `Today is ${_fxToday}. Return realistic current FX rates vs USD for ONLY these pairs: ${missingSymbols}. JSON: {"data":[{"symbol":"XXX","price":0,"pct":0,"trend":"neutral"},...]}`;
+      const raw  = await callLLM(sys, user, 500, 0);
+      const parsed = repairAndParseJSON(raw);
+      const arr = Array.isArray(parsed) ? parsed : (parsed && Object.values(parsed).find(v => Array.isArray(v)));
+      if (arr) arr.forEach(row => {
+        const i = stillNull.find(i => FX_DEFS[i].symbol === row.symbol);
+        if (i !== undefined && row.price) {
+          newFxData[i] = { symbol: row.symbol, price: +row.price, pct: +row.pct || 0,
+                           trend: row.trend || 'neutral', _src: 'ai' };
+          filled++;
+        }
+      });
+    } catch(_) {}
+  }
+
+  if (filled > 0) {
+    fxData = newFxData.map((d, i) => d || { symbol: FX_DEFS[i].symbol, price: 0, pct: 0, trend: 'neutral', _src: 'na' });
+    const srcCounts = { yf: 0, fkfr: 0, ai: 0 };
+    fxData.forEach(d => { if (d._src && srcCounts[d._src] !== undefined) srcCounts[d._src]++; });
+    const srcLabel = srcCounts.yf > 20 ? '📡 YF' : srcCounts.fkfr > 10 ? '📡 ECB/Frankfurter' : '⚠ AI';
+    const dateStr  = new Date().toISOString().slice(0, 10);
+    const hdrBadge = document.getElementById('fx-data-badge');
+    if (hdrBadge) hdrBadge.textContent = `${srcLabel} · ${dateStr}`;
+    renderFxHeat();
+  } else {
+    if (grid) grid.innerHTML = `<div class="fx-loading-msg" style="color:#ef4444">⚠ Failed to load FX data<br><br><span style="cursor:pointer;text-decoration:underline;color:#818cf8" onclick="fxData=[];loadFxHeat()">↺ try again</span></div>`;
+  }
+  fxLoading = false;
 }
 
 function renderFxHeat() {
@@ -12360,6 +12852,12 @@ wireEventListeners();
 wireChartFsEvents();
 initMap();
 
+// Restore FRED key from previous session
+(function() {
+  const fk = storageGet('gmi_fred_key');
+  if (fk) { const inp = document.getElementById('fred-key-input'); if (inp) inp.value = fk; }
+})();
+
 // Restore API key from previous session (persisted on-device)
 (function() {
   const _k = storageGet('gmi_api_key');
@@ -12376,6 +12874,7 @@ initMap();
 })();
 
 loadTickers();
+refreshMacroContextFromWB(); // background: no-op if updated within 24h
 // Free mode: ticker refresh (key save handler starts it for paid users)
 if (!apiKey && !tickerTimer) {
   tickerTimer = setInterval(loadTickers, 300000);
